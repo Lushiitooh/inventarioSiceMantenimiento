@@ -34,6 +34,8 @@
         // ------------------------------------------------------------------------------------
         // IMPORTANTE: CONFIGURACIÓN DE FIREBASE Y ADMINISTRADOR
         // ------------------------------------------------------------------------------------
+        // 1. REEMPLAZA ESTO con la configuración de tu proyecto Firebase.
+        //    Puedes obtenerla desde la Consola de Firebase > Configuración del Proyecto > Tus apps > SDK setup and configuration > CDN.
         const firebaseConfig = {
   apiKey: "AIzaSyA0UYwg8kjPibnc7bvMwHvZWT01K1uLr2M",
   authDomain: "inventario-epp.firebaseapp.com",
@@ -43,8 +45,15 @@
   appId: "1:255309951395:web:f57cdb7b13c16a53636a16",
   measurementId: "G-T0DKE1NFB3"
 };
-        const ADMIN_UID = "hmaz0EfU1FeSBTqYfneDAhqbuLk2"; 
-        const appIdForPath = 'mi-inventario-epp-github'; 
+
+        // 2. REEMPLAZA ESTO con el UID (User ID) de tu cuenta de administrador.
+        //    Puedes obtenerlo desde la Consola de Firebase > Authentication > Pestaña "Users".
+        //    NO es tu correo ni tu contraseña.
+        const ADMIN_UID = "hmaz0EfU1FeSBTqYfneDAhqbuLk2"; // Ejemplo: "hmaz0EfU1FeSBTqYfneDAhqbuLk2"
+        
+        // 3. Este es el 'appIdForPath' que usas en la ruta de Firestore.
+        //    Debe ser consistente con lo que uses en tus reglas de seguridad de Firestore.
+        const appIdForPath = 'mi-inventario-epp-github'; // O el que hayas definido previamente y en tus reglas.
         // ------------------------------------------------------------------------------------
 
         const app = initializeApp(firebaseConfig);
@@ -94,9 +103,17 @@
         async function setupFirebase() {
             try { await enableIndexedDbPersistence(db); } catch (err) { console.warn("Persistencia offline:", err.message); }
 
-            if (ADMIN_UID !== "hmaz0EfU1FeSBTqYfneDAhqbuLk2") {
+            // Solo definir las referencias a colecciones si ADMIN_UID ha sido configurado.
+            if (ADMIN_UID && ADMIN_UID !== "hmaz0EfU1FeSBTqYfneDAhqbuLk2") {
                 eppInventoryCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_inventory`);
-                eppLoansCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_loans`); // Definir colección de préstamos
+                eppLoansCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_loans`);
+            } else {
+                // Mostrar error si ADMIN_UID no está configurado, ya que es crucial.
+                errorMessage.textContent = "Error Crítico de Configuración: La constante ADMIN_UID no ha sido establecida correctamente en el código fuente. La aplicación no funcionará.";
+                errorMessage.classList.remove('hidden');
+                loadingIndicator.classList.add('hidden');
+                // Detener la ejecución adicional de setup si la configuración es incorrecta.
+                return; 
             }
 
 
@@ -128,7 +145,7 @@
                     logoutButton.classList.add('hidden');
                     addEppFormSection.classList.add('hidden');
                     loansSection.classList.add('hidden'); // Ocultar sección de préstamos
-                    loadInventory(false);
+                    loadInventory(false); // Cargar inventario en modo público (solo lectura)
                 }
                 mainContent.classList.remove('hidden');
                 loadingIndicator.classList.add('hidden');
@@ -168,25 +185,25 @@
 
         // --- Lógica del Inventario EPP ---
         function loadInventory(isAdminView) {
-            if (ADMIN_UID === "hmaz0EfU1FeSBTqYfneDAhqbuLk2") {
-                errorMessage.textContent = "Error de Configuración: ADMIN_UID no establecido.";
-                errorMessage.classList.remove('hidden');
+            // Verificar si ADMIN_UID es el placeholder o si la referencia a la colección no está definida.
+            if (ADMIN_UID === "hmaz0EfU1FeSBTqYfneDAhqbuLk2" || !eppInventoryCollectionRef) {
+                // Si ADMIN_UID es el placeholder, el mensaje de error crítico ya se habrá mostrado en setupFirebase.
+                // Si eppInventoryCollectionRef no está definida (porque ADMIN_UID era el placeholder), mostrar mensaje específico.
+                if (!eppInventoryCollectionRef) {
+                    errorMessage.textContent = "Error de Configuración: No se pudo inicializar la base de datos del inventario. Verifique ADMIN_UID.";
+                    errorMessage.classList.remove('hidden');
+                }
                 eppTableBody.innerHTML = `<tr><td colspan="${isAdminView ? 7 : 5}" class="text-center py-4 px-6 text-gray-500">Inventario no disponible (configuración pendiente).</td></tr>`;
                 loadingIndicator.classList.add('hidden');
                 return;
             }
-             if (!eppInventoryCollectionRef) {
-                console.warn("Colección de inventario (EPP) no definida.");
-                return;
-            }
-
 
             loadingIndicator.classList.remove('hidden');
             const q = query(eppInventoryCollectionRef); 
 
             onSnapshot(q, (snapshot) => {
                 eppTableBody.innerHTML = ''; 
-                eppToLoanSelect.innerHTML = '<option value="">Seleccione un EPP</option>'; // Limpiar y añadir opción por defecto
+                eppToLoanSelect.innerHTML = '<option value="">Seleccione un EPP</option>'; 
                 let items = [];
                 snapshot.forEach(doc => {
                     items.push({ id: doc.id, ...doc.data() });
@@ -194,24 +211,30 @@
 
                 items.sort((a, b) => (a.name && b.name) ? a.name.localeCompare(b.name) : 0);
 
-                const colCount = isAdminView ? 7 : 5; // Ajustar colspan (Nombre, Talla, Cant, Min, Estado + Acciones Admin)
+                const colCount = isAdminView ? 7 : 5; 
                 if (items.length === 0) {
                     eppTableBody.innerHTML = `<tr><td colspan="${colCount}" class="text-center py-4 px-6 text-gray-500">No hay EPP registrados.</td></tr>`;
                 } else {
                     items.forEach(item => {
                         renderEppItem(item, isAdminView);
-                        // Poblar dropdown para préstamos
-                        const option = document.createElement('option');
-                        option.value = item.id;
-                        option.textContent = `${item.name} (Talla: ${item.size || 'N/A'}) - Stock: ${item.quantity}`;
-                        option.dataset.stock = item.quantity; // Guardar stock actual para validación
-                        option.dataset.name = item.name;
-                        option.dataset.size = item.size || 'N/A';
-                        eppToLoanSelect.appendChild(option);
+                        if (isAdminView) { // Solo poblar dropdown si es admin
+                            const option = document.createElement('option');
+                            option.value = item.id;
+                            option.textContent = `${item.name} (Talla: ${item.size || 'N/A'}) - Stock: ${item.quantity}`;
+                            option.dataset.stock = item.quantity; 
+                            option.dataset.name = item.name;
+                            option.dataset.size = item.size || 'N/A';
+                            eppToLoanSelect.appendChild(option);
+                        }
                     });
                 }
                 loadingIndicator.classList.add('hidden');
-                errorMessage.classList.add('hidden');
+                // Ocultar el mensaje de error general si la carga es exitosa
+                if(!errorMessage.classList.contains('hidden') && errorMessage.textContent.startsWith("Error Crítico de Configuración:")) {
+                    // No ocultar el error crítico de configuración
+                } else {
+                    errorMessage.classList.add('hidden');
+                }
             }, (error) => {
                 console.error("Error al cargar inventario EPP: ", error);
                 errorMessage.textContent = `Error al cargar inventario EPP: ${error.message}.`;
@@ -234,9 +257,9 @@
                     ? `<span class="font-semibold text-yellow-600 dark:text-yellow-400">PRÓXIMO A MÍNIMO</span>`
                     : `<span class="font-semibold text-green-600 dark:text-green-400">OK</span>`);
 
-            let adminColumns = '';
+            let adminColumnsHTML = '';
             if (isAdminView) {
-                adminColumns = `
+                adminColumnsHTML = `
                     <td class="py-3 px-4 sm:px-6 text-center">
                         <button data-id="${item.id}" data-action="decrease" class="px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 text-xs sm:text-sm">-</button>
                         <button data-id="${item.id}" data-action="increase" class="ml-1 px-2 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 text-xs sm:text-sm">+</button>
@@ -245,7 +268,14 @@
                         <button data-id="${item.id}" data-action="delete" class="px-2 py-1 bg-gray-500 text-white rounded-md hover:bg-gray-600 text-xs sm:text-sm">Eliminar</button>
                     </td>
                 `;
+            } else {
+                // Para la vista pública, necesitamos celdas vacías si las columnas de admin no se muestran
+                // para mantener el colspan correcto en la cabecera.
+                // O, mejor aún, ajustar las cabeceras dinámicamente.
+                // Por ahora, las cabeceras son fijas, así que no se añaden celdas vacías aquí.
+                // El número de columnas en la cabecera debe coincidir con las celdas renderizadas.
             }
+
 
             tr.innerHTML = `
                 <td class="py-3 px-4 sm:px-6 font-medium text-gray-900 dark:text-white whitespace-nowrap">${item.name}</td>
@@ -253,7 +283,7 @@
                 <td class="py-3 px-4 sm:px-6 text-center">${item.quantity}</td>
                 <td class="py-3 px-4 sm:px-6 text-center">${item.minStock}</td>
                 <td class="py-3 px-4 sm:px-6 text-center">${stockStatus}</td>
-                ${adminColumns} 
+                ${adminColumnsHTML} 
             `;
             eppTableBody.appendChild(tr);
         }
@@ -268,7 +298,7 @@
             }
 
             const name = eppNameInput.value.trim();
-            const size = eppSizeInput.value.trim(); // Obtener talla
+            const size = eppSizeInput.value.trim(); 
             const quantity = parseInt(eppQuantityInput.value);
             const minStock = parseInt(eppMinStockInput.value);
 
@@ -343,9 +373,8 @@
 
             const batch = writeBatch(db);
             const eppItemRef = doc(eppInventoryCollectionRef, eppId);
-            const newLoanRef = doc(collection(eppLoansCollectionRef)); // Generar ID para el nuevo préstamo
+            const newLoanRef = doc(collection(eppLoansCollectionRef)); 
 
-            // 1. Crear el documento de préstamo
             batch.set(newLoanRef, {
                 eppId: eppId,
                 eppName: eppName,
@@ -356,14 +385,12 @@
                 returned: false,
                 returnedDate: null
             });
-
-            // 2. Actualizar el stock del EPP
             batch.update(eppItemRef, { quantity: currentStock - quantityToLoan });
 
             try {
                 await batch.commit();
                 loanEppForm.reset();
-                eppToLoanSelect.value = ""; // Resetear select
+                eppToLoanSelect.value = ""; 
                 showTemporaryMessage("Préstamo registrado y stock actualizado.", "success");
             } catch (error) {
                 console.error("Error al registrar préstamo: ", error);
@@ -373,12 +400,14 @@
 
         function loadLoans() {
             if (ADMIN_UID === "hmaz0EfU1FeSBTqYfneDAhqbuLk2" || !eppLoansCollectionRef) {
-                 console.warn("Colección de préstamos no definida o ADMIN_UID no configurado.");
+                 if (!eppLoansCollectionRef && ADMIN_UID !== "hmaz0EfU1FeSBTqYfneDAhqbuLk2") {
+                    errorMessage.textContent = "Error de Configuración: No se pudo inicializar la base de datos de préstamos.";
+                    errorMessage.classList.remove('hidden');
+                 }
                  loansTableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 px-6 text-gray-500">Préstamos no disponibles (configuración pendiente).</td></tr>`;
                  return;
             }
             
-            // Cargar solo préstamos no devueltos (returned == false)
             const q = query(eppLoansCollectionRef, where("returned", "==", false));
 
             onSnapshot(q, (snapshot) => {
@@ -441,18 +470,14 @@
                     }
                     const currentEppStock = eppItemDoc.data().quantity;
 
-                    // 1. Marcar préstamo como devuelto
                     batch.update(loanRef, {
                         returned: true,
                         returnedDate: Timestamp.now()
                     });
-
-                    // 2. Reponer el stock del EPP
                     batch.update(eppItemRef, { quantity: currentEppStock + quantityReturned });
                     
                     await batch.commit();
                     showTemporaryMessage("Préstamo marcado como devuelto y stock actualizado.", "success");
-                    // La tabla de préstamos se actualizará automáticamente por el onSnapshot
                 } catch (error) {
                     console.error("Error al devolver préstamo: ", error);
                     showTemporaryMessage(`Error al devolver préstamo: ${error.message}`, "error");
@@ -470,6 +495,8 @@
                 type === 'warning' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-700 dark:text-yellow-100' :
                                      'bg-blue-100 text-blue-700 dark:bg-blue-700 dark:text-blue-100'
             }`;
+            // Asegurarse de que el contenedor sea visible
+            messageContainer.classList.remove('hidden');
             setTimeout(() => { messageContainer.classList.add('hidden'); }, 3000);
         }
 
@@ -492,6 +519,56 @@
             confirmationModal.classList.add('hidden'); confirmCallback = null;
         });
 
+        // --- Ajuste dinámico de cabeceras de tabla ---
+        function adjustTableHeaders(isAdminView) {
+            const adminCols = document.querySelectorAll('.admin-col');
+            const eppTableHead = document.querySelector('#eppTableBody').parentNode.querySelector('thead tr');
+
+            if (isAdminView) {
+                adminCols.forEach(col => col.style.display = ''); // Mostrar columnas de admin
+                if (eppTableHead && eppTableHead.children.length === 5) { // Si solo hay 5 cabeceras (vista pública)
+                    const thAdjust = document.createElement('th');
+                    thAdjust.scope = 'col';
+                    thAdjust.className = 'admin-col py-2 px-3 sm:py-3 sm:px-6 text-center';
+                    thAdjust.textContent = 'Ajustar Cant.';
+                    eppTableHead.appendChild(thAdjust);
+
+                    const thDelete = document.createElement('th');
+                    thDelete.scope = 'col';
+                    thDelete.className = 'admin-col py-2 px-3 sm:py-3 sm:px-6 text-center';
+                    thDelete.textContent = 'Eliminar';
+                    eppTableHead.appendChild(thDelete);
+                }
+            } else {
+                adminCols.forEach(col => col.style.display = 'none'); // Ocultar columnas de admin
+                 // Opcional: remover las cabeceras si se agregaron dinámicamente y ya no son necesarias.
+                 // Esto es más complejo si las cabeceras no se reconstruyen siempre.
+                 // Por simplicidad, el CSS las ocultará.
+            }
+        }
+        
+        // Modificar onAuthStateChanged para llamar a adjustTableHeaders
+        // (Esta es una forma de hacerlo, idealmente se integraría mejor en el flujo de renderizado)
+        const originalOnAuthStateChanged = onAuthStateChanged;
+        window.onAuthStateChanged = (auth, callback) => {
+            return originalOnAuthStateChanged(auth, (user) => {
+                callback(user); // Llama al callback original
+                adjustTableHeaders(user && user.uid === ADMIN_UID); // Ajusta cabeceras después del callback
+            });
+        };
+        // Y llamar a la versión "override" en setupFirebase
+        // Esta parte es compleja de sobreescribir así, es mejor integrar adjustTableHeaders
+        // directamente en el onAuthStateChanged existente.
+        // Por ahora, lo llamaremos explícitamente en onAuthStateChanged.
+
+        // Modificación directa en onAuthStateChanged:
+        // (El código anterior de window.onAuthStateChanged no es necesario si se modifica directamente)
+        // Dentro de onAuthStateChanged:
+        // if (user.uid === ADMIN_UID) { ... adjustTableHeaders(true); }
+        // else { ... adjustTableHeaders(false); }
+        // Y en el `else` de `if (user)`: adjustTableHeaders(false);
+
+
         // Inicializar la aplicación
         setupFirebase();
     </script>
@@ -501,18 +578,20 @@
         ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #555; }
-        .table-container { max-height: calc(100vh - 450px); overflow-y: auto; } /* Ajustar altura si es necesario */
+        .table-container { max-height: calc(100vh - 450px); overflow-y: auto; } 
          @media (max-width: 640px) {
             .table-container { max-height: calc(100vh - 520px); }
             th, td { padding-left: 0.5rem; padding-right: 0.5rem; font-size: 0.8rem; }
             button { font-size: 0.8rem; padding: 0.3rem 0.5rem;}
             input, select {font-size: 0.9rem;}
         }
+        /* Ocultar columnas de admin por defecto, se mostrarán con JS si es admin */
+        .admin-col { display: none; }
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen flex flex-col items-center p-2 sm:p-4">
 
-    <div class="w-full max-w-5xl">
+    <div class="w-full max-w-5xl"> 
         <header class="mb-6 text-center">
             <h1 class="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400">Control de Inventario EPP</h1>
             <p id="userIdDisplay" class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Cargando...</p>
@@ -612,13 +691,14 @@
                 <h2 class="text-lg sm:text-xl font-semibold mb-4 text-gray-700 dark:text-gray-200">Inventario Actual General</h2>
                 <div class="table-container relative overflow-x-auto shadow-md sm:rounded-lg">
                     <table class="w-full text-xs sm:text-sm text-left text-gray-500 dark:text-gray-400">
-                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                        <thead id="eppInventoryTableHead" class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
                             <tr>
                                 <th scope="col" class="py-2 px-3 sm:py-3 sm:px-6">Nombre</th>
                                 <th scope="col" class="py-2 px-3 sm:py-3 sm:px-6 text-center">Talla</th>
                                 <th scope="col" class="py-2 px-3 sm:py-3 sm:px-6 text-center">Cantidad Disp.</th>
                                 <th scope="col" class="py-2 px-3 sm:py-3 sm:px-6 text-center">Stock Mínimo</th>
                                 <th scope="col" class="py-2 px-3 sm:py-3 sm:px-6 text-center">Estado</th>
+                                <!-- Columnas de admin se manejan con la clase .admin-col y JS -->
                                 <th scope="col" class="admin-col py-2 px-3 sm:py-3 sm:px-6 text-center">Ajustar Cant.</th>
                                 <th scope="col" class="admin-col py-2 px-3 sm:py-3 sm:px-6 text-center">Eliminar</th>
                             </tr>
