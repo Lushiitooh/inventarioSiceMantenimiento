@@ -94,7 +94,7 @@
         async function setupFirebase() {
             try { await enableIndexedDbPersistence(db); } catch (err) { console.warn("Persistencia offline:", err.message); }
 
-            if (ADMIN_UID !== "PEGAR_AQUI_EL_UID_DEL_ADMINISTRADOR") {
+            if (ADMIN_UID !== "hmaz0EfU1FeSBTqYfneDAhqbuLk2") {
                 eppInventoryCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_inventory`);
                 eppLoansCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_loans`); // Definir colección de préstamos
             }
@@ -372,7 +372,7 @@
         });
 
         function loadLoans() {
-            if (ADMIN_UID === "PEGAR_AQUI_EL_UID_DEL_ADMINISTRADOR" || !eppLoansCollectionRef) {
+            if (ADMIN_UID === "hmaz0EfU1FeSBTqYfneDAhqbuLk2" || !eppLoansCollectionRef) {
                  console.warn("Colección de préstamos no definida o ADMIN_UID no configurado.");
                  loansTableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 px-6 text-gray-500">Préstamos no disponibles (configuración pendiente).</td></tr>`;
                  return;
