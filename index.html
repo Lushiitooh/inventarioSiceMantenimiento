@@ -49,7 +49,7 @@
         // 2. REEMPLAZA ESTO con el UID (User ID) de tu cuenta de administrador.
         //    Puedes obtenerlo desde la Consola de Firebase > Authentication > Pestaña "Users".
         //    NO es tu correo ni tu contraseña.
-        const ADMIN_UID = "hmaz0EfU1FeSBTqYfneDAhqbuLk2"; // Ejemplo: "hmaz0EfU1FeSBTqYfneDAhqbuLk2"
+        const ADMIN_UID = "hmaz0EfU1FeSBTqYfneDAhqbuLk2"; 
         
         // 3. Este es el 'appIdForPath' que usas en la ruta de Firestore.
         //    Debe ser consistente con lo que uses en tus reglas de seguridad de Firestore.
@@ -189,11 +189,10 @@
         // --- Lógica del Inventario EPP ---
         function loadInventory(isAdminView) {
             if (ADMIN_UID === "PEGAR_AQUI_EL_UID_DEL_ADMINISTRADOR" || !eppInventoryCollectionRef) {
-                if (!eppInventoryCollectionRef && ADMIN_UID !== "PEGAR_AQUI_EL_UID_DEL_ADMINISTRADOR") { // Solo mostrar este si ADMIN_UID está bien pero la ref falló por otra razón
+                if (!eppInventoryCollectionRef && ADMIN_UID !== "PEGAR_AQUI_EL_UID_DEL_ADMINISTRADOR") { 
                      errorMessage.textContent = "Error: No se pudo conectar a la base de datos del inventario.";
                      errorMessage.classList.remove('hidden');
                 }
-                // El mensaje de error crítico por ADMIN_UID incorrecto ya se muestra en setupFirebase
                 eppTableBody.innerHTML = `<tr><td colspan="${isAdminView ? 7 : 5}" class="text-center py-4 px-6 text-gray-500">Inventario no disponible (configuración pendiente o error de conexión).</td></tr>`;
                 loadingIndicator.classList.add('hidden');
                 return;
@@ -204,7 +203,7 @@
 
             onSnapshot(q, (snapshot) => {
                 eppTableBody.innerHTML = ''; 
-                if (isAdminView) { // Solo limpiar y poblar dropdown si es admin
+                if (isAdminView) { 
                     eppToLoanSelect.innerHTML = '<option value="">Seleccione un EPP</option>'; 
                 }
                 let items = [];
@@ -223,7 +222,7 @@
                         if (isAdminView) { 
                             const option = document.createElement('option');
                             option.value = item.id;
-                            option.textContent = `${item.name} (Talla: ${item.size || 'N/A'}) - Stock: ${item.quantity}`;
+                            option.textContent = `${item.name || 'Nombre Desconocido'} (Talla: ${item.size || 'N/A'}) - Stock: ${item.quantity !== undefined ? item.quantity : 'N/A'}`;
                             option.dataset.stock = item.quantity; 
                             option.dataset.name = item.name;
                             option.dataset.size = item.size || 'N/A';
@@ -272,10 +271,10 @@
 
 
             tr.innerHTML = `
-                <td class="py-3 px-4 sm:px-6 font-medium text-gray-900 dark:text-white whitespace-nowrap">${item.name}</td>
+                <td class="py-3 px-4 sm:px-6 font-medium text-gray-900 dark:text-white whitespace-nowrap">${item.name || 'Nombre Desconocido'}</td>
                 <td class="py-3 px-4 sm:px-6 text-center">${item.size || 'N/A'}</td>
-                <td class="py-3 px-4 sm:px-6 text-center">${item.quantity}</td>
-                <td class="py-3 px-4 sm:px-6 text-center">${item.minStock}</td>
+                <td class="py-3 px-4 sm:px-6 text-center">${item.quantity !== undefined ? item.quantity : 'N/A'}</td>
+                <td class="py-3 px-4 sm:px-6 text-center">${item.minStock !== undefined ? item.minStock : 'N/A'}</td>
                 <td class="py-3 px-4 sm:px-6 text-center">${stockStatus}</td>
                 ${adminColumnsHTML} 
             `;
@@ -345,14 +344,23 @@
         // --- Lógica de Préstamos ---
         loanEppForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            console.log("Registrar Préstamo: Botón presionado."); // Log 1
+
             if (!currentLoggedInUser || currentLoggedInUser.uid !== ADMIN_UID) {
-                showTemporaryMessage("Error: Sin permisos.", "error"); return;
+                showTemporaryMessage("Error: Sin permisos para registrar préstamo.", "error");
+                console.error("Registrar Préstamo: Permiso denegado.");
+                return;
             }
             if (!eppLoansCollectionRef || !eppInventoryCollectionRef) {
-                showTemporaryMessage("Error: Base de datos no lista.", "error"); return;
+                showTemporaryMessage("Error: Base de datos de préstamos o inventario no está lista.", "error");
+                console.error("Registrar Préstamo: Referencia a colección no lista.");
+                return;
             }
 
             const selectedOption = eppToLoanSelect.options[eppToLoanSelect.selectedIndex];
+            console.log("Registrar Préstamo: Opción seleccionada:", selectedOption); // Log 2
+            console.log("Registrar Préstamo: Dataset de opción seleccionada:", selectedOption.dataset); // Log 3
+
             const eppId = selectedOption.value;
             const eppName = selectedOption.dataset.name;
             const eppSize = selectedOption.dataset.size;
@@ -360,10 +368,40 @@
             const quantityToLoan = parseInt(loanQuantityInput.value);
             const loanedTo = loanedToInput.value.trim();
 
-            if (!eppId) { showTemporaryMessage("Seleccione un EPP.", "warning"); return; }
-            if (isNaN(quantityToLoan) || quantityToLoan <= 0) { showTemporaryMessage("Cantidad a prestar inválida.", "warning"); return; }
-            if (!loanedTo) { showTemporaryMessage("Ingrese a quién se presta.", "warning"); return; }
-            if (quantityToLoan > currentStock) { showTemporaryMessage(`Stock insuficiente. Disponible: ${currentStock}`, "error"); return; }
+            console.log("Registrar Préstamo: Detalles procesados:", { eppId, eppName, eppSize, currentStock, quantityToLoan, loanedTo }); // Log 4
+
+            if (!eppId) { 
+                showTemporaryMessage("Validación Préstamo: Seleccione un EPP.", "warning"); 
+                console.warn("Registrar Préstamo: Validación fallida - EPP ID faltante.");
+                return; 
+            }
+            if (typeof eppName === 'undefined' || typeof eppSize === 'undefined') {
+                showTemporaryMessage("Error de Datos Préstamo: Falta nombre o talla del EPP seleccionado. Verifique la consola.", "error");
+                console.error("Registrar Préstamo: Error de datos - eppName o eppSize indefinido desde dataset.", selectedOption.dataset);
+                return;
+            }
+            if (isNaN(quantityToLoan) || quantityToLoan <= 0) { 
+                showTemporaryMessage("Validación Préstamo: Cantidad a prestar inválida.", "warning"); 
+                console.warn("Registrar Préstamo: Validación fallida - Cantidad a prestar inválida:", loanQuantityInput.value);
+                return; 
+            }
+            if (!loanedTo) { 
+                showTemporaryMessage("Validación Préstamo: Ingrese a quién se presta.", "warning"); 
+                console.warn("Registrar Préstamo: Validación fallida - 'Prestado A' vacío.");
+                return; 
+            }
+             if (isNaN(currentStock)) {
+                showTemporaryMessage("Error de Datos Préstamo: Stock actual del EPP no es un número. Verifique la consola.", "error");
+                console.error("Registrar Préstamo: Error de datos - currentStock es NaN. Dataset stock:", selectedOption.dataset.stock);
+                return;
+            }
+            if (quantityToLoan > currentStock) { 
+                showTemporaryMessage(`Validación Préstamo: Stock insuficiente. Disponible: ${currentStock}, Préstamo: ${quantityToLoan}`, "error"); 
+                console.warn(`Registrar Préstamo: Validación fallida - Stock insuficiente. Stock: ${currentStock}, Préstamo: ${quantityToLoan}`);
+                return; 
+            }
+
+            console.log("Registrar Préstamo: Validaciones pasadas. Procediendo con la operación batch."); // Log 5
 
             const batch = writeBatch(db);
             const eppItemRef = doc(eppInventoryCollectionRef, eppId);
@@ -383,12 +421,13 @@
 
             try {
                 await batch.commit();
+                console.log("Registrar Préstamo: Batch commit exitoso."); // Log 6
                 loanEppForm.reset();
                 eppToLoanSelect.value = ""; 
                 showTemporaryMessage("Préstamo registrado y stock actualizado.", "success");
             } catch (error) {
-                console.error("Error al registrar préstamo: ", error);
-                showTemporaryMessage(`Error al registrar préstamo: ${error.message}`, "error");
+                console.error("Error al registrar préstamo (batch.commit fallido): ", error); // Log 7
+                showTemporaryMessage(`Error al registrar préstamo: ${error.message}. Verifique la consola.`, "error");
             }
         });
 
@@ -398,7 +437,6 @@
                     errorMessage.textContent = "Error de Configuración: No se pudo inicializar la base de datos de préstamos.";
                     errorMessage.classList.remove('hidden');
                  }
-                 // El mensaje de error crítico por ADMIN_UID incorrecto ya se muestra en setupFirebase
                  loansTableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 px-6 text-gray-500">Préstamos no disponibles (configuración pendiente o error de conexión).</td></tr>`;
                  return;
             }
