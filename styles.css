@@ -1,0 +1,50 @@
+/* Estilos generales del cuerpo del documento */
+body { 
+    font-family: 'Inter', sans-serif; 
+}
+
+/* Estilos para la barra de desplazamiento (scrollbar) en navegadores WebKit */
+::-webkit-scrollbar { 
+    width: 8px; /* Ancho de la barra de desplazamiento */
+}
+::-webkit-scrollbar-track { 
+    background: #f1f1f1; /* Color del riel de la barra */
+    border-radius: 10px; /* Bordes redondeados para el riel */
+}
+::-webkit-scrollbar-thumb { 
+    background: #888; /* Color del pulgar (la parte móvil) de la barra */
+    border-radius: 10px; /* Bordes redondeados para el pulgar */
+}
+::-webkit-scrollbar-thumb:hover { 
+    background: #555; /* Color del pulgar al pasar el mouse por encima */
+}
+
+/* Contenedor para las tablas con desplazamiento vertical */
+.table-container { 
+    max-height: calc(100vh - 450px); /* Altura máxima, ajustada para dejar espacio a otros elementos */
+    overflow-y: auto; /* Habilita el desplazamiento vertical si el contenido excede la altura máxima */
+} 
+
+/* Ajustes responsivos para pantallas pequeñas (hasta 640px de ancho) */
+ @media (max-width: 640px) {
+    .table-container { 
+        max-height: calc(100vh - 520px); /* Altura máxima ajustada para móviles */
+    }
+    th, td { 
+        padding-left: 0.5rem; /* Reduce el padding izquierdo y derecho en celdas de tabla */
+        padding-right: 0.5rem;
+        font-size: 0.8rem; /* Reduce el tamaño de la fuente en celdas */
+    }
+    button { 
+        font-size: 0.8rem; /* Reduce el tamaño de la fuente en botones */
+        padding: 0.3rem 0.5rem; /* Reduce el padding en botones */
+    }
+    input, select {
+        font-size: 0.9rem; /* Tamaño de fuente para inputs y selects */
+    }
+}
+
+/* Columnas de administrador: ocultas por defecto. Se mostrarán con JavaScript si el usuario es administrador. */
+.admin-col { 
+    display: none; 
+}
