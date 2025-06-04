@@ -35,8 +35,16 @@
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Configuración de Firebase (se obtendrá del entorno)
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "DEMO_API_KEY", authDomain: "DEMO_AUTH_DOMAIN", projectId: "DEMO_PROJECT_ID" };
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-epp-inventory-app';
+        const firebaseConfig = {
+  apiKey: "AIzaSyA0UYwg8kjPibnc7bvMwHvZWT01K1uLr2M",
+  authDomain: "inventario-epp.firebaseapp.com",
+  projectId: "inventario-epp",
+  storageBucket: "inventario-epp.firebasestorage.app",
+  messagingSenderId: "255309951395",
+  appId: "1:255309951395:web:f57cdb7b13c16a53636a16",
+  measurementId: "G-T0DKE1NFB3"
+};
+        const appId = 'mi-inventario-epp-github';
         
         // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
