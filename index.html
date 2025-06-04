@@ -11,8 +11,9 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { 
             getAuth, 
-            signInAnonymously, 
-            signInWithCustomToken, 
+            signInWithEmailAndPassword, // Para login de admin
+            createUserWithEmailAndPassword, // Opcional: para crear admin desde la app (no implementado aquí por simplicidad)
+            signOut, // Para logout
             onAuthStateChanged,
             setPersistence,
             browserLocalPersistence
@@ -28,130 +29,201 @@
             deleteDoc, 
             onSnapshot,
             query,
-            where,
-            orderBy, 
+            // where, // No se usa 'where' en esta versión para simplificar
+            // orderBy, // Ordenamiento se hace en cliente
             Timestamp,
             enableIndexedDbPersistence
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Configuración de Firebase (se obtendrá del entorno)
+        // ------------------------------------------------------------------------------------
+        // IMPORTANTE: CONFIGURACIÓN DE FIREBASE Y ADMINISTRADOR
+        // ------------------------------------------------------------------------------------
+        // 1. Reemplaza esto con la configuración de tu proyecto Firebase
         const firebaseConfig = {
-  apiKey: "AIzaSyA0UYwg8kjPibnc7bvMwHvZWT01K1uLr2M",
-  authDomain: "inventario-epp.firebaseapp.com",
-  projectId: "inventario-epp",
-  storageBucket: "inventario-epp.firebasestorage.app",
-  messagingSenderId: "255309951395",
-  appId: "1:255309951395:web:f57cdb7b13c16a53636a16",
-  measurementId: "G-T0DKE1NFB3"
-};
-        const appId = 'mi-inventario-epp-github';
-        
+            apiKey: "TU_API_KEY",
+            authDomain: "TU_AUTH_DOMAIN",
+            projectId: "TU_PROJECT_ID",
+            storageBucket: "TU_STORAGE_BUCKET",
+            messagingSenderId: "TU_MESSAGING_SENDER_ID",
+            appId: "TU_APP_ID",
+            measurementId: "TU_MEASUREMENT_ID" // Opcional
+        };
+
+        // 2. Reemplaza esto con el UID de tu cuenta de administrador
+        //    (Después de crearla en Firebase Authentication > Users)
+        const ADMIN_UID = "PEGAR_AQUI_EL_UID_DEL_ADMINISTRADOR"; 
+
+        // 3. Este es el 'appId' que usas en la ruta de Firestore.
+        //    Debe ser consistente con lo que uses en tus reglas de seguridad.
+        const appIdForPath = 'mi-inventario-epp-github'; // O el que hayas definido previamente
+        // ------------------------------------------------------------------------------------
+
         // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
         // Variables globales
-        let userId = null;
-        let eppInventoryCollection;
+        let currentLoggedInUser = null; // Guarda el objeto usuario si está logueado
+        let eppInventoryCollectionRef; // Referencia a la colección de Firestore
 
         // Elementos del DOM
+        const loginSection = document.getElementById('loginSection');
+        const loginForm = document.getElementById('loginForm');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const logoutButton = document.getElementById('logoutButton');
+        
+        const addEppFormSection = document.getElementById('addEppFormSection');
         const addEppForm = document.getElementById('addEppForm');
         const eppNameInput = document.getElementById('eppName');
         const eppQuantityInput = document.getElementById('eppQuantity');
         const eppMinStockInput = document.getElementById('eppMinStock');
+        
         const eppTableBody = document.getElementById('eppTableBody');
         const userIdDisplay = document.getElementById('userIdDisplay');
         const loadingIndicator = document.getElementById('loadingIndicator');
         const authStatus = document.getElementById('authStatus');
         const mainContent = document.getElementById('mainContent');
         const errorMessage = document.getElementById('errorMessage');
+        const loginError = document.getElementById('loginError');
 
         // --- Autenticación y Setup de Firestore ---
         async function setupFirebase() {
             try {
-                await enableIndexedDbPersistence(db); // Habilitar persistencia offline
+                await enableIndexedDbPersistence(db);
             } catch (err) {
                 if (err.code == 'failed-precondition') {
-                    console.warn("Persistencia offline: Múltiples pestañas abiertas, la persistencia puede no funcionar como se espera.");
+                    console.warn("Persistencia offline: Múltiples pestañas abiertas.");
                 } else if (err.code == 'unimplemented') {
-                    console.warn("Persistencia offline: El navegador actual no soporta persistencia offline.");
+                    console.warn("Persistencia offline: Navegador no compatible.");
                 }
             }
 
-            onAuthStateChanged(auth, async (user) => {
+            // Referencia a la colección de inventario del administrador
+            // Se usa ADMIN_UID para que todos (público y admin) lean del mismo sitio.
+            eppInventoryCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_inventory`);
+
+            onAuthStateChanged(auth, (user) => {
+                currentLoggedInUser = user; // Actualizar el usuario logueado globalmente
                 if (user) {
-                    userId = user.uid;
-                    userIdDisplay.textContent = `ID de Usuario: ${userId}`;
+                    userIdDisplay.textContent = `Logueado como: ${user.email}`;
                     authStatus.textContent = "Autenticado.";
                     authStatus.classList.remove('text-red-500');
                     authStatus.classList.add('text-green-500');
+                    loginSection.classList.add('hidden');
+                    logoutButton.classList.remove('hidden');
                     
-                    // Definir la colección después de obtener el userId
-                    eppInventoryCollection = collection(db, `artifacts/${appId}/users/${userId}/epp_inventory`);
-                    loadInventory(); // Cargar inventario una vez autenticado
-                    mainContent.classList.remove('hidden');
-                    loadingIndicator.classList.add('hidden');
-
+                    if (user.uid === ADMIN_UID) {
+                        // Es el Administrador
+                        addEppFormSection.classList.remove('hidden');
+                        loadInventory(true); // Cargar con controles de admin
+                    } else {
+                        // Logueado pero no es admin (no debería pasar con este setup simple)
+                        // Tratar como vista pública
+                        addEppFormSection.classList.add('hidden');
+                        loadInventory(false); // Cargar sin controles de admin
+                        showTemporaryMessage("Has iniciado sesión, pero esta cuenta no tiene permisos de administrador.", "warning");
+                    }
                 } else {
-                    userId = null;
-                    userIdDisplay.textContent = "ID de Usuario: No autenticado";
-                    authStatus.textContent = "Autenticando...";
+                    // No hay usuario logueado (Vista Pública)
+                    userIdDisplay.textContent = "Visitante";
+                    authStatus.textContent = "No autenticado.";
                     authStatus.classList.add('text-red-500');
                     authStatus.classList.remove('text-green-500');
-                    mainContent.classList.add('hidden');
-                    loadingIndicator.classList.remove('hidden');
-                    // Intentar autenticar
-                    try {
-                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                            await signInWithCustomToken(auth, __initial_auth_token);
-                        } else {
-                            await signInAnonymously(auth);
-                        }
-                    } catch (error) {
-                        console.error("Error de autenticación:", error);
-                        authStatus.textContent = "Error de autenticación.";
-                        errorMessage.textContent = `Error de autenticación: ${error.message}. Por favor, recarga la página.`;
-                        errorMessage.classList.remove('hidden');
-                        loadingIndicator.classList.add('hidden');
-                    }
+                    loginSection.classList.remove('hidden');
+                    logoutButton.classList.add('hidden');
+                    addEppFormSection.classList.add('hidden');
+                    loadInventory(false); // Cargar sin controles de admin
                 }
+                mainContent.classList.remove('hidden');
+                loadingIndicator.classList.add('hidden');
             });
+        }
+
+        // --- Manejo de Login/Logout ---
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            loginError.classList.add('hidden');
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                // onAuthStateChanged se encargará del resto
+                loginForm.reset();
+            } catch (error) {
+                console.error("Error de inicio de sesión:", error);
+                loginError.textContent = `Error: ${mapAuthError(error.code)}`;
+                loginError.classList.remove('hidden');
+            }
+        });
+
+        logoutButton.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                // onAuthStateChanged se encargará del resto
+            } catch (error) {
+                console.error("Error al cerrar sesión:", error);
+                showTemporaryMessage(`Error al cerrar sesión: ${error.message}`, "error");
+            }
+        });
+        
+        function mapAuthError(errorCode) {
+            switch (errorCode) {
+                case 'auth/invalid-email':
+                    return 'Formato de correo inválido.';
+                case 'auth/user-not-found':
+                case 'auth/wrong-password':
+                case 'auth/invalid-credential': // Nuevo código de error para credenciales incorrectas
+                    return 'Correo o contraseña incorrectos.';
+                default:
+                    return 'Error al intentar iniciar sesión.';
+            }
         }
 
 
         // --- Lógica del Inventario ---
-
-        // Cargar y mostrar el inventario
-        function loadInventory() {
-            if (!eppInventoryCollection) {
-                console.warn("Colección de inventario no definida. Esperando autenticación...");
+        function loadInventory(isAdminView) {
+            if (!eppInventoryCollectionRef) {
+                console.warn("Colección de inventario no definida.");
                 return;
             }
+            if (ADMIN_UID === "PEGAR_AQUI_EL_UID_DEL_ADMINISTRADOR") {
+                errorMessage.textContent = "Error de Configuración: El ADMIN_UID no ha sido establecido en el código. El administrador no podrá cargar datos.";
+                errorMessage.classList.remove('hidden');
+                if (!isAdminView) { // Si es vista pública y el admin no está configurado, no mostrar error, solo tabla vacía.
+                     eppTableBody.innerHTML = `<tr><td colspan="${isAdminView ? 6 : 4}" class="text-center py-4 px-6 text-gray-500">Inventario no disponible (configuración pendiente).</td></tr>`;
+                }
+                loadingIndicator.classList.add('hidden');
+                return;
+            }
+
             loadingIndicator.classList.remove('hidden');
             
-            const q = query(eppInventoryCollection); // No se usa orderBy para evitar necesidad de índices compuestos por defecto
+            const q = query(eppInventoryCollectionRef); 
 
             onSnapshot(q, (snapshot) => {
-                eppTableBody.innerHTML = ''; // Limpiar tabla antes de repintar
+                eppTableBody.innerHTML = ''; 
                 let items = [];
                 snapshot.forEach(doc => {
                     items.push({ id: doc.id, ...doc.data() });
                 });
 
-                // Ordenar en el cliente para evitar problemas de índices con Firestore
-                items.sort((a, b) => a.name.localeCompare(b.name));
+                items.sort((a, b) => {
+                    if (a.name && b.name) return a.name.localeCompare(b.name);
+                    return 0;
+                });
 
-
+                const colCount = isAdminView ? 6 : 4; // Ajustar colspan según la vista
                 if (items.length === 0) {
-                    eppTableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 px-6 text-gray-500">No hay EPP registrados.</td></tr>`;
+                    eppTableBody.innerHTML = `<tr><td colspan="${colCount}" class="text-center py-4 px-6 text-gray-500">No hay EPP registrados.</td></tr>`;
                 } else {
                     items.forEach(item => {
-                        renderEppItem(item);
+                        renderEppItem(item, isAdminView);
                     });
                 }
                 loadingIndicator.classList.add('hidden');
-                errorMessage.classList.add('hidden');
+                errorMessage.classList.add('hidden'); // Ocultar error si la carga es exitosa
             }, (error) => {
                 console.error("Error al cargar inventario: ", error);
                 errorMessage.textContent = `Error al cargar inventario: ${error.message}. Intenta recargar.`;
@@ -160,18 +232,16 @@
             });
         }
 
-        // Renderizar un item de EPP en la tabla
-        function renderEppItem(item) {
+        function renderEppItem(item, isAdminView) {
             const tr = document.createElement('tr');
             tr.classList.add('border-b', 'dark:border-gray-700');
             if (item.quantity <= item.minStock) {
                 tr.classList.add('bg-red-100', 'dark:bg-red-800/50');
-            } else if (item.quantity <= item.minStock + (item.minStock * 0.2)) { // Alerta temprana (ej. 20% sobre el mínimo)
+            } else if (item.quantity <= item.minStock + (item.minStock * 0.2)) { 
                 tr.classList.add('bg-yellow-100', 'dark:bg-yellow-800/50');
             } else {
                  tr.classList.add('bg-white', 'dark:bg-gray-800');
             }
-
 
             const stockStatus = item.quantity <= item.minStock 
                 ? `<span class="font-semibold text-red-600 dark:text-red-400">BAJO STOCK</span>`
@@ -179,27 +249,38 @@
                     ? `<span class="font-semibold text-yellow-600 dark:text-yellow-400">STOCK PRÓXIMO A MÍNIMO</span>`
                     : `<span class="font-semibold text-green-600 dark:text-green-400">OK</span>`);
 
+            let adminColumns = '';
+            if (isAdminView) {
+                adminColumns = `
+                    <td class="py-3 px-4 sm:px-6 text-center">
+                        <button data-id="${item.id}" data-action="decrease" class="px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm sm:text-base">-</button>
+                        <button data-id="${item.id}" data-action="increase" class="px-2 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm sm:text-base">+</button>
+                    </td>
+                    <td class="py-3 px-4 sm:px-6 text-center">
+                        <button data-id="${item.id}" data-action="delete" class="px-2 py-1 bg-gray-500 text-white rounded-md hover:bg-gray-600 text-sm sm:text-base">Eliminar</button>
+                    </td>
+                `;
+            }
+
             tr.innerHTML = `
                 <td class="py-3 px-4 sm:px-6 font-medium text-gray-900 dark:text-white whitespace-nowrap">${item.name}</td>
                 <td class="py-3 px-4 sm:px-6 text-center">${item.quantity}</td>
                 <td class="py-3 px-4 sm:px-6 text-center">${item.minStock}</td>
                 <td class="py-3 px-4 sm:px-6 text-center">${stockStatus}</td>
-                <td class="py-3 px-4 sm:px-6 text-center">
-                    <button data-id="${item.id}" data-action="decrease" class="px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm sm:text-base">-</button>
-                    <button data-id="${item.id}" data-action="increase" class="px-2 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm sm:text-base">+</button>
-                </td>
-                <td class="py-3 px-4 sm:px-6 text-center">
-                    <button data-id="${item.id}" data-action="delete" class="px-2 py-1 bg-gray-500 text-white rounded-md hover:bg-gray-600 text-sm sm:text-base">Eliminar</button>
-                </td>
+                ${adminColumns} 
             `;
             eppTableBody.appendChild(tr);
         }
 
-        // Agregar nuevo EPP
+        // Agregar nuevo EPP (solo si es admin)
         addEppForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!eppInventoryCollection) {
-                showTemporaryMessage("Error: La base de datos no está lista. Intenta de nuevo.", "error");
+            if (!currentLoggedInUser || currentLoggedInUser.uid !== ADMIN_UID) {
+                showTemporaryMessage("Error: No tienes permisos para realizar esta acción.", "error");
+                return;
+            }
+            if (!eppInventoryCollectionRef) {
+                showTemporaryMessage("Error: La base de datos no está lista.", "error");
                 return;
             }
 
@@ -209,11 +290,11 @@
 
             if (name && !isNaN(quantity) && quantity >= 0 && !isNaN(minStock) && minStock >= 0) {
                 try {
-                    await addDoc(eppInventoryCollection, {
+                    await addDoc(eppInventoryCollectionRef, {
                         name: name,
                         quantity: quantity,
                         minStock: minStock,
-                        createdAt: Timestamp.now() // Opcional: para ordenar por fecha de creación si se desea
+                        createdAt: Timestamp.now() 
                     });
                     addEppForm.reset();
                     showTemporaryMessage("EPP agregado exitosamente.", "success");
@@ -226,16 +307,21 @@
             }
         });
 
-        // Manejar acciones en la tabla (aumentar, disminuir, eliminar)
+        // Manejar acciones en la tabla (solo si es admin)
         eppTableBody.addEventListener('click', async (e) => {
             if (e.target.tagName === 'BUTTON') {
-                const action = e.target.dataset.action;
-                const id = e.target.dataset.id;
-                 if (!eppInventoryCollection) {
-                    showTemporaryMessage("Error: La base de datos no está lista. Intenta de nuevo.", "error");
+                if (!currentLoggedInUser || currentLoggedInUser.uid !== ADMIN_UID) {
+                    // No hacer nada si no es admin o no está logueado
                     return;
                 }
-                const itemRef = doc(eppInventoryCollection, id);
+
+                const action = e.target.dataset.action;
+                const id = e.target.dataset.id;
+                 if (!eppInventoryCollectionRef) {
+                    showTemporaryMessage("Error: La base de datos no está lista.", "error");
+                    return;
+                }
+                const itemRef = doc(eppInventoryCollectionRef, id);
 
                 try {
                     const itemDoc = await getDoc(itemRef);
@@ -254,7 +340,6 @@
                             showTemporaryMessage("La cantidad no puede ser menor que 0.", "warning");
                         }
                     } else if (action === 'delete') {
-                        // Implementar un modal de confirmación personalizado en lugar de window.confirm
                         showConfirmationModal(`¿Estás seguro de que quieres eliminar "${itemDoc.data().name}"?`, async () => {
                             await deleteDoc(itemRef);
                             showTemporaryMessage("EPP eliminado.", "success");
@@ -279,7 +364,7 @@
                 messageContainer.classList.add('bg-red-100', 'text-red-700');
             } else if (type === 'warning') {
                 messageContainer.classList.add('bg-yellow-100', 'text-yellow-700');
-            } else { // info
+            } else { 
                 messageContainer.classList.add('bg-blue-100', 'text-blue-700');
             }
             messageContainer.classList.remove('hidden');
@@ -314,45 +399,20 @@
             confirmCallback = null;
         });
 
-
         // Inicializar la aplicación
         setupFirebase();
 
     </script>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        /* Estilo para el scrollbar, opcional */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-        .table-container {
-            max-height: calc(100vh - 350px); /* Ajustar según la altura de otros elementos */
-            overflow-y: auto;
-        }
-         @media (max-width: 640px) { /* sm breakpoint */
-            .table-container {
-                 max-height: calc(100vh - 420px); /* Ajustar para móviles si el formulario ocupa más */
-            }
-            th, td {
-                padding-left: 0.5rem; /* Reducir padding en móviles */
-                padding-right: 0.5rem;
-            }
-            .actions-col button {
-                margin-bottom: 0.25rem; /* Espacio entre botones de acción en móviles si se apilan */
-            }
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        .table-container { max-height: calc(100vh - 400px); overflow-y: auto; }
+         @media (max-width: 640px) {
+            .table-container { max-height: calc(100vh - 480px); }
+            th, td { padding-left: 0.5rem; padding-right: 0.5rem; }
         }
     </style>
 </head>
@@ -361,39 +421,53 @@
     <div class="w-full max-w-4xl">
         <header class="mb-6 text-center">
             <h1 class="text-3xl font-bold text-blue-600 dark:text-blue-400">Control de Inventario EPP</h1>
-            <p id="userIdDisplay" class="text-sm text-gray-600 dark:text-gray-400 mt-1">ID de Usuario: Cargando...</p>
+            <p id="userIdDisplay" class="text-sm text-gray-600 dark:text-gray-400 mt-1">Cargando...</p>
             <p id="authStatus" class="text-sm mt-1">Estado: Inicializando...</p>
+            <button id="logoutButton" class="hidden mt-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm">Cerrar Sesión</button>
         </header>
 
-        <!-- Mensajes temporales y de error -->
-        <div id="messageContainer" class="hidden p-3 mb-4 text-sm rounded-lg" role="alert">
-            Mensaje aquí.
-        </div>
-        <div id="errorMessage" class="hidden p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800" role="alert">
-            Error persistente aquí.
-        </div>
-
-
-        <!-- Formulario para agregar EPP -->
-        <section id="mainContent" class="hidden">
-            <form id="addEppForm" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700 dark:text-gray-200">Agregar Nuevo EPP</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                        <label for="eppName" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nombre del EPP:</label>
-                        <input type="text" id="eppName" name="eppName" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Ej: Casco de seguridad">
-                    </div>
-                    <div>
-                        <label for="eppQuantity" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cantidad Inicial:</label>
-                        <input type="number" id="eppQuantity" name="eppQuantity" required min="0" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Ej: 50">
-                    </div>
-                    <div>
-                        <label for="eppMinStock" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Stock Mínimo:</label>
-                        <input type="number" id="eppMinStock" name="eppMinStock" required min="0" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Ej: 10">
-                    </div>
+        <!-- Sección de Login -->
+        <section id="loginSection" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8 max-w-md mx-auto">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700 dark:text-gray-200">Iniciar Sesión (Admin)</h2>
+            <form id="loginForm">
+                <div class="mb-4">
+                    <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Correo Electrónico:</label>
+                    <input type="email" id="email" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="tu@correo.com">
                 </div>
-                <button type="submit" class="mt-6 w-full sm:w-auto text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-700">Agregar EPP</button>
+                <div class="mb-4">
+                    <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Contraseña:</label>
+                    <input type="password" id="password" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="••••••••">
+                </div>
+                <div id="loginError" class="hidden p-3 mb-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-700 dark:text-red-100" role="alert"></div>
+                <button type="submit" class="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Ingresar</button>
             </form>
+        </section>
+
+        <div id="messageContainer" class="hidden p-3 mb-4 text-sm rounded-lg" role="alert"></div>
+        <div id="errorMessage" class="hidden p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800" role="alert"></div>
+
+        <div id="mainContent" class="hidden">
+            <!-- Formulario para agregar EPP (Solo Admin) -->
+            <section id="addEppFormSection" class="hidden bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700 dark:text-gray-200">Agregar Nuevo EPP</h2>
+                <form id="addEppForm">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label for="eppName" class="block mb-2 text-sm font-medium">Nombre:</label>
+                            <input type="text" id="eppName" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Casco">
+                        </div>
+                        <div>
+                            <label for="eppQuantity" class="block mb-2 text-sm font-medium">Cantidad:</label>
+                            <input type="number" id="eppQuantity" required min="0" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="50">
+                        </div>
+                        <div>
+                            <label for="eppMinStock" class="block mb-2 text-sm font-medium">Stock Mínimo:</label>
+                            <input type="number" id="eppMinStock" required min="0" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="10">
+                        </div>
+                    </div>
+                    <button type="submit" class="mt-6 w-full sm:w-auto text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Agregar EPP</button>
+                </form>
+            </section>
 
             <!-- Tabla de Inventario -->
             <section class="bg-white dark:bg-gray-800 p-2 sm:p-6 rounded-lg shadow-md">
@@ -406,20 +480,19 @@
                                 <th scope="col" class="py-3 px-4 sm:px-6 text-center">Cantidad</th>
                                 <th scope="col" class="py-3 px-4 sm:px-6 text-center">Stock Mínimo</th>
                                 <th scope="col" class="py-3 px-4 sm:px-6 text-center">Estado</th>
-                                <th scope="col" class="py-3 px-4 sm:px-6 text-center">Ajustar Cantidad</th>
-                                <th scope="col" class="py-3 px-4 sm:px-6 text-center">Acciones</th>
+                                <!-- Las siguientes columnas solo se mostrarán si es admin -->
+                                <th scope="col" class="admin-col py-3 px-4 sm:px-6 text-center">Ajustar Cantidad</th>
+                                <th scope="col" class="admin-col py-3 px-4 sm:px-6 text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="eppTableBody">
-                            <!-- Las filas del inventario se insertarán aquí por JavaScript -->
                              <tr><td colspan="6" class="text-center py-4 px-6 text-gray-500">Cargando inventario...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </section>
-        </section>
+        </div>
 
-        <!-- Indicador de carga inicial -->
         <div id="loadingIndicator" class="flex justify-center items-center mt-10">
             <svg class="animate-spin -ml-1 mr-3 h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -429,7 +502,6 @@
         </div>
     </div>
 
-    <!-- Modal de Confirmación -->
     <div id="confirmationModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full">
             <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white mb-2">Confirmar Acción</h3>
