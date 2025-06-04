@@ -103,13 +103,14 @@
         async function setupFirebase() {
             try { await enableIndexedDbPersistence(db); } catch (err) { console.warn("Persistencia offline:", err.message); }
 
-            // Solo definir las referencias a colecciones si ADMIN_UID ha sido configurado.
-            if (ADMIN_UID && ADMIN_UID !== "hmaz0EfU1FeSBTqYfneDAhqbuLk2") {
+            // Solo definir las referencias a colecciones si ADMIN_UID ha sido configurado
+            // y es DIFERENTE del valor placeholder original.
+            if (ADMIN_UID && ADMIN_UID !== "PEGAR_AQUI_EL_UID_DEL_ADMINISTRADOR") {
                 eppInventoryCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_inventory`);
                 eppLoansCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_loans`);
             } else {
-                // Mostrar error si ADMIN_UID no está configurado, ya que es crucial.
-                errorMessage.textContent = "Error Crítico de Configuración: La constante ADMIN_UID no ha sido establecida correctamente en el código fuente. La aplicación no funcionará.";
+                // Mostrar error si ADMIN_UID sigue siendo el placeholder o no está definido.
+                errorMessage.textContent = "Error Crítico de Configuración: La constante ADMIN_UID no ha sido establecida con tu UID real en el código fuente. Por favor, edita el archivo HTML y reemplaza 'PEGAR_AQUI_EL_UID_DEL_ADMINISTRADOR' con tu User ID de Firebase. La aplicación no funcionará correctamente.";
                 errorMessage.classList.remove('hidden');
                 loadingIndicator.classList.add('hidden');
                 // Detener la ejecución adicional de setup si la configuración es incorrecta.
@@ -119,6 +120,8 @@
 
             onAuthStateChanged(auth, (user) => {
                 currentLoggedInUser = user;
+                adjustAdminColumnsVisibility(user && user.uid === ADMIN_UID); // Ajustar visibilidad de columnas de admin
+
                 if (user) {
                     userIdDisplay.textContent = `Logueado como: ${user.email}`;
                     authStatus.textContent = "Autenticado.";
@@ -128,12 +131,12 @@
                     
                     if (user.uid === ADMIN_UID) {
                         addEppFormSection.classList.remove('hidden');
-                        loansSection.classList.remove('hidden'); // Mostrar sección de préstamos para admin
+                        loansSection.classList.remove('hidden'); 
                         loadInventory(true); 
-                        loadLoans(); // Cargar préstamos para admin
+                        loadLoans(); 
                     } else {
                         addEppFormSection.classList.add('hidden');
-                        loansSection.classList.add('hidden'); // Ocultar sección de préstamos
+                        loansSection.classList.add('hidden'); 
                         loadInventory(false);
                         showTemporaryMessage("Cuenta sin permisos de administrador.", "warning");
                     }
@@ -144,8 +147,8 @@
                     loginSection.classList.remove('hidden');
                     logoutButton.classList.add('hidden');
                     addEppFormSection.classList.add('hidden');
-                    loansSection.classList.add('hidden'); // Ocultar sección de préstamos
-                    loadInventory(false); // Cargar inventario en modo público (solo lectura)
+                    loansSection.classList.add('hidden'); 
+                    loadInventory(false); 
                 }
                 mainContent.classList.remove('hidden');
                 loadingIndicator.classList.add('hidden');
@@ -185,15 +188,13 @@
 
         // --- Lógica del Inventario EPP ---
         function loadInventory(isAdminView) {
-            // Verificar si ADMIN_UID es el placeholder o si la referencia a la colección no está definida.
-            if (ADMIN_UID === "hmaz0EfU1FeSBTqYfneDAhqbuLk2" || !eppInventoryCollectionRef) {
-                // Si ADMIN_UID es el placeholder, el mensaje de error crítico ya se habrá mostrado en setupFirebase.
-                // Si eppInventoryCollectionRef no está definida (porque ADMIN_UID era el placeholder), mostrar mensaje específico.
-                if (!eppInventoryCollectionRef) {
-                    errorMessage.textContent = "Error de Configuración: No se pudo inicializar la base de datos del inventario. Verifique ADMIN_UID.";
-                    errorMessage.classList.remove('hidden');
+            if (ADMIN_UID === "PEGAR_AQUI_EL_UID_DEL_ADMINISTRADOR" || !eppInventoryCollectionRef) {
+                if (!eppInventoryCollectionRef && ADMIN_UID !== "PEGAR_AQUI_EL_UID_DEL_ADMINISTRADOR") { // Solo mostrar este si ADMIN_UID está bien pero la ref falló por otra razón
+                     errorMessage.textContent = "Error: No se pudo conectar a la base de datos del inventario.";
+                     errorMessage.classList.remove('hidden');
                 }
-                eppTableBody.innerHTML = `<tr><td colspan="${isAdminView ? 7 : 5}" class="text-center py-4 px-6 text-gray-500">Inventario no disponible (configuración pendiente).</td></tr>`;
+                // El mensaje de error crítico por ADMIN_UID incorrecto ya se muestra en setupFirebase
+                eppTableBody.innerHTML = `<tr><td colspan="${isAdminView ? 7 : 5}" class="text-center py-4 px-6 text-gray-500">Inventario no disponible (configuración pendiente o error de conexión).</td></tr>`;
                 loadingIndicator.classList.add('hidden');
                 return;
             }
@@ -203,7 +204,9 @@
 
             onSnapshot(q, (snapshot) => {
                 eppTableBody.innerHTML = ''; 
-                eppToLoanSelect.innerHTML = '<option value="">Seleccione un EPP</option>'; 
+                if (isAdminView) { // Solo limpiar y poblar dropdown si es admin
+                    eppToLoanSelect.innerHTML = '<option value="">Seleccione un EPP</option>'; 
+                }
                 let items = [];
                 snapshot.forEach(doc => {
                     items.push({ id: doc.id, ...doc.data() });
@@ -217,7 +220,7 @@
                 } else {
                     items.forEach(item => {
                         renderEppItem(item, isAdminView);
-                        if (isAdminView) { // Solo poblar dropdown si es admin
+                        if (isAdminView) { 
                             const option = document.createElement('option');
                             option.value = item.id;
                             option.textContent = `${item.name} (Talla: ${item.size || 'N/A'}) - Stock: ${item.quantity}`;
@@ -229,10 +232,7 @@
                     });
                 }
                 loadingIndicator.classList.add('hidden');
-                // Ocultar el mensaje de error general si la carga es exitosa
-                if(!errorMessage.classList.contains('hidden') && errorMessage.textContent.startsWith("Error Crítico de Configuración:")) {
-                    // No ocultar el error crítico de configuración
-                } else {
+                if(!errorMessage.classList.contains('hidden') && !errorMessage.textContent.startsWith("Error Crítico de Configuración:")) {
                     errorMessage.classList.add('hidden');
                 }
             }, (error) => {
@@ -268,12 +268,6 @@
                         <button data-id="${item.id}" data-action="delete" class="px-2 py-1 bg-gray-500 text-white rounded-md hover:bg-gray-600 text-xs sm:text-sm">Eliminar</button>
                     </td>
                 `;
-            } else {
-                // Para la vista pública, necesitamos celdas vacías si las columnas de admin no se muestran
-                // para mantener el colspan correcto en la cabecera.
-                // O, mejor aún, ajustar las cabeceras dinámicamente.
-                // Por ahora, las cabeceras son fijas, así que no se añaden celdas vacías aquí.
-                // El número de columnas en la cabecera debe coincidir con las celdas renderizadas.
             }
 
 
@@ -399,12 +393,13 @@
         });
 
         function loadLoans() {
-            if (ADMIN_UID === "hmaz0EfU1FeSBTqYfneDAhqbuLk2" || !eppLoansCollectionRef) {
-                 if (!eppLoansCollectionRef && ADMIN_UID !== "hmaz0EfU1FeSBTqYfneDAhqbuLk2") {
+            if (ADMIN_UID === "PEGAR_AQUI_EL_UID_DEL_ADMINISTRADOR" || !eppLoansCollectionRef) {
+                 if (!eppLoansCollectionRef && ADMIN_UID !== "PEGAR_AQUI_EL_UID_DEL_ADMINISTRADOR") { 
                     errorMessage.textContent = "Error de Configuración: No se pudo inicializar la base de datos de préstamos.";
                     errorMessage.classList.remove('hidden');
                  }
-                 loansTableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 px-6 text-gray-500">Préstamos no disponibles (configuración pendiente).</td></tr>`;
+                 // El mensaje de error crítico por ADMIN_UID incorrecto ya se muestra en setupFirebase
+                 loansTableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 px-6 text-gray-500">Préstamos no disponibles (configuración pendiente o error de conexión).</td></tr>`;
                  return;
             }
             
@@ -495,7 +490,6 @@
                 type === 'warning' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-700 dark:text-yellow-100' :
                                      'bg-blue-100 text-blue-700 dark:bg-blue-700 dark:text-blue-100'
             }`;
-            // Asegurarse de que el contenedor sea visible
             messageContainer.classList.remove('hidden');
             setTimeout(() => { messageContainer.classList.add('hidden'); }, 3000);
         }
@@ -519,56 +513,14 @@
             confirmationModal.classList.add('hidden'); confirmCallback = null;
         });
 
-        // --- Ajuste dinámico de cabeceras de tabla ---
-        function adjustTableHeaders(isAdminView) {
+        // --- Ajuste dinámico de visibilidad de columnas de admin ---
+        function adjustAdminColumnsVisibility(isAdminView) {
             const adminCols = document.querySelectorAll('.admin-col');
-            const eppTableHead = document.querySelector('#eppTableBody').parentNode.querySelector('thead tr');
-
-            if (isAdminView) {
-                adminCols.forEach(col => col.style.display = ''); // Mostrar columnas de admin
-                if (eppTableHead && eppTableHead.children.length === 5) { // Si solo hay 5 cabeceras (vista pública)
-                    const thAdjust = document.createElement('th');
-                    thAdjust.scope = 'col';
-                    thAdjust.className = 'admin-col py-2 px-3 sm:py-3 sm:px-6 text-center';
-                    thAdjust.textContent = 'Ajustar Cant.';
-                    eppTableHead.appendChild(thAdjust);
-
-                    const thDelete = document.createElement('th');
-                    thDelete.scope = 'col';
-                    thDelete.className = 'admin-col py-2 px-3 sm:py-3 sm:px-6 text-center';
-                    thDelete.textContent = 'Eliminar';
-                    eppTableHead.appendChild(thDelete);
-                }
-            } else {
-                adminCols.forEach(col => col.style.display = 'none'); // Ocultar columnas de admin
-                 // Opcional: remover las cabeceras si se agregaron dinámicamente y ya no son necesarias.
-                 // Esto es más complejo si las cabeceras no se reconstruyen siempre.
-                 // Por simplicidad, el CSS las ocultará.
-            }
+            adminCols.forEach(col => {
+                col.style.display = isAdminView ? '' : 'none';
+            });
         }
         
-        // Modificar onAuthStateChanged para llamar a adjustTableHeaders
-        // (Esta es una forma de hacerlo, idealmente se integraría mejor en el flujo de renderizado)
-        const originalOnAuthStateChanged = onAuthStateChanged;
-        window.onAuthStateChanged = (auth, callback) => {
-            return originalOnAuthStateChanged(auth, (user) => {
-                callback(user); // Llama al callback original
-                adjustTableHeaders(user && user.uid === ADMIN_UID); // Ajusta cabeceras después del callback
-            });
-        };
-        // Y llamar a la versión "override" en setupFirebase
-        // Esta parte es compleja de sobreescribir así, es mejor integrar adjustTableHeaders
-        // directamente en el onAuthStateChanged existente.
-        // Por ahora, lo llamaremos explícitamente en onAuthStateChanged.
-
-        // Modificación directa en onAuthStateChanged:
-        // (El código anterior de window.onAuthStateChanged no es necesario si se modifica directamente)
-        // Dentro de onAuthStateChanged:
-        // if (user.uid === ADMIN_UID) { ... adjustTableHeaders(true); }
-        // else { ... adjustTableHeaders(false); }
-        // Y en el `else` de `if (user)`: adjustTableHeaders(false);
-
-
         // Inicializar la aplicación
         setupFirebase();
     </script>
