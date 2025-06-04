@@ -49,7 +49,7 @@
         // 2. REEMPLAZA ESTO con el UID (User ID) de tu cuenta de administrador.
         //    Puedes obtenerlo desde la Consola de Firebase > Authentication > Pestaña "Users".
         //    NO es tu correo ni tu contraseña.
-        const ADMIN_UID = "hmaz0EfU1FeSBTqYfneDAhqbuLk2"; 
+        const ADMIN_UID = "hmaz0EfU1FeSBTqYfneDAhqbuLk2"; // Ejemplo: "hmaz0EfU1FeSBTqYfneDAhqbuLk2"
         
         // 3. Este es el 'appIdForPath' que usas en la ruta de Firestore.
         //    Debe ser consistente con lo que uses en tus reglas de seguridad de Firestore.
@@ -405,7 +405,8 @@
 
             const batch = writeBatch(db);
             const eppItemRef = doc(eppInventoryCollectionRef, eppId);
-            const newLoanRef = doc(collection(eppLoansCollectionRef)); 
+            // CORRECCIÓN: Para generar un ID automático para un nuevo documento en eppLoansCollectionRef
+            const newLoanRef = doc(eppLoansCollectionRef); 
 
             batch.set(newLoanRef, {
                 eppId: eppId,
