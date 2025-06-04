@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Inventario EPP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script type="module">
+        // Importaciones de Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            signInAnonymously, 
+            signInWithCustomToken, 
+            onAuthStateChanged,
+            setPersistence,
+            browserLocalPersistence
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            doc, 
+            getDoc, 
+            setDoc,
+            updateDoc, 
+            deleteDoc, 
+            onSnapshot,
+            query,
+            where,
+            orderBy, 
+            Timestamp,
+            enableIndexedDbPersistence
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Configuración de Firebase (se obtendrá del entorno)
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "DEMO_API_KEY", authDomain: "DEMO_AUTH_DOMAIN", projectId: "DEMO_PROJECT_ID" };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-epp-inventory-app';
+        
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Variables globales
+        let userId = null;
+        let eppInventoryCollection;
+
+        // Elementos del DOM
+        const addEppForm = document.getElementById('addEppForm');
+        const eppNameInput = document.getElementById('eppName');
+        const eppQuantityInput = document.getElementById('eppQuantity');
+        const eppMinStockInput = document.getElementById('eppMinStock');
+        const eppTableBody = document.getElementById('eppTableBody');
+        const userIdDisplay = document.getElementById('userIdDisplay');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const authStatus = document.getElementById('authStatus');
+        const mainContent = document.getElementById('mainContent');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // --- Autenticación y Setup de Firestore ---
+        async function setupFirebase() {
+            try {
+                await enableIndexedDbPersistence(db); // Habilitar persistencia offline
+            } catch (err) {
+                if (err.code == 'failed-precondition') {
+                    console.warn("Persistencia offline: Múltiples pestañas abiertas, la persistencia puede no funcionar como se espera.");
+                } else if (err.code == 'unimplemented') {
+                    console.warn("Persistencia offline: El navegador actual no soporta persistencia offline.");
+                }
+            }
+
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    userId = user.uid;
+                    userIdDisplay.textContent = `ID de Usuario: ${userId}`;
+                    authStatus.textContent = "Autenticado.";
+                    authStatus.classList.remove('text-red-500');
+                    authStatus.classList.add('text-green-500');
+                    
+                    // Definir la colección después de obtener el userId
+                    eppInventoryCollection = collection(db, `artifacts/${appId}/users/${userId}/epp_inventory`);
+                    loadInventory(); // Cargar inventario una vez autenticado
+                    mainContent.classList.remove('hidden');
+                    loadingIndicator.classList.add('hidden');
+
+                } else {
+                    userId = null;
+                    userIdDisplay.textContent = "ID de Usuario: No autenticado";
+                    authStatus.textContent = "Autenticando...";
+                    authStatus.classList.add('text-red-500');
+                    authStatus.classList.remove('text-green-500');
+                    mainContent.classList.add('hidden');
+                    loadingIndicator.classList.remove('hidden');
+                    // Intentar autenticar
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    } catch (error) {
+                        console.error("Error de autenticación:", error);
+                        authStatus.textContent = "Error de autenticación.";
+                        errorMessage.textContent = `Error de autenticación: ${error.message}. Por favor, recarga la página.`;
+                        errorMessage.classList.remove('hidden');
+                        loadingIndicator.classList.add('hidden');
+                    }
+                }
+            });
+        }
+
+
+        // --- Lógica del Inventario ---
+
+        // Cargar y mostrar el inventario
+        function loadInventory() {
+            if (!eppInventoryCollection) {
+                console.warn("Colección de inventario no definida. Esperando autenticación...");
+                return;
+            }
+            loadingIndicator.classList.remove('hidden');
+            
+            const q = query(eppInventoryCollection); // No se usa orderBy para evitar necesidad de índices compuestos por defecto
+
+            onSnapshot(q, (snapshot) => {
+                eppTableBody.innerHTML = ''; // Limpiar tabla antes de repintar
+                let items = [];
+                snapshot.forEach(doc => {
+                    items.push({ id: doc.id, ...doc.data() });
+                });
+
+                // Ordenar en el cliente para evitar problemas de índices con Firestore
+                items.sort((a, b) => a.name.localeCompare(b.name));
+
+
+                if (items.length === 0) {
+                    eppTableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 px-6 text-gray-500">No hay EPP registrados.</td></tr>`;
+                } else {
+                    items.forEach(item => {
+                        renderEppItem(item);
+                    });
+                }
+                loadingIndicator.classList.add('hidden');
+                errorMessage.classList.add('hidden');
+            }, (error) => {
+                console.error("Error al cargar inventario: ", error);
+                errorMessage.textContent = `Error al cargar inventario: ${error.message}. Intenta recargar.`;
+                errorMessage.classList.remove('hidden');
+                loadingIndicator.classList.add('hidden');
+            });
+        }
+
+        // Renderizar un item de EPP en la tabla
+        function renderEppItem(item) {
+            const tr = document.createElement('tr');
+            tr.classList.add('border-b', 'dark:border-gray-700');
+            if (item.quantity <= item.minStock) {
+                tr.classList.add('bg-red-100', 'dark:bg-red-800/50');
+            } else if (item.quantity <= item.minStock + (item.minStock * 0.2)) { // Alerta temprana (ej. 20% sobre el mínimo)
+                tr.classList.add('bg-yellow-100', 'dark:bg-yellow-800/50');
+            } else {
+                 tr.classList.add('bg-white', 'dark:bg-gray-800');
+            }
+
+
+            const stockStatus = item.quantity <= item.minStock 
+                ? `<span class="font-semibold text-red-600 dark:text-red-400">BAJO STOCK</span>`
+                : (item.quantity <= item.minStock + (item.minStock * 0.2) 
+                    ? `<span class="font-semibold text-yellow-600 dark:text-yellow-400">STOCK PRÓXIMO A MÍNIMO</span>`
+                    : `<span class="font-semibold text-green-600 dark:text-green-400">OK</span>`);
+
+            tr.innerHTML = `
+                <td class="py-3 px-4 sm:px-6 font-medium text-gray-900 dark:text-white whitespace-nowrap">${item.name}</td>
+                <td class="py-3 px-4 sm:px-6 text-center">${item.quantity}</td>
+                <td class="py-3 px-4 sm:px-6 text-center">${item.minStock}</td>
+                <td class="py-3 px-4 sm:px-6 text-center">${stockStatus}</td>
+                <td class="py-3 px-4 sm:px-6 text-center">
+                    <button data-id="${item.id}" data-action="decrease" class="px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm sm:text-base">-</button>
+                    <button data-id="${item.id}" data-action="increase" class="px-2 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm sm:text-base">+</button>
+                </td>
+                <td class="py-3 px-4 sm:px-6 text-center">
+                    <button data-id="${item.id}" data-action="delete" class="px-2 py-1 bg-gray-500 text-white rounded-md hover:bg-gray-600 text-sm sm:text-base">Eliminar</button>
+                </td>
+            `;
+            eppTableBody.appendChild(tr);
+        }
+
+        // Agregar nuevo EPP
+        addEppForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!eppInventoryCollection) {
+                showTemporaryMessage("Error: La base de datos no está lista. Intenta de nuevo.", "error");
+                return;
+            }
+
+            const name = eppNameInput.value.trim();
+            const quantity = parseInt(eppQuantityInput.value);
+            const minStock = parseInt(eppMinStockInput.value);
+
+            if (name && !isNaN(quantity) && quantity >= 0 && !isNaN(minStock) && minStock >= 0) {
+                try {
+                    await addDoc(eppInventoryCollection, {
+                        name: name,
+                        quantity: quantity,
+                        minStock: minStock,
+                        createdAt: Timestamp.now() // Opcional: para ordenar por fecha de creación si se desea
+                    });
+                    addEppForm.reset();
+                    showTemporaryMessage("EPP agregado exitosamente.", "success");
+                } catch (error) {
+                    console.error("Error al agregar EPP: ", error);
+                    showTemporaryMessage(`Error al agregar EPP: ${error.message}`, "error");
+                }
+            } else {
+                showTemporaryMessage("Por favor, ingresa datos válidos.", "error");
+            }
+        });
+
+        // Manejar acciones en la tabla (aumentar, disminuir, eliminar)
+        eppTableBody.addEventListener('click', async (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                const action = e.target.dataset.action;
+                const id = e.target.dataset.id;
+                 if (!eppInventoryCollection) {
+                    showTemporaryMessage("Error: La base de datos no está lista. Intenta de nuevo.", "error");
+                    return;
+                }
+                const itemRef = doc(eppInventoryCollection, id);
+
+                try {
+                    const itemDoc = await getDoc(itemRef);
+                    if (!itemDoc.exists()) {
+                        showTemporaryMessage("Error: El item no existe.", "error");
+                        return;
+                    }
+                    const currentQuantity = itemDoc.data().quantity;
+
+                    if (action === 'increase') {
+                        await updateDoc(itemRef, { quantity: currentQuantity + 1 });
+                    } else if (action === 'decrease') {
+                        if (currentQuantity > 0) {
+                            await updateDoc(itemRef, { quantity: currentQuantity - 1 });
+                        } else {
+                            showTemporaryMessage("La cantidad no puede ser menor que 0.", "warning");
+                        }
+                    } else if (action === 'delete') {
+                        // Implementar un modal de confirmación personalizado en lugar de window.confirm
+                        showConfirmationModal(`¿Estás seguro de que quieres eliminar "${itemDoc.data().name}"?`, async () => {
+                            await deleteDoc(itemRef);
+                            showTemporaryMessage("EPP eliminado.", "success");
+                        });
+                    }
+                } catch (error) {
+                    console.error(`Error al ${action} EPP: `, error);
+                    showTemporaryMessage(`Error al procesar la acción: ${error.message}`, "error");
+                }
+            }
+        });
+        
+        // --- Utilidades ---
+        const messageContainer = document.getElementById('messageContainer');
+        function showTemporaryMessage(message, type = 'info') {
+            messageContainer.textContent = message;
+            messageContainer.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700', 'bg-yellow-100', 'text-yellow-700', 'bg-blue-100', 'text-blue-700');
+            
+            if (type === 'success') {
+                messageContainer.classList.add('bg-green-100', 'text-green-700');
+            } else if (type === 'error') {
+                messageContainer.classList.add('bg-red-100', 'text-red-700');
+            } else if (type === 'warning') {
+                messageContainer.classList.add('bg-yellow-100', 'text-yellow-700');
+            } else { // info
+                messageContainer.classList.add('bg-blue-100', 'text-blue-700');
+            }
+            messageContainer.classList.remove('hidden');
+
+            setTimeout(() => {
+                messageContainer.classList.add('hidden');
+            }, 3000);
+        }
+
+        const confirmationModal = document.getElementById('confirmationModal');
+        const confirmationMessage = document.getElementById('confirmationMessage');
+        const confirmButton = document.getElementById('confirmButton');
+        const cancelButton = document.getElementById('cancelButton');
+        let confirmCallback = null;
+
+        function showConfirmationModal(message, callback) {
+            confirmationMessage.textContent = message;
+            confirmCallback = callback;
+            confirmationModal.classList.remove('hidden');
+        }
+
+        confirmButton.addEventListener('click', () => {
+            if (confirmCallback) {
+                confirmCallback();
+            }
+            confirmationModal.classList.add('hidden');
+            confirmCallback = null;
+        });
+
+        cancelButton.addEventListener('click', () => {
+            confirmationModal.classList.add('hidden');
+            confirmCallback = null;
+        });
+
+
+        // Inicializar la aplicación
+        setupFirebase();
+
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Estilo para el scrollbar, opcional */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        .table-container {
+            max-height: calc(100vh - 350px); /* Ajustar según la altura de otros elementos */
+            overflow-y: auto;
+        }
+         @media (max-width: 640px) { /* sm breakpoint */
+            .table-container {
+                 max-height: calc(100vh - 420px); /* Ajustar para móviles si el formulario ocupa más */
+            }
+            th, td {
+                padding-left: 0.5rem; /* Reducir padding en móviles */
+                padding-right: 0.5rem;
+            }
+            .actions-col button {
+                margin-bottom: 0.25rem; /* Espacio entre botones de acción en móviles si se apilan */
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen flex flex-col items-center p-4">
+
+    <div class="w-full max-w-4xl">
+        <header class="mb-6 text-center">
+            <h1 class="text-3xl font-bold text-blue-600 dark:text-blue-400">Control de Inventario EPP</h1>
+            <p id="userIdDisplay" class="text-sm text-gray-600 dark:text-gray-400 mt-1">ID de Usuario: Cargando...</p>
+            <p id="authStatus" class="text-sm mt-1">Estado: Inicializando...</p>
+        </header>
+
+        <!-- Mensajes temporales y de error -->
+        <div id="messageContainer" class="hidden p-3 mb-4 text-sm rounded-lg" role="alert">
+            Mensaje aquí.
+        </div>
+        <div id="errorMessage" class="hidden p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800" role="alert">
+            Error persistente aquí.
+        </div>
+
+
+        <!-- Formulario para agregar EPP -->
+        <section id="mainContent" class="hidden">
+            <form id="addEppForm" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700 dark:text-gray-200">Agregar Nuevo EPP</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label for="eppName" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nombre del EPP:</label>
+                        <input type="text" id="eppName" name="eppName" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Ej: Casco de seguridad">
+                    </div>
+                    <div>
+                        <label for="eppQuantity" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cantidad Inicial:</label>
+                        <input type="number" id="eppQuantity" name="eppQuantity" required min="0" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Ej: 50">
+                    </div>
+                    <div>
+                        <label for="eppMinStock" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Stock Mínimo:</label>
+                        <input type="number" id="eppMinStock" name="eppMinStock" required min="0" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Ej: 10">
+                    </div>
+                </div>
+                <button type="submit" class="mt-6 w-full sm:w-auto text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-700">Agregar EPP</button>
+            </form>
+
+            <!-- Tabla de Inventario -->
+            <section class="bg-white dark:bg-gray-800 p-2 sm:p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700 dark:text-gray-200">Inventario Actual de EPP</h2>
+                <div class="table-container relative overflow-x-auto shadow-md sm:rounded-lg">
+                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                            <tr>
+                                <th scope="col" class="py-3 px-4 sm:px-6">Nombre</th>
+                                <th scope="col" class="py-3 px-4 sm:px-6 text-center">Cantidad</th>
+                                <th scope="col" class="py-3 px-4 sm:px-6 text-center">Stock Mínimo</th>
+                                <th scope="col" class="py-3 px-4 sm:px-6 text-center">Estado</th>
+                                <th scope="col" class="py-3 px-4 sm:px-6 text-center">Ajustar Cantidad</th>
+                                <th scope="col" class="py-3 px-4 sm:px-6 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="eppTableBody">
+                            <!-- Las filas del inventario se insertarán aquí por JavaScript -->
+                             <tr><td colspan="6" class="text-center py-4 px-6 text-gray-500">Cargando inventario...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+
+        <!-- Indicador de carga inicial -->
+        <div id="loadingIndicator" class="flex justify-center items-center mt-10">
+            <svg class="animate-spin -ml-1 mr-3 h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="text-lg">Cargando datos...</span>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación -->
+    <div id="confirmationModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full">
+            <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white mb-2">Confirmar Acción</h3>
+            <p id="confirmationMessage" class="text-sm text-gray-600 dark:text-gray-300 mb-4">¿Estás seguro?</p>
+            <div class="flex justify-end space-x-3">
+                <button id="cancelButton" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500">Cancelar</button>
+                <button id="confirmButton" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
