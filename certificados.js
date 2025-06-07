@@ -1,10 +1,9 @@
 // --- Imports ---
-// Se eliminaron las importaciones de Firebase Storage. Solo se usa Firestore y Auth.
 import { db, auth, ADMIN_UID, appIdForPath } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { collection, addDoc, onSnapshot, query, doc, deleteDoc, Timestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// --- CONFIGURACIÓN DE CLOUDINARY (Con tus datos) ---
+// --- CONFIGURACIÓN DE CLOUDINARY ---
 const CLOUDINARY_CLOUD_NAME = "dep5jbtjh";
 const CLOUDINARY_UPLOAD_PRESET = "inv_epp_unsigned";
 
@@ -28,20 +27,16 @@ const certsTableBody = document.getElementById('certsTableBody');
 const loadingIndicator = document.getElementById('loadingIndicator');
 const mainContent = document.getElementById('mainContent');
 
-
 // --- Lógica Principal ---
 
 onAuthStateChanged(auth, (user) => {
     currentLoggedInUser = user;
     const isAdmin = user && user.uid === ADMIN_UID;
-    
     authStatus.textContent = user ? `Autenticado como: ${user.email}` : "No autenticado (vista pública)";
     addCertFormSection.classList.toggle('hidden', !isAdmin);
-    
     document.querySelectorAll('.admin-col').forEach(col => {
         col.style.display = isAdmin ? '' : 'none';
     });
-    
     loadCertificates();
     mainContent.classList.remove('hidden');
     loadingIndicator.classList.add('hidden');
@@ -58,6 +53,10 @@ function loadCertificates() {
     });
 }
 
+// ==================================================================
+// PASO 2: REVERTIR EL CAMBIO EN ESTA FUNCIÓN
+// La lógica para modificar la URL de descarga se elimina.
+// ==================================================================
 function displayFilteredCerts() {
     const searchTerm = searchCertInput.value.toLowerCase().trim();
     const filteredCerts = searchTerm 
@@ -90,22 +89,13 @@ function displayFilteredCerts() {
                 <button data-id="${cert.id}" class="delete-cert-btn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Eliminar</button>
             </td>` : '';
 
-        // --- INICIO DE LA CORRECCIÓN ---
-        // 1. Obtenemos la URL original que guardamos en Firestore.
-        const originalUrl = cert.downloadURL;
-
-        // 2. Modificamos la URL para forzar la descarga como un adjunto.
-        // Buscamos el segmento "/upload/" y lo reemplazamos con "/upload/fl_attachment/".
-        // Esto le dice a Cloudinary que entregue el archivo para descargar, no para ver.
-        const downloadUrlForAttachment = originalUrl.replace('/upload/', '/upload/fl_attachment/');
-        // --- FIN DE LA CORRECCIÓN ---
-
+        // Se vuelve a la forma simple: usamos la URL directamente de la base de datos.
         tr.innerHTML = `
             <td class="py-4 px-6 font-medium">${cert.eppName}</td>
             <td class="py-4 px-6 text-center">${vigenciaDate.toLocaleDateString()}</td>
             <td class="py-4 px-6 text-center">${estado}</td>
             <td class="py-4 px-6 text-center">
-                <a href="${downloadUrlForAttachment}" class="text-blue-500 hover:underline">Descargar</a>
+                <a href="${cert.downloadURL}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">Descargar</a>
             </td>
             ${adminCol}
         `;
@@ -113,7 +103,10 @@ function displayFilteredCerts() {
     });
 }
 
-// --- LÓGICA DE SUBIDA DE FORMULARIO CON CLOUDINARY (CORREGIDA) ---
+// ==================================================================
+// PASO 1: CORREGIR LA SUBIDA EN ESTA FUNCIÓN
+// Se cambia "auto" por "raw" en la URL de subida.
+// ==================================================================
 addCertForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const eppName = certEppNameInput.value.trim();
@@ -125,8 +118,8 @@ addCertForm.addEventListener('submit', async (e) => {
         return;
     }
 
-    // AQUÍ ESTÁ EL ÚNICO CAMBIO: SE AÑADIÓ "/auto" A LA URL
-    const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
+    // CAMBIO CLAVE: Usamos "/raw/upload" para forzar que el archivo se trate como un documento.
+    const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/raw/upload`;
     
     const formData = new FormData();
     formData.append('file', file);
@@ -167,7 +160,6 @@ addCertForm.addEventListener('submit', async (e) => {
     }
 });
 
-// --- LÓGICA DE ELIMINACIÓN ACTUALIZADA ---
 certsTableBody.addEventListener('click', async (e) => {
     if (e.target.classList.contains('delete-cert-btn')) {
         const certId = e.target.dataset.id;
