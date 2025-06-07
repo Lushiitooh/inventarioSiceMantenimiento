@@ -1,13 +1,13 @@
-// Importaciones de Firebase
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+// Paso 1: Importar la configuración y servicios compartidos desde firebase-config.js
+import { db, auth, ADMIN_UID, appIdForPath } from './firebase-config.js';
+
+// Paso 2: Importar solo las funciones de Firebase que se usan en ESTE archivo
 import { 
-    getAuth, 
     signInWithEmailAndPassword,
     signOut,
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { 
-    getFirestore, 
     collection, 
     addDoc, 
     doc, 
@@ -18,29 +18,12 @@ import {
     query,
     where, 
     Timestamp,
-    enableIndexedDbPersistence,
     writeBatch 
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // ------------------------------------------------------------------------------------
-// IMPORTANTE: CONFIGURACIÓN DE FIREBASE Y ADMINISTRADOR
+// El resto del código permanece casi igual, usando las variables importadas
 // ------------------------------------------------------------------------------------
-const firebaseConfig = {
-  apiKey: "AIzaSyA0UYwg8kjPibnc7bvMwHvZWT01K1uLr2M",
-  authDomain: "inventario-epp.firebaseapp.com",
-  projectId: "inventario-epp",
-  storageBucket: "inventario-epp.firebasestorage.app",
-  messagingSenderId: "255309951395",
-  appId: "1:255309951395:web:f57cdb7b13c16a53636a16",
-  measurementId: "G-T0DKE1NFB3"
-};
-const ADMIN_UID = "hmaz0EfU1FeSBTqYfneDAhqbuLk2"; 
-const appIdForPath = 'mi-inventario-epp-github'; 
-// ------------------------------------------------------------------------------------
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
 
 let currentLoggedInUser = null;
 let eppInventoryCollectionRef;
@@ -67,7 +50,7 @@ const eppMinStockInput = document.getElementById('eppMinStock');
 
 // Elementos del DOM (Tabla Inventario y Filtro)
 const eppTableBody = document.getElementById('eppTableBody');
-const searchEppInput = document.getElementById('searchEppInput'); // NUEVO: Campo de búsqueda
+const searchEppInput = document.getElementById('searchEppInput');
 
 // Elementos del DOM (Sección Préstamos)
 const loansSection = document.getElementById('loansSection');
@@ -84,14 +67,14 @@ const errorMessage = document.getElementById('errorMessage');
 const messageContainer = document.getElementById('messageContainer');
 
 // --- Autenticación y Setup de Firestore ---
-async function setupFirebase() {
-    try { await enableIndexedDbPersistence(db); } catch (err) { console.warn("Persistencia offline:", err.message); }
+function setupFirebase() {
+    // La línea "enableIndexedDbPersistence(db)" se movió a firebase-config.js, por lo que se elimina de aquí.
 
     if (ADMIN_UID && ADMIN_UID !== "PEGAR_AQUI_EL_UID_DEL_ADMINISTRADOR") {
         eppInventoryCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_inventory`);
         eppLoansCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_loans`);
     } else {
-        errorMessage.textContent = "Error Crítico de Configuración: La constante ADMIN_UID no ha sido establecida con tu UID real en el código fuente. Por favor, edita el archivo app.js y reemplaza 'PEGAR_AQUI_EL_UID_DEL_ADMINISTRADOR' con tu User ID de Firebase. La aplicación no funcionará correctamente.";
+        errorMessage.textContent = "Error Crítico de Configuración: La constante ADMIN_UID no ha sido establecida en firebase-config.js. Por favor, edita el archivo y define tu User ID de Firebase. La aplicación no funcionará correctamente.";
         errorMessage.classList.remove('hidden');
         loadingIndicator.classList.add('hidden');
         return; 
@@ -132,7 +115,6 @@ async function setupFirebase() {
         loadingIndicator.classList.add('hidden');
     });
 
-    // NUEVO: Event listener para el campo de búsqueda
     if (searchEppInput) {
         searchEppInput.addEventListener('input', () => {
             displayFilteredInventory(currentLoggedInUser && currentLoggedInUser.uid === ADMIN_UID);
@@ -172,7 +154,7 @@ function mapAuthError(errorCode) {
 }
 
 // --- Lógica del Inventario EPP ---
-function loadInventory() { // No necesita isAdminView como parámetro directo aquí
+function loadInventory() {
     if (ADMIN_UID === "PEGAR_AQUI_EL_UID_DEL_ADMINISTRADOR" || !eppInventoryCollectionRef) {
         if (!eppInventoryCollectionRef && ADMIN_UID !== "PEGAR_AQUI_EL_UID_DEL_ADMINISTRADOR") { 
              errorMessage.textContent = "Error: No se pudo conectar a la base de datos del inventario.";
@@ -188,14 +170,14 @@ function loadInventory() { // No necesita isAdminView como parámetro directo aq
     const q = query(eppInventoryCollectionRef); 
 
     onSnapshot(q, (snapshot) => {
-        allEppItems = []; // Limpiar antes de rellenar
+        allEppItems = [];
         snapshot.forEach(doc => {
             allEppItems.push({ id: doc.id, ...doc.data() });
         });
         allEppItems.sort((a, b) => (a.name && b.name) ? a.name.localeCompare(b.name) : 0);
         
         const isAdmin = currentLoggedInUser && currentLoggedInUser.uid === ADMIN_UID;
-        displayFilteredInventory(isAdmin); // Mostrar inventario (filtrado o completo)
+        displayFilteredInventory(isAdmin);
 
         loadingIndicator.classList.add('hidden');
         if(!errorMessage.classList.contains('hidden') && !errorMessage.textContent.startsWith("Error Crítico de Configuración:")) {
@@ -209,7 +191,6 @@ function loadInventory() { // No necesita isAdminView como parámetro directo aq
     });
 }
 
-// NUEVA FUNCIÓN para mostrar el inventario (filtrado o completo)
 function displayFilteredInventory(isAdminView) {
     eppTableBody.innerHTML = ''; 
     if (isAdminView) { 
@@ -243,7 +224,6 @@ function displayFilteredInventory(isAdminView) {
         });
     }
 }
-
 
 function renderEppItem(item, isAdminView) {
     const tr = document.createElement('tr');
@@ -331,7 +311,7 @@ eppTableBody.addEventListener('click', async (e) => {
                 if (currentQuantity > 0) await updateDoc(itemRef, { quantity: currentQuantity - 1 });
                 else showTemporaryMessage("Cantidad no puede ser < 0.", "warning");
             } else if (action === 'delete') {
-                showConfirmationModal(`Eliminar "${itemDoc.data().name}"?`, async () => {
+                showConfirmationModal(`¿Eliminar "${itemDoc.data().name}"?`, async () => {
                     await deleteDoc(itemRef);
                     showTemporaryMessage("EPP eliminado.", "success");
                 });
