@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Meta para el color de la barra de estado en móviles -->
     <meta name="theme-color" content="#0284c7"/>
     <title>Control de Inventario EPP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Enlace al archivo CSS externo -->
     <link rel="stylesheet" href="styles.css">
+    <!-- Enlace al Manifest para la PWA -->
     <link rel="manifest" href="manifest.json">
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen flex flex-col items-center p-2 sm:p-4">
 
+    <!-- El resto de tu body (header, section, etc.) permanece exactamente igual -->
     <div class="w-full max-w-5xl"> 
         <header class="mb-6 text-center">
             <h1 class="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400">Control de Inventario EPP</h1>
@@ -74,7 +77,6 @@
                             <label for="eppToLoanSelect" class="block mb-1 sm:mb-2 text-xs sm:text-sm font-medium">EPP a Prestar:</label>
                             <select id="eppToLoanSelect" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2 sm:p-2.5 dark:bg-gray-700 dark:text-white">
                                 <option value="">Seleccione un EPP</option>
-                                <!-- Opciones se poblarán por JS -->
                             </select>
                         </div>
                         <div>
@@ -103,7 +105,6 @@
                             </tr>
                         </thead>
                         <tbody id="loansTableBody">
-                            <!-- Filas de préstamos se insertarán aquí -->
                         </tbody>
                     </table>
                 </div>
@@ -112,7 +113,6 @@
             <section class="bg-white dark:bg-gray-800 p-2 sm:p-6 rounded-lg shadow-md">
                 <div class="flex flex-col sm:flex-row justify-between items-center mb-4">
                     <h2 class="text-lg sm:text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2 sm:mb-0">Inventario Actual General</h2>
-                    <!-- NUEVO CAMPO DE BÚSQUEDA -->
                     <div class="w-full sm:w-auto">
                         <label for="searchEppInput" class="sr-only">Buscar EPP</label>
                         <input type="text" id="searchEppInput" placeholder="Buscar por nombre o talla..." class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 sm:p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" />
@@ -127,7 +127,6 @@
                                 <th scope="col" class="py-2 px-3 sm:py-3 sm:px-6 text-center">Cantidad Disp.</th>
                                 <th scope="col" class="py-2 px-3 sm:py-3 sm:px-6 text-center">Stock Mínimo</th>
                                 <th scope="col" class="py-2 px-3 sm:py-3 sm:px-6 text-center">Estado</th>
-                                <!-- Columnas de admin se manejan con la clase .admin-col y JS -->
                                 <th scope="col" class="admin-col py-2 px-3 sm:py-3 sm:px-6 text-center">Ajustar Cant.</th>
                                 <th scope="col" class="admin-col py-2 px-3 sm:py-3 sm:px-6 text-center">Eliminar</th>
                             </tr>
@@ -160,18 +159,21 @@
 
     <!-- Enlace al archivo JavaScript externo -->
     <script type="module" src="app.js"></script>
+
+    <!-- Script para registrar el Service Worker -->
     <script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js')
-                .then(registration => {
-                    console.log('Service Worker registrado con éxito:', registration);
-                })
-                .catch(error => {
-                    console.log('Error en el registro del Service Worker:', error);
-                });
-        });
-    }
-</script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // CORRECCIÓN: Se quita la barra inicial para que la ruta sea relativa
+                navigator.serviceWorker.register('sw.js') 
+                    .then(registration => {
+                        console.log('Service Worker registrado con éxito:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Error en el registro del Service Worker:', error);
+                    });
+            });
+        }
+    </script>
 </body>
 </html>
