@@ -103,7 +103,7 @@ function displayFilteredCerts() {
     });
 }
 
-// --- LÓGICA DE SUBIDA DE FORMULARIO CON CLOUDINARY ---
+// --- LÓGICA DE SUBIDA DE FORMULARIO CON CLOUDINARY (CORREGIDA) ---
 addCertForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const eppName = certEppNameInput.value.trim();
@@ -115,7 +115,9 @@ addCertForm.addEventListener('submit', async (e) => {
         return;
     }
 
+    // AQUÍ ESTÁ EL ÚNICO CAMBIO: SE AÑADIÓ "/auto" A LA URL
     const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
+    
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
