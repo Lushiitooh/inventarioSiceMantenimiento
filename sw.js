@@ -5,8 +5,12 @@ const CACHE_NAME = 'inventario-epp-cache-v1';
 const urlsToCache = [
   '.', // Representa el directorio raíz, usualmente tu index.html
   'index.html',
+  'certificados.html', 
   'styles.css',
   'app.js',
+  'certificados.js',
+  'firebase-config.js',
+  'manifest.json',
   'https://cdn.tailwindcss.com', // Cachear Tailwind CSS
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' // Cachear la fuente
 ];
