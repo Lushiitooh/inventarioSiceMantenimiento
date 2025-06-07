@@ -1,11 +1,17 @@
-import { db, auth, storage, ADMIN_UID, appIdForPath } from './firebase-config.js';
+// --- Imports ---
+// Se eliminaron las importaciones de Firebase Storage y se mantiene lo de Firestore y Auth.
+import { db, auth, ADMIN_UID, appIdForPath } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { collection, addDoc, onSnapshot, query, doc, deleteDoc, Timestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+
+// --- CONFIGURACIÓN DE CLOUDINARY (Con tus datos) ---
+const CLOUDINARY_CLOUD_NAME = "dep5jbtjh";
+const CLOUDINARY_UPLOAD_PRESET = "inv_epp_unsigned";
 
 // --- Variables y Elementos del DOM ---
 let allCerts = [];
 let currentLoggedInUser = null;
+// Se mantiene la ruta original de tu colección en Firestore
 const certsCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_certificates`);
 
 const authStatus = document.getElementById('authStatus');
@@ -16,38 +22,34 @@ const certVigenciaInput = document.getElementById('certVigencia');
 const certFileInput = document.getElementById('certFile');
 const uploadButton = document.getElementById('uploadButton');
 const uploadProgress = document.getElementById('uploadProgress');
+const messageContainer = document.getElementById('messageContainer'); // Añadido para mensajes de feedback
 
 const searchCertInput = document.getElementById('searchCertInput');
 const certsTableBody = document.getElementById('certsTableBody');
 const loadingIndicator = document.getElementById('loadingIndicator');
 const mainContent = document.getElementById('mainContent');
 
+
 // --- Lógica Principal ---
 
-// 1. Monitorizar estado de autenticación
 onAuthStateChanged(auth, (user) => {
     currentLoggedInUser = user;
     const isAdmin = user && user.uid === ADMIN_UID;
     
     authStatus.textContent = user ? `Autenticado como: ${user.email}` : "No autenticado (vista pública)";
     
-    if (isAdmin) {
-        addCertFormSection.classList.remove('hidden');
-    } else {
-        addCertFormSection.classList.add('hidden');
-    }
+    // Simplificamos la lógica para mostrar/ocultar la sección del formulario
+    addCertFormSection.classList.toggle('hidden', !isAdmin);
     
-    // Ajustar visibilidad de columnas de admin en la tabla
     document.querySelectorAll('.admin-col').forEach(col => {
         col.style.display = isAdmin ? '' : 'none';
     });
     
-    loadCertificates(); // Cargar certificados para todos
+    loadCertificates();
     mainContent.classList.remove('hidden');
     loadingIndicator.classList.add('hidden');
 });
 
-// 2. Cargar y mostrar certificados desde Firestore
 function loadCertificates() {
     onSnapshot(query(certsCollectionRef), (snapshot) => {
         allCerts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -55,11 +57,10 @@ function loadCertificates() {
         displayFilteredCerts();
     }, (error) => {
         console.error("Error al cargar certificados:", error);
-        certsTableBody.innerHTML = `<tr><td colspan="5">Error al cargar datos.</td></tr>`;
+        certsTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-red-500">Error al cargar datos.</td></tr>`;
     });
 }
 
-// 3. Filtrar y mostrar certificados en la tabla
 function displayFilteredCerts() {
     const searchTerm = searchCertInput.value.toLowerCase().trim();
     const filteredCerts = searchTerm 
@@ -81,16 +82,16 @@ function displayFilteredCerts() {
 
         const vigenciaDate = cert.vigencia.toDate();
         const hoy = new Date();
-        hoy.setHours(0, 0, 0, 0); // Normalizar para comparar solo fechas
+        hoy.setHours(0, 0, 0, 0);
 
-        let estado = '<span class="font-semibold text-green-500">Vigente</span>';
-        if (vigenciaDate < hoy) {
-            estado = '<span class="font-semibold text-red-500">Vencido</span>';
-        }
+        const estado = vigenciaDate < hoy 
+            ? '<span class="font-semibold text-red-500">Vencido</span>'
+            : '<span class="font-semibold text-green-500">Vigente</span>';
 
+        // El botón de eliminar ya no necesita el 'data-storage-path'
         const adminCol = isAdminView ? `
             <td class="py-4 px-6 text-center">
-                <button data-id="${cert.id}" data-storage-path="${cert.storagePath}" class="delete-cert-btn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Eliminar</button>
+                <button data-id="${cert.id}" class="delete-cert-btn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Eliminar</button>
             </td>` : '';
 
         tr.innerHTML = `
@@ -98,7 +99,7 @@ function displayFilteredCerts() {
             <td class="py-4 px-6 text-center">${vigenciaDate.toLocaleDateString()}</td>
             <td class="py-4 px-6 text-center">${estado}</td>
             <td class="py-4 px-6 text-center">
-                <a href="${cert.downloadURL}" target="_blank" class="text-blue-500 hover:underline">Descargar</a>
+                <a href="${cert.downloadURL}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">Descargar</a>
             </td>
             ${adminCol}
         `;
@@ -106,7 +107,7 @@ function displayFilteredCerts() {
     });
 }
 
-// 4. Manejar subida de formulario
+// --- NUEVA LÓGICA DE SUBIDA DE FORMULARIO CON CLOUDINARY ---
 addCertForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const eppName = certEppNameInput.value.trim();
@@ -114,73 +115,84 @@ addCertForm.addEventListener('submit', async (e) => {
     const file = certFileInput.files[0];
 
     if (!eppName || !vigencia || !file) {
-        alert("Por favor, completa todos los campos.");
+        showTemporaryMessage("Por favor, completa todos los campos.", "warning");
         return;
     }
 
+    const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/upload`;
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
     uploadButton.disabled = true;
     uploadButton.textContent = "Subiendo...";
+    uploadProgress.textContent = "Enviando archivo...";
 
-    const storagePath = `certificates/${Date.now()}_${file.name}`;
-    const storageRef = ref(storage, storagePath);
-    const uploadTask = uploadBytesResumable(storageRef, file);
-
-    uploadTask.on('state_changed', 
-        (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            uploadProgress.textContent = `Progreso: ${Math.round(progress)}%`;
-        },
-        (error) => {
-            console.error("Error al subir archivo:", error);
-            alert("Error al subir el archivo.");
-            uploadButton.disabled = false;
-            uploadButton.textContent = "Subir Certificado";
-        },
-        async () => {
-            // Subida completada, obtener URL y guardar en Firestore
-            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-            await addDoc(certsCollectionRef, {
-                eppName: eppName,
-                vigencia: Timestamp.fromDate(new Date(vigencia)),
-                fileName: file.name,
-                storagePath: storagePath,
-                downloadURL: downloadURL,
-                uploadedAt: Timestamp.now()
-            });
-            
-            addCertForm.reset();
-            uploadProgress.textContent = "";
-            uploadButton.disabled = false;
-            uploadButton.textContent = "Subir Certificado";
-            alert("¡Certificado subido con éxito!");
+    try {
+        const response = await fetch(url, { method: 'POST', body: formData });
+        if (!response.ok) {
+            throw new Error(`Error en la subida: ${response.statusText}`);
         }
-    );
+        
+        const data = await response.json();
+        const downloadURL = data.secure_url; // URL segura del archivo subido
+
+        // Guardar la referencia en Firestore
+        await addDoc(certsCollectionRef, {
+            eppName,
+            vigencia: Timestamp.fromDate(new Date(vigencia)),
+            fileName: file.name,
+            downloadURL,
+            cloudinary_public_id: data.public_id, // Para referencia futura
+            uploadedAt: Timestamp.now()
+        });
+        
+        showTemporaryMessage("¡Certificado subido con éxito!", "success");
+        addCertForm.reset();
+
+    } catch (error) {
+        console.error("Error en el proceso de subida:", error);
+        showTemporaryMessage(`Error al subir el certificado. ${error.message}`, "error");
+    } finally {
+        uploadProgress.textContent = "";
+        uploadButton.disabled = false;
+        uploadButton.textContent = "Subir Certificado";
+    }
 });
 
-
-// 5. Manejar eliminación
+// --- LÓGICA DE ELIMINACIÓN ACTUALIZADA ---
 certsTableBody.addEventListener('click', async (e) => {
     if (e.target.classList.contains('delete-cert-btn')) {
         const certId = e.target.dataset.id;
-        const storagePath = e.target.dataset.storagePath;
-
-        if (confirm("¿Estás seguro de que quieres eliminar este certificado? Esta acción no se puede deshacer.")) {
+        
+        // Se elimina la referencia al archivo de Storage, ya que no se usa
+        if (confirm("¿Estás seguro? Se eliminará la entrada del listado, pero el archivo permanecerá en Cloudinary.")) {
             try {
-                // 1. Eliminar archivo de Storage
-                const fileRef = ref(storage, storagePath);
-                await deleteObject(fileRef);
-
-                // 2. Eliminar documento de Firestore
+                // Simplemente borramos el documento de Firestore
                 await deleteDoc(doc(certsCollectionRef, certId));
-                
-                alert("Certificado eliminado.");
+                showTemporaryMessage("Entrada del certificado eliminada.", "success");
             } catch (error) {
-                console.error("Error al eliminar certificado:", error);
-                alert("Hubo un error al eliminar el certificado.");
+                console.error("Error al eliminar entrada:", error);
+                showTemporaryMessage(`Error al eliminar: ${error.message}`, "error");
             }
         }
     }
 });
 
-// 6. Event listener para el filtro de búsqueda
 searchCertInput.addEventListener('input', displayFilteredCerts);
+
+// Función de utilidad para mostrar mensajes
+function showTemporaryMessage(message, type = 'info') {
+    if (!messageContainer) return;
+    messageContainer.textContent = message;
+    messageContainer.className = `p-3 mb-4 text-sm rounded-lg ${
+        type === 'success' ? 'bg-green-100 text-green-700 dark:bg-green-700 dark:text-green-100' :
+        type === 'error'   ? 'bg-red-100 text-red-700 dark:bg-red-700 dark:text-red-100'     :
+        type === 'warning' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-700 dark:text-yellow-100' :
+                             'bg-blue-100 text-blue-700 dark:bg-blue-700 dark:text-blue-100'
+    }`;
+    messageContainer.classList.remove('hidden');
+    setTimeout(() => {
+        messageContainer.classList.add('hidden');
+    }, 4000);
+}
