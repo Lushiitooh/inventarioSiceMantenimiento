@@ -48,3 +48,7 @@ body {
 .admin-col { 
     display: none; 
 }
+.active-link {
+    background-color: #2563eb; /* Un azul, puedes cambiarlo */
+    color: #ffffff;
+}
