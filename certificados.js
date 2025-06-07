@@ -1,5 +1,5 @@
 // --- Imports ---
-// Se eliminaron las importaciones de Firebase Storage y se mantiene lo de Firestore y Auth.
+// Se eliminaron las importaciones de Firebase Storage. Solo se usa Firestore y Auth.
 import { db, auth, ADMIN_UID, appIdForPath } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { collection, addDoc, onSnapshot, query, doc, deleteDoc, Timestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -11,7 +11,6 @@ const CLOUDINARY_UPLOAD_PRESET = "inv_epp_unsigned";
 // --- Variables y Elementos del DOM ---
 let allCerts = [];
 let currentLoggedInUser = null;
-// Se mantiene la ruta original de tu colección en Firestore
 const certsCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_certificates`);
 
 const authStatus = document.getElementById('authStatus');
@@ -22,7 +21,7 @@ const certVigenciaInput = document.getElementById('certVigencia');
 const certFileInput = document.getElementById('certFile');
 const uploadButton = document.getElementById('uploadButton');
 const uploadProgress = document.getElementById('uploadProgress');
-const messageContainer = document.getElementById('messageContainer'); // Añadido para mensajes de feedback
+const messageContainer = document.getElementById('messageContainer');
 
 const searchCertInput = document.getElementById('searchCertInput');
 const certsTableBody = document.getElementById('certsTableBody');
@@ -37,8 +36,6 @@ onAuthStateChanged(auth, (user) => {
     const isAdmin = user && user.uid === ADMIN_UID;
     
     authStatus.textContent = user ? `Autenticado como: ${user.email}` : "No autenticado (vista pública)";
-    
-    // Simplificamos la lógica para mostrar/ocultar la sección del formulario
     addCertFormSection.classList.toggle('hidden', !isAdmin);
     
     document.querySelectorAll('.admin-col').forEach(col => {
@@ -88,7 +85,6 @@ function displayFilteredCerts() {
             ? '<span class="font-semibold text-red-500">Vencido</span>'
             : '<span class="font-semibold text-green-500">Vigente</span>';
 
-        // El botón de eliminar ya no necesita el 'data-storage-path'
         const adminCol = isAdminView ? `
             <td class="py-4 px-6 text-center">
                 <button data-id="${cert.id}" class="delete-cert-btn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Eliminar</button>
@@ -107,7 +103,7 @@ function displayFilteredCerts() {
     });
 }
 
-// --- NUEVA LÓGICA DE SUBIDA DE FORMULARIO CON CLOUDINARY ---
+// --- LÓGICA DE SUBIDA DE FORMULARIO CON CLOUDINARY ---
 addCertForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const eppName = certEppNameInput.value.trim();
@@ -135,15 +131,14 @@ addCertForm.addEventListener('submit', async (e) => {
         }
         
         const data = await response.json();
-        const downloadURL = data.secure_url; // URL segura del archivo subido
+        const downloadURL = data.secure_url;
 
-        // Guardar la referencia en Firestore
         await addDoc(certsCollectionRef, {
             eppName,
             vigencia: Timestamp.fromDate(new Date(vigencia)),
             fileName: file.name,
             downloadURL,
-            cloudinary_public_id: data.public_id, // Para referencia futura
+            cloudinary_public_id: data.public_id,
             uploadedAt: Timestamp.now()
         });
         
@@ -165,10 +160,8 @@ certsTableBody.addEventListener('click', async (e) => {
     if (e.target.classList.contains('delete-cert-btn')) {
         const certId = e.target.dataset.id;
         
-        // Se elimina la referencia al archivo de Storage, ya que no se usa
         if (confirm("¿Estás seguro? Se eliminará la entrada del listado, pero el archivo permanecerá en Cloudinary.")) {
             try {
-                // Simplemente borramos el documento de Firestore
                 await deleteDoc(doc(certsCollectionRef, certId));
                 showTemporaryMessage("Entrada del certificado eliminada.", "success");
             } catch (error) {
@@ -181,7 +174,6 @@ certsTableBody.addEventListener('click', async (e) => {
 
 searchCertInput.addEventListener('input', displayFilteredCerts);
 
-// Función de utilidad para mostrar mensajes
 function showTemporaryMessage(message, type = 'info') {
     if (!messageContainer) return;
     messageContainer.textContent = message;
