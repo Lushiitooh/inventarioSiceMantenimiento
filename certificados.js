@@ -90,12 +90,22 @@ function displayFilteredCerts() {
                 <button data-id="${cert.id}" class="delete-cert-btn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Eliminar</button>
             </td>` : '';
 
+        // --- INICIO DE LA CORRECCIÓN ---
+        // 1. Obtenemos la URL original que guardamos en Firestore.
+        const originalUrl = cert.downloadURL;
+
+        // 2. Modificamos la URL para forzar la descarga como un adjunto.
+        // Buscamos el segmento "/upload/" y lo reemplazamos con "/upload/fl_attachment/".
+        // Esto le dice a Cloudinary que entregue el archivo para descargar, no para ver.
+        const downloadUrlForAttachment = originalUrl.replace('/upload/', '/upload/fl_attachment/');
+        // --- FIN DE LA CORRECCIÓN ---
+
         tr.innerHTML = `
             <td class="py-4 px-6 font-medium">${cert.eppName}</td>
             <td class="py-4 px-6 text-center">${vigenciaDate.toLocaleDateString()}</td>
             <td class="py-4 px-6 text-center">${estado}</td>
             <td class="py-4 px-6 text-center">
-                <a href="${cert.downloadURL}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">Descargar</a>
+                <a href="${downloadUrlForAttachment}" class="text-blue-500 hover:underline">Descargar</a>
             </td>
             ${adminCol}
         `;
