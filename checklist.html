@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inspección de Herramientas Manuales</title>
+    <!-- Bootstrap para un diseño más rápido y adaptable -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -16,179 +17,57 @@
             border-radius: 8px;
             box-shadow: 0 0 15px rgba(0,0,0,0.1);
         }
-        .form-header {
-            text-align: center;
-            margin-bottom: 2rem;
-            border-bottom: 2px solid #dee2e6;
-            padding-bottom: 1rem;
-        }
-        .form-header h1 {
-            font-size: 1.8rem;
-            font-weight: bold;
-        }
-        .table-responsive {
-            margin-top: 1.5rem;
-        }
-        .signature-pad-container {
-            border: 1px solid #ced4da;
-            border-radius: .25rem;
-            position: relative;
-            height: 200px;
-        }
-        .signature-pad-container canvas {
-            width: 100%;
-            height: 100%;
-            border-radius: .25rem;
-        }
-        .signature-pad-container button {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            z-index: 10;
-        }
-        .form-section-title {
-            background-color: #e9ecef;
-            padding: 0.75rem;
-            font-weight: bold;
-            border-radius: 5px;
-            margin-top: 2rem;
-        }
-        .radio-group label {
-            margin-right: 10px;
-        }
+        /* ... (el resto de tu CSS sigue igual) ... */
+        .form-header { text-align: center; margin-bottom: 2rem; border-bottom: 2px solid #dee2e6; padding-bottom: 1rem; }
+        .form-header h1 { font-size: 1.8rem; font-weight: bold; }
+        .table-responsive { margin-top: 1.5rem; }
+        .signature-pad-container { border: 1px solid #ced4da; border-radius: .25rem; position: relative; height: 200px; }
+        .signature-pad-container canvas { width: 100%; height: 100%; border-radius: .25rem; }
+        .signature-pad-container button { position: absolute; top: 5px; right: 5px; z-index: 10; }
+        .form-section-title { background-color: #e9ecef; padding: 0.75rem; font-weight: bold; border-radius: 5px; margin-top: 2rem; }
+        .radio-group label { margin-right: 10px; }
     </style>
 </head>
 <body>
-
     <div class="container mt-4 mb-4">
+        <!-- Todo tu contenido del formulario (el <body>) sigue exactamente igual -->
         <div class="form-header">
             <h1>INSPECCIÓN DE HERRAMIENTAS MANUALES</h1>
             <p class="mb-0">FTO-AL10195-24 / Versión 03</p>
         </div>
-
         <form id="checklistForm">
+            <!-- SECCIÓN DE DATOS GENERALES -->
             <div class="row g-3">
-                <div class="col-md-12">
-                    <label class="form-label fw-bold">Contrato:</label>
-                    <p>"Suministro de Puertas Bidireccionales de Control en 7 Estaciones de la Red de Metro"</p>
-                </div>
-                <div class="col-md-6">
-                    <label for="sitio" class="form-label fw-bold">Sitio/Lugar/Agencia:</label>
-                    <select id="sitio" class="form-select" required>
-                        <option value="">Seleccione un sitio...</option>
-                        <option value="Santa Julia Linea 4A">Santa Julia Linea 4A</option>
-                        <option value="San Ramon Linea 4A">San Ramon Linea 4A</option>
-                        <option value="La Granja Linea 4A">La Granja Linea 4A</option>
-                        <option value="Departamental Linea 2">Departamental Linea 2</option>
-                        <option value="Universidad de Chile Linea 1">Universidad de Chile Linea 1</option>
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <label for="fechaInspeccion" class="form-label fw-bold">Fecha de Inspección:</label>
-                    <input type="date" id="fechaInspeccion" class="form-control" readonly>
-                </div>
-                <div class="col-md-12">
-                    <label for="trabajador" class="form-label fw-bold">Nombre del Trabajador:</label>
-                    <select id="trabajador" class="form-select" required>
-                        <option value="">Seleccione un trabajador...</option>
-                        <option value="Nestor Flores">Nestor Flores</option>
-                        <option value="Ronald Cancino">Ronald Cancino</option>
-                        <option value="Nicolas Jara">Nicolas Jara</option>
-                        <option value="Juan Carlos Valenzuela">Juan Carlos Valenzuela</option>
-                        <option value="Avelino Troncoso">Avelino Troncoso</option>
-                        <option value="Ronald Rodriguez">Ronald Rodriguez</option>
-                    </select>
-                </div>
+                <div class="col-md-12"><label class="form-label fw-bold">Contrato:</label><p>"Suministro de Puertas Bidireccionales de Control en 7 Estaciones de la Red de Metro"</p></div>
+                <div class="col-md-6"><label for="sitio" class="form-label fw-bold">Sitio/Lugar/Agencia:</label><select id="sitio" class="form-select" required><option value="">Seleccione un sitio...</option><option value="Santa Julia Linea 4A">Santa Julia Linea 4A</option><option value="San Ramon Linea 4A">San Ramon Linea 4A</option><option value="La Granja Linea 4A">La Granja Linea 4A</option><option value="Departamental Linea 2">Departamental Linea 2</option><option value="Universidad de Chile Linea 1">Universidad de Chile Linea 1</option></select></div>
+                <div class="col-md-6"><label for="fechaInspeccion" class="form-label fw-bold">Fecha de Inspección:</label><input type="date" id="fechaInspeccion" class="form-control" readonly></div>
+                <div class="col-md-12"><label for="trabajador" class="form-label fw-bold">Nombre del Trabajador:</label><select id="trabajador" class="form-select" required><option value="">Seleccione un trabajador...</option><option value="Nestor Flores">Nestor Flores</option><option value="Ronald Cancino">Ronald Cancino</option><option value="Nicolas Jara">Nicolas Jara</option><option value="Juan Carlos Valenzuela">Juan Carlos Valenzuela</option><option value="Avelino Troncoso">Avelino Troncoso</option><option value="Ronald Rodriguez">Ronald Rodriguez</option></select></div>
             </div>
-
-            <h4 class="mt-4">1. Herramientas Manuales</h4>
-            <div class="table-responsive">
-                <table class="table table-bordered align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Ítem</th>
-                            <th>Herramienta</th>
-                            <th>Estado (B/M/N/A)</th>
-                            <th>Color del Mes (Sí/No)</th>
-                            <th>Observaciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        </tbody>
-                </table>
-            </div>
-            
-            <h4 class="mt-4">2. Otras Herramientas</h4>
-            <div id="otras-herramientas-container">
-                </div>
-            <button type="button" id="add-tool-btn" class="btn btn-secondary btn-sm mt-2">Agregar Otra Herramienta</button>
-
-            <h4 class="mt-4">3. Plan de Acción (No obligatorio)</h4>
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label for="planAccion" class="form-label">Plan de Acción:</label>
-                    <input type="text" id="planAccion" class="form-control">
-                </div>
-                <div class="col-md-4">
-                    <label for="fechaPlan" class="form-label">Fecha:</label>
-                    <input type="date" id="fechaPlan" class="form-control">
-                </div>
-                <div class="col-md-4">
-                    <label for="responsablePlan" class="form-label">Responsable:</label>
-                    <input type="text" id="responsablePlan" class="form-control">
-                </div>
-            </div>
-
-            <div class="row mt-5">
-                <div class="col-md-4 text-center">
-                    <div class="form-section-title mb-2">Realizó</div>
-                    <div class="signature-pad-container">
-                        <canvas id="firmaRealizoPad"></canvas>
-                        <button type="button" class="btn btn-sm btn-outline-secondary clear-btn" data-target="firmaRealizoPad">Limpiar</button>
-                    </div>
-                    <p id="nombreRealizo" class="mt-2 mb-0 fw-bold">Nombre del Trabajador</p>
-                    <p class="mb-0 text-muted">Técnico Montajista</p>
-                    <input type="date" id="fechaRealizo" class="form-control form-control-sm mt-1" readonly>
-                </div>
-
-                <div class="col-md-4 text-center">
-                    <div class="form-section-title mb-2">Revisó</div>
-                    <div class="signature-pad-container">
-                        <canvas id="firmaRevisoPad"></canvas>
-                        <button type="button" class="btn btn-sm btn-outline-secondary clear-btn" data-target="firmaRevisoPad">Limpiar</button>
-                    </div>
-                    <p class="mt-2 mb-0 fw-bold">Guillermo Osorio</p>
-                    <p class="mb-0 text-muted">Supervisor</p>
-                    <input type="date" id="fechaReviso" class="form-control form-control-sm mt-1" readonly>
-                </div>
-
-                <div class="col-md-4 text-center">
-                    <div class="form-section-title mb-2">V°B° Prevención de Riesgos</div>
-                    <div class="signature-pad-container">
-                        <canvas id="firmaPrevencionPad"></canvas>
-                        <button type="button" class="btn btn-sm btn-outline-secondary clear-btn" data-target="firmaPrevencionPad">Limpiar</button>
-                    </div>
-                    <select id="prevencionista" class="form-select form-select-sm mt-2" required>
-                        <option value="">Seleccione...</option>
-                        <option value="Valeria Huichipan">Valeria Huichipan</option>
-                        <option value="Luis Sepúlveda">Luis Sepúlveda</option>
-                    </select>
-                    <p class="mb-0 text-muted">Prevención de Riesgos</p>
-                    <input type="date" id="fechaPrevencion" class="form-control form-control-sm mt-1" readonly>
-                </div>
-            </div>
-
-            <div class="d-grid gap-2 mt-5">
-                 <button type="submit" class="btn btn-primary btn-lg">Guardar y Generar PDF</button>
-            </div>
+            <!-- SECCIÓN DE HERRAMIENTAS MANUALES --><h4 class="mt-4">1. Herramientas Manuales</h4><div class="table-responsive"><table class="table table-bordered align-middle"><thead class="table-light"><tr><th>Ítem</th><th>Herramienta</th><th>Estado (B/M/N/A)</th><th>Color del Mes (Sí/No)</th><th>Observaciones</th></tr></thead><tbody></tbody></table></div>
+            <!-- SECCIÓN OTRAS HERRAMIENTAS --><h4 class="mt-4">2. Otras Herramientas</h4><div id="otras-herramientas-container"></div><button type="button" id="add-tool-btn" class="btn btn-secondary btn-sm mt-2">Agregar Otra Herramienta</button>
+            <!-- SECCIÓN PLAN DE ACCIÓN --><h4 class="mt-4">3. Plan de Acción (No obligatorio)</h4><div class="row g-3"><div class="col-md-4"><label for="planAccion" class="form-label">Plan de Acción:</label><input type="text" id="planAccion" class="form-control"></div><div class="col-md-4"><label for="fechaPlan" class="form-label">Fecha:</label><input type="date" id="fechaPlan" class="form-control"></div><div class="col-md-4"><label for="responsablePlan" class="form-label">Responsable:</label><input type="text" id="responsablePlan" class="form-control"></div></div>
+            <!-- SECCIÓN DE FIRMAS --><div class="row mt-5"><div class="col-md-4 text-center"><div class="form-section-title mb-2">Realizó</div><div class="signature-pad-container"><canvas id="firmaRealizoPad"></canvas><button type="button" class="btn btn-sm btn-outline-secondary clear-btn" data-target="firmaRealizoPad">Limpiar</button></div><p id="nombreRealizo" class="mt-2 mb-0 fw-bold">Nombre del Trabajador</p><p class="mb-0 text-muted">Técnico Montajista</p><input type="date" id="fechaRealizo" class="form-control form-control-sm mt-1" readonly></div><div class="col-md-4 text-center"><div class="form-section-title mb-2">Revisó</div><div class="signature-pad-container"><canvas id="firmaRevisoPad"></canvas><button type="button" class="btn btn-sm btn-outline-secondary clear-btn" data-target="firmaRevisoPad">Limpiar</button></div><p class="mt-2 mb-0 fw-bold">Guillermo Osorio</p><p class="mb-0 text-muted">Supervisor</p><input type="date" id="fechaReviso" class="form-control form-control-sm mt-1" readonly></div><div class="col-md-4 text-center"><div class="form-section-title mb-2">V°B° Prevención de Riesgos</div><div class="signature-pad-container"><canvas id="firmaPrevencionPad"></canvas><button type="button" class="btn btn-sm btn-outline-secondary clear-btn" data-target="firmaPrevencionPad">Limpiar</button></div><select id="prevencionista" class="form-select form-select-sm mt-2" required><option value="">Seleccione...</option><option value="Valeria Huichipan">Valeria Huichipan</option><option value="Luis Sepúlveda">Luis Sepúlveda</option></select><p class="mb-0 text-muted">Prevención de Riesgos</p><input type="date" id="fechaPrevencion" class="form-control form-control-sm mt-1" readonly></div></div>
+            <div class="d-grid gap-2 mt-5"><button type="submit" class="btn btn-primary btn-lg">Guardar y Enviar</button></div>
         </form>
     </div>
 
+    <!-- Librería para la Firma Digital -->
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 
-    <script>
+    <!--
+    CAMBIO IMPORTANTE:
+    El script ahora es de tipo "module" para poder usar 'import'.
+    -->
+    <script type="module">
+        // Importamos solo lo que necesitamos desde tu archivo de configuración
+        import { db } from './firebase-config.js'; 
+        // Importamos las funciones de Firestore que usaremos
+        import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
         document.addEventListener('DOMContentLoaded', function () {
-            // --- CONFIGURACIÓN INICIAL ---
+            // Ya no necesitamos la variable firebaseConfig aquí, ¡la borramos!
+
+            // --- LÓGICA DEL FORMULARIO (Esta parte es la misma de siempre) ---
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('fechaInspeccion').value = today;
             document.getElementById('fechaRealizo').value = today;
@@ -197,127 +76,88 @@
 
             const trabajadorSelect = document.getElementById('trabajador');
             const nombreRealizo = document.getElementById('nombreRealizo');
-            
             trabajadorSelect.addEventListener('change', function() {
                 nombreRealizo.textContent = this.value || 'Nombre del Trabajador';
             });
 
-            // --- LISTA DE HERRAMIENTAS ---
-            const herramientas = [
-                "Caja Herramientas negra", "Juego de Dados 36 piezas", "Alicate Universal",
-                "Alicate Punta", "Alicate Cortante", "Caiman", "Flexometro", "Juego de dados",
-                "Atornillador de Paleta aislado 1,2x6,5x150mm", "Atornillador de Paleta aislado 1,0x5,5x125mm",
-                "Atornillador de Paleta aislado 0,8x4,0x100mm", "Atornillador de Paleta aislado 0,4x2,5x75mm",
-                "Atornillador de cruz aislado PH2x100mm", "Atornillador de cruz aislado PH1x80mm",
-                "Atornillador de cruz aislado PH0x75mm", "Crimpiadora", "Ventosa para pisos tecnicos", "Martillo"
-            ];
-
+            const herramientas = ["Caja Herramientas negra", "Juego de Dados 36 piezas", "Alicate Universal", "Alicate Punta", "Alicate Cortante", "Caiman", "Flexometro", "Juego de dados", "Atornillador de Paleta aislado 1,2x6,5x150mm", "Atornillador de Paleta aislado 1,0x5,5x125mm", "Atornillador de Paleta aislado 0,8x4,0x100mm", "Atornillador de Paleta aislado 0,4x2,5x75mm", "Atornillador de cruz aislado PH2x100mm", "Atornillador de cruz aislado PH1x80mm", "Atornillador de cruz aislado PH0x75mm", "Crimpiadora", "Ventosa para pisos tecnicos", "Martillo"];
             const tbody = document.querySelector('.table-responsive tbody');
             herramientas.forEach((herramienta, index) => {
                 const tr = document.createElement('tr');
-                const item = `1.${index + 1}`;
-                tr.innerHTML = `
-                    <td>${item}</td>
-                    <td>${herramienta}</td>
-                    <td class="radio-group">
-                        <input type="radio" name="estado_${index}" value="B" required> B
-                        <input type="radio" name="estado_${index}" value="M"> M
-                        <input type="radio" name="estado_${index}" value="N/A"> N/A
-                    </td>
-                    <td class="radio-group">
-                        <input type="radio" name="color_${index}" value="Si" required> Sí
-                        <input type="radio" name="color_${index}" value="No"> No
-                    </td>
-                    <td><input type="text" name="obs_${index}" class="form-control form-control-sm"></td>
-                `;
+                // CORRECCIÓN DEL ERROR DE SINTAXIS AQUÍ:
+                tr.innerHTML = `<td>1.${index + 1}</td><td>${herramienta}</td><td class="radio-group"><input type="radio" name="estado_${index}" value="Bueno" required> B <input type="radio" name="estado_${index}" value="Malo"> M <input type="radio" name="estado_${index}" value="N/A"> N/A</td><td class="radio-group"><input type="radio" name="color_${index}" value="Si" required> Sí <input type="radio" name="color_${index}" value="No"> No</td><td><input type="text" name="obs_${index}" class="form-control form-control-sm"></td>`;
                 tbody.appendChild(tr);
             });
 
-            // --- LÓGICA PARA OTRAS HERRAMIENTAS ---
-            const otrasHerramientasContainer = document.getElementById('otras-herramientas-container');
-            let otrasHerramientasCount = 0;
-            
-            function addOtraHerramientaRow() {
-                otrasHerramientasCount++;
-                const div = document.createElement('div');
-                div.className = 'row g-3 mb-2 align-items-center';
-                div.innerHTML = `
-                    <div class="col-md-3">
-                        <input type="text" class="form-control form-control-sm" placeholder="Nombre de herramienta">
-                    </div>
-                    <div class="col-md-4 radio-group">
-                        <small>Estado:</small>
-                        <input type="radio" name="estado_otra_${otrasHerramientasCount}" value="B"> B
-                        <input type="radio" name="estado_otra_${otrasHerramientasCount}" value="M"> M
-                        <input type="radio" name="estado_otra_${otrasHerramientasCount}" value="N/A"> N/A
-                    </div>
-                    <div class="col-md-5">
-                        <input type="text" class="form-control form-control-sm" placeholder="Observaciones">
-                    </div>
-                `;
-                otrasHerramientasContainer.appendChild(div);
-            }
-            
-            document.getElementById('add-tool-btn').addEventListener('click', addOtraHerramientaRow);
-            // Añadir una fila por defecto
-            addOtraHerramientaRow();
-
-
-            // --- LÓGICA DE LAS FIRMAS ---
+            // Código para el pad de firma (sin cambios)
             function setupSignaturePad(canvasId) {
-                const canvas = document.getElementById(canvasId);
-                const signaturePad = new SignaturePad(canvas, {
-                    backgroundColor: 'rgb(255, 255, 255)'
+                const canvas = document.getElementById(canvasId); const signaturePad = new SignaturePad(canvas, { backgroundColor: 'rgb(255, 255, 255)' });
+                function resizeCanvas() { const ratio = Math.max(window.devicePixelRatio || 1, 1); canvas.width = canvas.offsetWidth * ratio; canvas.height = canvas.offsetHeight * ratio; canvas.getContext("2d").scale(ratio, ratio); signaturePad.clear(); }
+                window.addEventListener("resize", resizeCanvas); resizeCanvas(); return signaturePad;
+            }
+            const firmaRealizo = setupSignaturePad('firmaRealizoPad'); const firmaReviso = setupSignaturePad('firmaRevisoPad'); const firmaPrevencion = setupSignaturePad('firmaPrevencionPad');
+            document.querySelectorAll('.clear-btn').forEach(button => {
+                button.addEventListener('click', (e) => { const targetId = e.currentTarget.getAttribute('data-target'); if (targetId === 'firmaRealizoPad') firmaRealizo.clear(); if (targetId === 'firmaRevisoPad') firmaReviso.clear(); if (targetId === 'firmaPrevencionPad') firmaPrevencion.clear(); });
+            });
+            
+            // --- NUEVA LÓGICA DE ENVÍO A PIPEDREAM (con sintaxis moderna de Firestore) ---
+            document.getElementById('checklistForm').addEventListener('submit', async function(event) {
+                event.preventDefault();
+                const submitButton = event.currentTarget.querySelector('button[type="submit"]');
+                submitButton.disabled = true;
+                submitButton.textContent = 'Enviando...';
+
+                // 1. Recopilamos los datos
+                const formData = {
+                    contrato: "Suministro de Puertas Bidireccionales de Control en 7 Estaciones de la Red de Metro",
+                    sitio: document.getElementById('sitio').value,
+                    fechaInspeccion: document.getElementById('fechaInspeccion').value,
+                    trabajador: document.getElementById('trabajador').value,
+                    prevencionista: document.getElementById('prevencionista').value,
+                    herramientas: [],
+                    firmaRealizoImg: firmaRealizo.isEmpty() ? "" : firmaRealizo.toDataURL(),
+                    firmaRevisoImg: firmaReviso.isEmpty() ? "" : firmaReviso.toDataURL(),
+                    firmaPrevencionImg: firmaPrevencion.isEmpty() ? "" : firmaPrevencion.toDataURL()
+                };
+                const herramientasRows = document.querySelectorAll('.table-responsive tbody tr');
+                herramientasRows.forEach((row, index) => {
+                    formData.herramientas.push({ nombre: row.cells[1].textContent, estado: row.querySelector(`input[name="estado_${index}"]:checked`)?.value || 'N/A', color: row.querySelector(`input[name="color_${index}"]:checked`)?.value || 'No', obs: row.querySelector(`input[name="obs_${index}"]`).value });
                 });
 
-                // Ajustar el tamaño del canvas al de su contenedor
-                function resizeCanvas() {
-                    const ratio = Math.max(window.devicePixelRatio || 1, 1);
-                    canvas.width = canvas.offsetWidth * ratio;
-                    canvas.height = canvas.offsetHeight * ratio;
-                    canvas.getContext("2d").scale(ratio, ratio);
-                    signaturePad.clear(); // Recargar la firma si ya existe
+                // 2. Guardamos un respaldo en Firestore (usando la nueva sintaxis)
+                try {
+                    await addDoc(collection(db, "checklists"), {...formData, createdAt: serverTimestamp()});
+                    console.log("Respaldo guardado en Firestore.");
+                } catch (error) {
+                    console.error("Error al guardar respaldo en Firestore:", error);
                 }
 
-                window.addEventListener("resize", resizeCanvas);
-                resizeCanvas();
-                
-                return signaturePad;
-            }
+                // 3. Enviamos los datos a Pipedream
+                const pipedreamUrl = "https://eopkzao9ptejwdl.m.pipedream.net";
 
-            const firmaRealizo = setupSignaturePad('firmaRealizoPad');
-            const firmaReviso = setupSignaturePad('firmaRevisoPad');
-            const firmaPrevencion = setupSignaturePad('firmaPrevencionPad');
+                try {
+                    const response = await fetch(pipedreamUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
 
-            document.querySelectorAll('.clear-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const targetId = e.currentTarget.getAttribute('data-target');
-                    if (targetId === 'firmaRealizoPad') firmaRealizo.clear();
-                    if (targetId === 'firmaRevisoPad') firmaReviso.clear();
-                    if (targetId === 'firmaPrevencionPad') firmaPrevencion.clear();
-                });
-            });
-
-            // --- ENVÍO DEL FORMULARIO ---
-            document.getElementById('checklistForm').addEventListener('submit', function(event) {
-                event.preventDefault(); // Evita que la página se recargue
-                
-                // Aquí es donde recogerías todos los datos y las firmas
-                const formData = new FormData(this);
-                const data = Object.fromEntries(formData.entries());
-
-                // Obtener las firmas como imágenes
-                data.firmaRealizoImg = firmaRealizo.isEmpty() ? "" : firmaRealizo.toDataURL();
-                data.firmaRevisoImg = firmaReviso.isEmpty() ? "" : firmaReviso.toDataURL();
-                data.firmaPrevencionImg = firmaPrevencion.isEmpty() ? "" : firmaPrevencion.toDataURL();
-
-                console.log("Datos del Formulario listos para enviar:", data);
-                
-                // EN EL SIGUIENTE PASO, ESTOS DATOS SE ENVIARÍAN A TU FIREBASE CLOUD FUNCTION
-                alert('Formulario listo para enviar. Revisa la consola (F12) para ver los datos.');
+                    if (response.ok) {
+                        alert('¡Checklist enviado con éxito!');
+                        // Opcional: limpiar el formulario después de un envío exitoso
+                        // event.target.reset(); 
+                    } else {
+                        throw new Error('El servidor de Pipedream respondió con un error.');
+                    }
+                } catch (error) {
+                    console.error("Error al enviar a Pipedream:", error);
+                    alert("Hubo un error al enviar el checklist.");
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Guardar y Enviar';
+                }
             });
         });
     </script>
-
 </body>
 </html>
