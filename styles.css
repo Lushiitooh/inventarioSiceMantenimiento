@@ -5,50 +5,320 @@ body {
 
 /* Estilos para la barra de desplazamiento (scrollbar) en navegadores WebKit */
 ::-webkit-scrollbar { 
-    width: 8px; /* Ancho de la barra de desplazamiento */
+    width: 8px; 
 }
 ::-webkit-scrollbar-track { 
-    background: #f1f1f1; /* Color del riel de la barra */
-    border-radius: 10px; /* Bordes redondeados para el riel */
+    background: #f1f5f9; 
+    border-radius: 10px; 
 }
 ::-webkit-scrollbar-thumb { 
-    background: #888; /* Color del pulgar (la parte móvil) de la barra */
-    border-radius: 10px; /* Bordes redondeados para el pulgar */
+    background: #94a3b8; 
+    border-radius: 10px; 
 }
 ::-webkit-scrollbar-thumb:hover { 
-    background: #555; /* Color del pulgar al pasar el mouse por encima */
+    background: #64748b; 
+}
+
+/* Tema oscuro para scrollbar */
+.dark ::-webkit-scrollbar-track { 
+    background: #374151; 
+}
+.dark ::-webkit-scrollbar-thumb { 
+    background: #6b7280; 
+}
+.dark ::-webkit-scrollbar-thumb:hover { 
+    background: #9ca3af; 
 }
 
 /* Contenedor para las tablas con desplazamiento vertical */
 .table-container { 
-    max-height: calc(100vh - 450px); /* Altura máxima, ajustada para dejar espacio a otros elementos */
-    overflow-y: auto; /* Habilita el desplazamiento vertical si el contenido excede la altura máxima */
+    max-height: calc(100vh - 450px); 
+    overflow-y: auto; 
+    border-radius: 0.5rem;
 } 
 
-/* Ajustes responsivos para pantallas pequeñas (hasta 640px de ancho) */
- @media (max-width: 640px) {
+/* Mejoras para móviles */
+@media (max-width: 640px) {
     .table-container { 
-        max-height: calc(100vh - 520px); /* Altura máxima ajustada para móviles */
+        max-height: calc(100vh - 300px); 
     }
+    
+    /* Mejores tamaños de texto para móviles */
     th, td { 
-        padding-left: 0.5rem; /* Reduce el padding izquierdo y derecho en celdas de tabla */
-        padding-right: 0.5rem;
-        font-size: 0.8rem; /* Reduce el tamaño de la fuente en celdas */
+        padding: 0.5rem 0.75rem; 
+        font-size: 0.875rem; 
+        line-height: 1.25rem;
     }
+    
+    /* Botones más grandes en móvil */
     button { 
-        font-size: 0.8rem; /* Reduce el tamaño de la fuente en botones */
-        padding: 0.3rem 0.5rem; /* Reduce el padding en botones */
+        min-height: 44px; /* Tamaño mínimo recomendado para touch */
+        font-size: 0.875rem; 
+        padding: 0.75rem 1rem; 
     }
-    input, select {
-        font-size: 0.9rem; /* Tamaño de fuente para inputs y selects */
+    
+    /* Inputs más accesibles en móvil */
+    input, select, textarea {
+        font-size: 16px; /* Previene zoom en iOS */
+        min-height: 44px;
+    }
+    
+    /* Espaciado mejorado en móvil */
+    .space-y-6 > * + * {
+        margin-top: 1rem;
+    }
+    
+    /* Navbar responsivo */
+    .navbar-mobile {
+        padding: 0.75rem 1rem;
     }
 }
 
-/* Columnas de administrador: ocultas por defecto. Se mostrarán con JavaScript si el usuario es administrador. */
+/* Mejoras para tablets */
+@media (min-width: 641px) and (max-width: 1024px) {
+    .table-container { 
+        max-height: calc(100vh - 400px); 
+    }
+    
+    /* Grid más responsivo para tablets */
+    .grid-responsive {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+}
+
+/* Columnas de administrador: ocultas por defecto */
 .admin-col { 
     display: none; 
 }
+
+/* Enlace activo en navbar */
 .active-link {
-    background-color: #2563eb; /* Un azul, puedes cambiarlo */
+    background-color: #3b82f6; 
     color: #ffffff;
+}
+
+/* Transiciones suaves */
+.transition-all {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Estados de hover mejorados */
+.hover-scale:hover {
+    transform: scale(1.02);
+}
+
+/* Mejoras para accesibilidad */
+.focus-visible:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Estados de carga */
+.loading {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+/* Animación para el menú móvil */
+.mobile-menu-transition {
+    transition: transform 0.3s ease-in-out;
+}
+
+/* Estilos para modales */
+.modal-backdrop {
+    backdrop-filter: blur(4px);
+}
+
+/* Mejoras para tablas responsivas */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.75rem;
+    }
+    
+    .table-responsive th,
+    .table-responsive td {
+        padding: 0.5rem 0.25rem;
+        white-space: nowrap;
+    }
+    
+    /* Ocultar columnas menos importantes en móvil */
+    .hide-mobile {
+        display: none;
+    }
+}
+
+/* Estilos para formularios */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-control {
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Estados de error */
+.error {
+    border-color: #ef4444;
+}
+
+.error:focus {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Estados de éxito */
+.success {
+    border-color: #10b981;
+}
+
+/* Indicadores de estado */
+.status-indicator {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+}
+
+.status-online {
+    background-color: #10b981;
+}
+
+.status-offline {
+    background-color: #ef4444;
+}
+
+.status-warning {
+    background-color: #f59e0b;
+}
+
+/* Mejoras para dark mode */
+@media (prefers-color-scheme: dark) {
+    .auto-dark {
+        background-color: #1f2937;
+        color: #f9fafb;
+    }
+}
+
+/* Animaciones sutiles */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+}
+
+.slide-in {
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Utilidades para spacing responsivo */
+.p-responsive {
+    padding: 1rem;
+}
+
+@media (min-width: 640px) {
+    .p-responsive {
+        padding: 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .p-responsive {
+        padding: 2rem;
+    }
+}
+
+/* Mejoras para accesibilidad de contraste */
+.high-contrast {
+    filter: contrast(1.2);
+}
+
+/* Estados de loading para botones */
+.btn-loading {
+    position: relative;
+    color: transparent;
+}
+
+.btn-loading::after {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    border-top-color: #ffffff;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Estilos para notificaciones/toasts */
+.toast {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1000;
+    min-width: 300px;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+/* Mejoras para el componente de firma */
+.signature-container {
+    border: 2px dashed #d1d5db;
+    border-radius: 0.5rem;
+    position: relative;
+    background-color: #f9fafb;
+}
+
+.signature-container:hover {
+    border-color: #3b82f6;
+}
+
+.signature-container.has-signature {
+    border-style: solid;
+    border-color: #10b981;
+}
+
+/* Print styles */
+@media print {
+    .no-print {
+        display: none;
+    }
+    
+    body {
+        font-size: 12pt;
+        line-height: 1.4;
+    }
+    
+    .table-container {
+        max-height: none;
+        overflow: visible;
+    }
 }
