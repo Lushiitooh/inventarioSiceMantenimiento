@@ -3,71 +3,339 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inspección de Herramientas Manuales</title>
-    <!-- Bootstrap para un diseño más rápido y adaptable -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="theme-color" content="#0284c7"/>
+    <title>Checklist - Control EPP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
     <style>
-        body {
-            background-color: #f8f9fa;
+        body { font-family: 'Inter', sans-serif; }
+        .signature-pad-container {
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            position: relative;
+            height: 120px;
+            background-color: #f9fafb;
         }
-        .container {
-            max-width: 900px;
-            background-color: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        .signature-pad-container canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 0.375rem;
         }
-        /* ... (el resto de tu CSS sigue igual) ... */
-        .form-header { text-align: center; margin-bottom: 2rem; border-bottom: 2px solid #dee2e6; padding-bottom: 1rem; }
-        .form-header h1 { font-size: 1.8rem; font-weight: bold; }
-        .table-responsive { margin-top: 1.5rem; }
-        .signature-pad-container { border: 1px solid #ced4da; border-radius: .25rem; position: relative; height: 200px; }
-        .signature-pad-container canvas { width: 100%; height: 100%; border-radius: .25rem; }
-        .signature-pad-container button { position: absolute; top: 5px; right: 5px; z-index: 10; }
-        .form-section-title { background-color: #e9ecef; padding: 0.75rem; font-weight: bold; border-radius: 5px; margin-top: 2rem; }
-        .radio-group label { margin-right: 10px; }
+        .signature-pad-container button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            z-index: 10;
+        }
+        @media (max-width: 640px) {
+            .signature-pad-container {
+                height: 100px;
+            }
+        }
     </style>
 </head>
-<body>
-    <div class="container mt-4 mb-4">
-        <!-- Todo tu contenido del formulario (el <body>) sigue exactamente igual -->
-        <div class="form-header">
-            <h1>INSPECCIÓN DE HERRAMIENTAS MANUALES</h1>
-            <p class="mb-0">FTO-AL10195-24 / Versión 03</p>
-        </div>
-        <form id="checklistForm">
-            <!-- SECCIÓN DE DATOS GENERALES -->
-            <div class="row g-3">
-                <div class="col-md-12"><label class="form-label fw-bold">Contrato:</label><p>"Suministro de Puertas Bidireccionales de Control en 7 Estaciones de la Red de Metro"</p></div>
-                <div class="col-md-6"><label for="sitio" class="form-label fw-bold">Sitio/Lugar/Agencia:</label><select id="sitio" class="form-select" required><option value="">Seleccione un sitio...</option><option value="Santa Julia Linea 4A">Santa Julia Linea 4A</option><option value="San Ramon Linea 4A">San Ramon Linea 4A</option><option value="La Granja Linea 4A">La Granja Linea 4A</option><option value="Departamental Linea 2">Departamental Linea 2</option><option value="Universidad de Chile Linea 1">Universidad de Chile Linea 1</option></select></div>
-                <div class="col-md-6"><label for="fechaInspeccion" class="form-label fw-bold">Fecha de Inspección:</label><input type="date" id="fechaInspeccion" class="form-control" readonly></div>
-                <div class="col-md-12"><label for="trabajador" class="form-label fw-bold">Nombre del Trabajador:</label><select id="trabajador" class="form-select" required><option value="">Seleccione un trabajador...</option><option value="Nestor Flores">Nestor Flores</option><option value="Ronald Cancino">Ronald Cancino</option><option value="Nicolas Jara">Nicolas Jara</option><option value="Juan Carlos Valenzuela">Juan Carlos Valenzuela</option><option value="Avelino Troncoso">Avelino Troncoso</option><option value="Ronald Rodriguez">Ronald Rodriguez</option></select></div>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen">
+
+    <!-- Navbar Principal -->
+    <nav class="bg-white dark:bg-gray-800 shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <!-- Logo y título -->
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                            <span class="text-white font-bold text-sm">EPP</span>
+                        </div>
+                        <h1 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+                            Control EPP
+                        </h1>
+                    </div>
+                </div>
+
+                <!-- Navegación Desktop -->
+                <div class="hidden md:flex space-x-8 items-center">
+                    <a href="./index.html" 
+                       class="nav-link px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200
+                              text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 
+                              hover:bg-gray-100 dark:hover:bg-gray-700"
+                       data-page="inventario">
+                        📦 Inventario
+                    </a>
+                    <a href="./certificados.html" 
+                       class="nav-link px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200
+                              text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 
+                              hover:bg-gray-100 dark:hover:bg-gray-700"
+                       data-page="certificados">
+                        📋 Certificados
+                    </a>
+                    <a href="./checklist.html" 
+                       class="nav-link px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200
+                              text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
+                       data-page="checklist">
+                        ✅ Checklist
+                    </a>
+                </div>
+
+                <!-- Botón menú móvil -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-button" 
+                            class="inline-flex items-center justify-center p-2 rounded-md 
+                                   text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 
+                                   hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 
+                                   focus:ring-inset focus:ring-blue-500">
+                        <span class="sr-only">Abrir menú principal</span>
+                        <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
             </div>
-            <!-- SECCIÓN DE HERRAMIENTAS MANUALES --><h4 class="mt-4">1. Herramientas Manuales</h4><div class="table-responsive"><table class="table table-bordered align-middle"><thead class="table-light"><tr><th>Ítem</th><th>Herramienta</th><th>Estado (B/M/N/A)</th><th>Color del Mes (Sí/No)</th><th>Observaciones</th></tr></thead><tbody></tbody></table></div>
-            <!-- SECCIÓN OTRAS HERRAMIENTAS --><h4 class="mt-4">2. Otras Herramientas</h4><div id="otras-herramientas-container"></div><button type="button" id="add-tool-btn" class="btn btn-secondary btn-sm mt-2">Agregar Otra Herramienta</button>
-            <!-- SECCIÓN PLAN DE ACCIÓN --><h4 class="mt-4">3. Plan de Acción (No obligatorio)</h4><div class="row g-3"><div class="col-md-4"><label for="planAccion" class="form-label">Plan de Acción:</label><input type="text" id="planAccion" class="form-control"></div><div class="col-md-4"><label for="fechaPlan" class="form-label">Fecha:</label><input type="date" id="fechaPlan" class="form-control"></div><div class="col-md-4"><label for="responsablePlan" class="form-label">Responsable:</label><input type="text" id="responsablePlan" class="form-control"></div></div>
-            <!-- SECCIÓN DE FIRMAS --><div class="row mt-5"><div class="col-md-4 text-center"><div class="form-section-title mb-2">Realizó</div><div class="signature-pad-container"><canvas id="firmaRealizoPad"></canvas><button type="button" class="btn btn-sm btn-outline-secondary clear-btn" data-target="firmaRealizoPad">Limpiar</button></div><p id="nombreRealizo" class="mt-2 mb-0 fw-bold">Nombre del Trabajador</p><p class="mb-0 text-muted">Técnico Montajista</p><input type="date" id="fechaRealizo" class="form-control form-control-sm mt-1" readonly></div><div class="col-md-4 text-center"><div class="form-section-title mb-2">Revisó</div><div class="signature-pad-container"><canvas id="firmaRevisoPad"></canvas><button type="button" class="btn btn-sm btn-outline-secondary clear-btn" data-target="firmaRevisoPad">Limpiar</button></div><p class="mt-2 mb-0 fw-bold">Guillermo Osorio</p><p class="mb-0 text-muted">Supervisor</p><input type="date" id="fechaReviso" class="form-control form-control-sm mt-1" readonly></div><div class="col-md-4 text-center"><div class="form-section-title mb-2">V°B° Prevención de Riesgos</div><div class="signature-pad-container"><canvas id="firmaPrevencionPad"></canvas><button type="button" class="btn btn-sm btn-outline-secondary clear-btn" data-target="firmaPrevencionPad">Limpiar</button></div><select id="prevencionista" class="form-select form-select-sm mt-2" required><option value="">Seleccione...</option><option value="Valeria Huichipan">Valeria Huichipan</option><option value="Luis Sepúlveda">Luis Sepúlveda</option></select><p class="mb-0 text-muted">Prevención de Riesgos</p><input type="date" id="fechaPrevencion" class="form-control form-control-sm mt-1" readonly></div></div>
-            <div class="d-grid gap-2 mt-5"><button type="submit" class="btn btn-primary btn-lg">Guardar y Enviar</button></div>
-        </form>
+        </div>
+
+        <!-- Menú móvil -->
+        <div id="mobile-menu" class="md:hidden fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 shadow-xl transform -translate-x-full transition-transform duration-300 ease-in-out z-40">
+            <div class="flex flex-col h-full">
+                <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                            <span class="text-white font-bold text-sm">EPP</span>
+                        </div>
+                        <span class="text-lg font-bold text-gray-900 dark:text-white">Control EPP</span>
+                    </div>
+                    <button id="close-mobile-menu" 
+                            class="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="flex-1 px-4 py-6 space-y-1">
+                    <a href="./index.html" 
+                       class="mobile-nav-link flex items-center px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200
+                              text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400"
+                       data-page="inventario">
+                        <span class="mr-3 text-xl">📦</span>
+                        Inventario
+                    </a>
+                    <a href="./certificados.html" 
+                       class="mobile-nav-link flex items-center px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200
+                              text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400"
+                       data-page="certificados">
+                        <span class="mr-3 text-xl">📋</span>
+                        Certificados
+                    </a>
+                    <a href="./checklist.html" 
+                       class="mobile-nav-link flex items-center px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200
+                              bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                       data-page="checklist">
+                        <span class="mr-3 text-xl">✅</span>
+                        Checklist
+                    </a>
+                </div>
+
+                <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                        Sistema de Control EPP v1.0
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overlay para cerrar menú móvil -->
+        <div id="mobile-menu-overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"></div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6 lg:p-8">
+            
+            <!-- Header del formulario -->
+            <div class="text-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
+                <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">INSPECCIÓN DE HERRAMIENTAS MANUALES</h1>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">FTO-AL10195-24 / Versión 03</p>
+            </div>
+
+            <form id="checklistForm" class="space-y-6">
+                <!-- SECCIÓN DE DATOS GENERALES -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Contrato:</label>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                            "Suministro de Puertas Bidireccionales de Control en 7 Estaciones de la Red de Metro"
+                        </p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="sitio" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sitio/Lugar/Agencia:</label>
+                            <select id="sitio" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" required>
+                                <option value="">Seleccione un sitio...</option>
+                                <option value="Santa Julia Linea 4A">Santa Julia Linea 4A</option>
+                                <option value="San Ramon Linea 4A">San Ramon Linea 4A</option>
+                                <option value="La Granja Linea 4A">La Granja Linea 4A</option>
+                                <option value="Departamental Linea 2">Departamental Linea 2</option>
+                                <option value="Universidad de Chile Linea 1">Universidad de Chile Linea 1</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="fechaInspeccion" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fecha de Inspección:</label>
+                            <input type="date" id="fechaInspeccion" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" readonly>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="trabajador" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nombre del Trabajador:</label>
+                        <select id="trabajador" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" required>
+                            <option value="">Seleccione un trabajador...</option>
+                            <option value="Nestor Flores">Nestor Flores</option>
+                            <option value="Ronald Cancino">Ronald Cancino</option>
+                            <option value="Nicolas Jara">Nicolas Jara</option>
+                            <option value="Juan Carlos Valenzuela">Juan Carlos Valenzuela</option>
+                            <option value="Avelino Troncoso">Avelino Troncoso</option>
+                            <option value="Ronald Rodriguez">Ronald Rodriguez</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN DE HERRAMIENTAS MANUALES -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">1. Herramientas Manuales</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <th class="p-3 text-left text-gray-700 dark:text-gray-300 border-b border-gray-300 dark:border-gray-600">Ítem</th>
+                                    <th class="p-3 text-left text-gray-700 dark:text-gray-300 border-b border-gray-300 dark:border-gray-600">Herramienta</th>
+                                    <th class="p-3 text-center text-gray-700 dark:text-gray-300 border-b border-gray-300 dark:border-gray-600">Estado (B/M/N/A)</th>
+                                    <th class="p-3 text-center text-gray-700 dark:text-gray-300 border-b border-gray-300 dark:border-gray-600">Color del Mes (Sí/No)</th>
+                                    <th class="p-3 text-left text-gray-700 dark:text-gray-300 border-b border-gray-300 dark:border-gray-600">Observaciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="herramientasTableBody" class="bg-white dark:bg-gray-800">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN OTRAS HERRAMIENTAS -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">2. Otras Herramientas</h3>
+                    <div id="otras-herramientas-container" class="space-y-3"></div>
+                    <button type="button" id="add-tool-btn" class="mt-4 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm">Agregar Otra Herramienta</button>
+                </div>
+
+                <!-- SECCIÓN PLAN DE ACCIÓN -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">3. Plan de Acción (No obligatorio)</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label for="planAccion" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Plan de Acción:</label>
+                            <input type="text" id="planAccion" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="fechaPlan" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fecha:</label>
+                            <input type="date" id="fechaPlan" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="responsablePlan" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Responsable:</label>
+                            <input type="text" id="responsablePlan" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN DE FIRMAS -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                    <div class="text-center space-y-3">
+                        <div class="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg">
+                            <h4 class="font-semibold text-gray-900 dark:text-white">Realizó</h4>
+                        </div>
+                        <div class="signature-pad-container">
+                            <canvas id="firmaRealizoPad"></canvas>
+                            <button type="button" class="clear-btn px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600" data-target="firmaRealizoPad">Limpiar</button>
+                        </div>
+                        <p id="nombreRealizo" class="font-semibold text-gray-900 dark:text-white">Nombre del Trabajador</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Técnico Montajista</p>
+                        <input type="date" id="fechaRealizo" class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" readonly>
+                    </div>
+
+                    <div class="text-center space-y-3">
+                        <div class="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg">
+                            <h4 class="font-semibold text-gray-900 dark:text-white">Revisó</h4>
+                        </div>
+                        <div class="signature-pad-container">
+                            <canvas id="firmaRevisoPad"></canvas>
+                            <button type="button" class="clear-btn px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600" data-target="firmaRevisoPad">Limpiar</button>
+                        </div>
+                        <p class="font-semibold text-gray-900 dark:text-white">Guillermo Osorio</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Supervisor</p>
+                        <input type="date" id="fechaReviso" class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" readonly>
+                    </div>
+
+                    <div class="text-center space-y-3">
+                        <div class="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg">
+                            <h4 class="font-semibold text-gray-900 dark:text-white">V°B° Prevención de Riesgos</h4>
+                        </div>
+                        <div class="signature-pad-container">
+                            <canvas id="firmaPrevencionPad"></canvas>
+                            <button type="button" class="clear-btn px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600" data-target="firmaPrevencionPad">Limpiar</button>
+                        </div>
+                        <select id="prevencionista" class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required>
+                            <option value="">Seleccione...</option>
+                            <option value="Valeria Huichipan">Valeria Huichipan</option>
+                            <option value="Luis Sepúlveda">Luis Sepúlveda</option>
+                        </select>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Prevención de Riesgos</p>
+                        <input type="date" id="fechaPrevencion" class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" readonly>
+                    </div>
+                </div>
+
+                <div class="pt-6">
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg text-lg transition-colors duration-200">
+                        Guardar y Enviar
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <!-- Librería para la Firma Digital -->
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
-
-    <!--
-    CAMBIO IMPORTANTE:
-    El script ahora es de tipo "module" para poder usar 'import'.
-    -->
     <script type="module">
-        // Importamos solo lo que necesitamos desde tu archivo de configuración
+        // Importamos desde tu archivo de configuración
         import { db } from './firebase-config.js'; 
-        // Importamos las funciones de Firestore que usaremos
         import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         document.addEventListener('DOMContentLoaded', function () {
-            // Ya no necesitamos la variable firebaseConfig aquí, ¡la borramos!
+            // JavaScript para el menú móvil
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const closeMobileMenu = document.getElementById('close-mobile-menu');
+            const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
 
-            // --- LÓGICA DEL FORMULARIO (Esta parte es la misma de siempre) ---
+            function openMobileMenu() {
+                mobileMenu.style.transform = 'translateX(0)';
+                mobileMenuOverlay.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeMobileMenuHandler() {
+                mobileMenu.style.transform = 'translateX(-100%)';
+                mobileMenuOverlay.classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+
+            mobileMenuButton.addEventListener('click', openMobileMenu);
+            closeMobileMenu.addEventListener('click', closeMobileMenuHandler);
+            mobileMenuOverlay.addEventListener('click', closeMobileMenuHandler);
+
+            document.querySelectorAll('.mobile-nav-link').forEach(link => {
+                link.addEventListener('click', closeMobileMenuHandler);
+            });
+
+            // Lógica del formulario
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('fechaInspeccion').value = today;
             document.getElementById('fechaRealizo').value = today;
@@ -80,34 +348,78 @@
                 nombreRealizo.textContent = this.value || 'Nombre del Trabajador';
             });
 
-            const herramientas = ["Caja Herramientas negra", "Juego de Dados 36 piezas", "Alicate Universal", "Alicate Punta", "Alicate Cortante", "Caiman", "Flexometro", "Juego de dados", "Atornillador de Paleta aislado 1,2x6,5x150mm", "Atornillador de Paleta aislado 1,0x5,5x125mm", "Atornillador de Paleta aislado 0,8x4,0x100mm", "Atornillador de Paleta aislado 0,4x2,5x75mm", "Atornillador de cruz aislado PH2x100mm", "Atornillador de cruz aislado PH1x80mm", "Atornillador de cruz aislado PH0x75mm", "Crimpiadora", "Ventosa para pisos tecnicos", "Martillo"];
-            const tbody = document.querySelector('.table-responsive tbody');
+            const herramientas = [
+                "Caja Herramientas negra", "Juego de Dados 36 piezas", "Alicate Universal", 
+                "Alicate Punta", "Alicate Cortante", "Caiman", "Flexometro", "Juego de dados", 
+                "Atornillador de Paleta aislado 1,2x6,5x150mm", "Atornillador de Paleta aislado 1,0x5,5x125mm", 
+                "Atornillador de Paleta aislado 0,8x4,0x100mm", "Atornillador de Paleta aislado 0,4x2,5x75mm", 
+                "Atornillador de cruz aislado PH2x100mm", "Atornillador de cruz aislado PH1x80mm", 
+                "Atornillador de cruz aislado PH0x75mm", "Crimpiadora", "Ventosa para pisos tecnicos", "Martillo"
+            ];
+
+            const tbody = document.getElementById('herramientasTableBody');
             herramientas.forEach((herramienta, index) => {
                 const tr = document.createElement('tr');
-                // CORRECCIÓN DEL ERROR DE SINTAXIS AQUÍ:
-                tr.innerHTML = `<td>1.${index + 1}</td><td>${herramienta}</td><td class="radio-group"><input type="radio" name="estado_${index}" value="Bueno" required> B <input type="radio" name="estado_${index}" value="Malo"> M <input type="radio" name="estado_${index}" value="N/A"> N/A</td><td class="radio-group"><input type="radio" name="color_${index}" value="Si" required> Sí <input type="radio" name="color_${index}" value="No"> No</td><td><input type="text" name="obs_${index}" class="form-control form-control-sm"></td>`;
+                tr.className = 'border-b border-gray-200 dark:border-gray-700';
+                tr.innerHTML = `
+                    <td class="p-3 text-gray-900 dark:text-white">1.${index + 1}</td>
+                    <td class="p-3 text-gray-900 dark:text-white">${herramienta}</td>
+                    <td class="p-3 text-center">
+                        <div class="flex justify-center space-x-4 text-sm">
+                            <label class="flex items-center"><input type="radio" name="estado_${index}" value="Bueno" required class="mr-1"> B</label>
+                            <label class="flex items-center"><input type="radio" name="estado_${index}" value="Malo" class="mr-1"> M</label>
+                            <label class="flex items-center"><input type="radio" name="estado_${index}" value="N/A" class="mr-1"> N/A</label>
+                        </div>
+                    </td>
+                    <td class="p-3 text-center">
+                        <div class="flex justify-center space-x-4 text-sm">
+                            <label class="flex items-center"><input type="radio" name="color_${index}" value="Si" required class="mr-1"> Sí</label>
+                            <label class="flex items-center"><input type="radio" name="color_${index}" value="No" class="mr-1"> No</label>
+                        </div>
+                    </td>
+                    <td class="p-3"><input type="text" name="obs_${index}" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"></td>
+                `;
                 tbody.appendChild(tr);
             });
 
-            // Código para el pad de firma (sin cambios)
+            // Configuración de firmas
             function setupSignaturePad(canvasId) {
-                const canvas = document.getElementById(canvasId); const signaturePad = new SignaturePad(canvas, { backgroundColor: 'rgb(255, 255, 255)' });
-                function resizeCanvas() { const ratio = Math.max(window.devicePixelRatio || 1, 1); canvas.width = canvas.offsetWidth * ratio; canvas.height = canvas.offsetHeight * ratio; canvas.getContext("2d").scale(ratio, ratio); signaturePad.clear(); }
-                window.addEventListener("resize", resizeCanvas); resizeCanvas(); return signaturePad;
+                const canvas = document.getElementById(canvasId);
+                const signaturePad = new SignaturePad(canvas, { backgroundColor: 'rgb(255, 255, 255)' });
+                
+                function resizeCanvas() {
+                    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                    canvas.width = canvas.offsetWidth * ratio;
+                    canvas.height = canvas.offsetHeight * ratio;
+                    canvas.getContext("2d").scale(ratio, ratio);
+                    signaturePad.clear();
+                }
+                
+                window.addEventListener("resize", resizeCanvas);
+                resizeCanvas();
+                return signaturePad;
             }
-            const firmaRealizo = setupSignaturePad('firmaRealizoPad'); const firmaReviso = setupSignaturePad('firmaRevisoPad'); const firmaPrevencion = setupSignaturePad('firmaPrevencionPad');
+
+            const firmaRealizo = setupSignaturePad('firmaRealizoPad');
+            const firmaReviso = setupSignaturePad('firmaRevisoPad');
+            const firmaPrevencion = setupSignaturePad('firmaPrevencionPad');
+
             document.querySelectorAll('.clear-btn').forEach(button => {
-                button.addEventListener('click', (e) => { const targetId = e.currentTarget.getAttribute('data-target'); if (targetId === 'firmaRealizoPad') firmaRealizo.clear(); if (targetId === 'firmaRevisoPad') firmaReviso.clear(); if (targetId === 'firmaPrevencionPad') firmaPrevencion.clear(); });
+                button.addEventListener('click', (e) => {
+                    const targetId = e.currentTarget.getAttribute('data-target');
+                    if (targetId === 'firmaRealizoPad') firmaRealizo.clear();
+                    if (targetId === 'firmaRevisoPad') firmaReviso.clear();
+                    if (targetId === 'firmaPrevencionPad') firmaPrevencion.clear();
+                });
             });
             
-            // --- NUEVA LÓGICA DE ENVÍO A PIPEDREAM (con sintaxis moderna de Firestore) ---
+            // Envío del formulario
             document.getElementById('checklistForm').addEventListener('submit', async function(event) {
                 event.preventDefault();
                 const submitButton = event.currentTarget.querySelector('button[type="submit"]');
                 submitButton.disabled = true;
                 submitButton.textContent = 'Enviando...';
 
-                // 1. Recopilamos los datos
                 const formData = {
                     contrato: "Suministro de Puertas Bidireccionales de Control en 7 Estaciones de la Red de Metro",
                     sitio: document.getElementById('sitio').value,
@@ -119,12 +431,17 @@
                     firmaRevisoImg: firmaReviso.isEmpty() ? "" : firmaReviso.toDataURL(),
                     firmaPrevencionImg: firmaPrevencion.isEmpty() ? "" : firmaPrevencion.toDataURL()
                 };
-                const herramientasRows = document.querySelectorAll('.table-responsive tbody tr');
+
+                const herramientasRows = document.querySelectorAll('#herramientasTableBody tr');
                 herramientasRows.forEach((row, index) => {
-                    formData.herramientas.push({ nombre: row.cells[1].textContent, estado: row.querySelector(`input[name="estado_${index}"]:checked`)?.value || 'N/A', color: row.querySelector(`input[name="color_${index}"]:checked`)?.value || 'No', obs: row.querySelector(`input[name="obs_${index}"]`).value });
+                    formData.herramientas.push({
+                        nombre: row.cells[1].textContent,
+                        estado: row.querySelector(`input[name="estado_${index}"]:checked`)?.value || 'N/A',
+                        color: row.querySelector(`input[name="color_${index}"]:checked`)?.value || 'No',
+                        obs: row.querySelector(`input[name="obs_${index}"]`).value
+                    });
                 });
 
-                // 2. Guardamos un respaldo en Firestore (usando la nueva sintaxis)
                 try {
                     await addDoc(collection(db, "checklists"), {...formData, createdAt: serverTimestamp()});
                     console.log("Respaldo guardado en Firestore.");
@@ -132,7 +449,6 @@
                     console.error("Error al guardar respaldo en Firestore:", error);
                 }
 
-                // 3. Enviamos los datos a Pipedream
                 const pipedreamUrl = "https://eopkzao9ptejwdl.m.pipedream.net";
 
                 try {
@@ -144,8 +460,6 @@
 
                     if (response.ok) {
                         alert('¡Checklist enviado con éxito!');
-                        // Opcional: limpiar el formulario después de un envío exitoso
-                        // event.target.reset(); 
                     } else {
                         throw new Error('El servidor de Pipedream respondió con un error.');
                     }
