@@ -126,7 +126,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label for="sitio" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sitio/Lugar/Agencia:</label>
-                            <select id="sitio" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" required>
+                            <select id="sitio" name="sitio" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" required>
                                 <option value="">Seleccione un sitio...</option>
                                 <option value="Santa Julia Linea 4A">Santa Julia Linea 4A</option>
                                 <option value="San Ramon Linea 4A">San Ramon Linea 4A</option>
@@ -138,13 +138,13 @@
                         
                         <div>
                             <label for="fechaInspeccion" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fecha de Inspección:</label>
-                            <input type="date" id="fechaInspeccion" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" readonly>
+                            <input type="date" id="fechaInspeccion" name="fechaInspeccion" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" readonly>
                         </div>
                     </div>
                     
                     <div>
                         <label for="trabajador" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nombre del Trabajador:</label>
-                        <select id="trabajador" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" required>
+                        <select id="trabajador" name="trabajador" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" required>
                             <option value="">Seleccione un trabajador...</option>
                             <option value="Nestor Flores">Nestor Flores</option>
                             <option value="Ronald Cancino">Ronald Cancino</option>
@@ -207,7 +207,7 @@
                         </div>
                         <p id="nombreRealizo" class="font-semibold text-gray-900 dark:text-white">Nombre del Trabajador</p>
                         <p class="text-sm text-gray-600 dark:text-gray-400">Técnico Montajista</p>
-                        <input type="date" id="fechaRealizo" class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" readonly>
+                        <input type="date" id="fechaRealizo" name="fechaRealizo" class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" readonly>
                     </div>
 
                     <div class="text-center space-y-3">
@@ -220,7 +220,7 @@
                         </div>
                         <p class="font-semibold text-gray-900 dark:text-white">Guillermo Osorio</p>
                         <p class="text-sm text-gray-600 dark:text-gray-400">Supervisor</p>
-                        <input type="date" id="fechaReviso" class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" readonly>
+                        <input type="date" id="fechaReviso" name="fechaReviso" class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" readonly>
                     </div>
 
                     <div class="text-center space-y-3">
@@ -231,13 +231,13 @@
                             <canvas id="firmaPrevencionPad"></canvas>
                             <button type="button" class="clear-btn px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600" data-target="firmaPrevencionPad">Limpiar</button>
                         </div>
-                        <select id="prevencionista" class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required>
+                        <select id="prevencionista" name="prevencionista" class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required>
                             <option value="">Seleccione...</option>
                             <option value="Valeria Huichipan">Valeria Huichipan</option>
                             <option value="Luis Sepúlveda">Luis Sepúlveda</option>
                         </select>
                         <p class="text-sm text-gray-600 dark:text-gray-400">Prevención de Riesgos</p>
-                        <input type="date" id="fechaPrevencion" class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" readonly>
+                        <input type="date" id="fechaPrevencion" name="fechaPrevencion" class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" readonly>
                     </div>
                 </div>
 
@@ -253,7 +253,6 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     <script type="module">
-        // Este es un ejemplo, asegúrate de que la ruta sea correcta
         import { db } from './firebase-config.js'; 
         import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
@@ -382,15 +381,15 @@
                 planDiv.className = 'grid grid-cols-1 sm:grid-cols-3 gap-4';
                 planDiv.innerHTML = `
                     <div>
-                        <label class="hidden">Plan ${i+1}</label>
+                        <label class="sr-only">Plan ${i+1}</label>
                         <input type="text" name="planAccion_${i}" placeholder="Plan de Acción ${i+1}" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm">
                     </div>
                     <div>
-                        <label class="hidden">Fecha Plan ${i+1}</label>
+                        <label class="sr-only">Fecha Plan ${i+1}</label>
                         <input type="date" name="fechaPlan_${i}" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm">
                     </div>
                     <div>
-                        <label class="hidden">Responsable ${i+1}</label>
+                        <label class="sr-only">Responsable ${i+1}</label>
                         <input type="text" name="responsablePlan_${i}" placeholder="Responsable ${i+1}" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm">
                     </div>
                 `;
@@ -467,13 +466,15 @@
                 // Recolectar otras herramientas
                 const otrasHerramientasDivs = otrasContainer.querySelectorAll('.grid');
                 otrasHerramientasDivs.forEach((div, index) => {
-                    const nombre = div.querySelector(`input[name^="otraHerramientaNombre"]`).value;
+                    const nombreInput = div.querySelector('input[name^="otraHerramientaNombre"]');
+                    const nombre = nombreInput ? nombreInput.value : '';
+
                     if(nombre) { // Solo agregar si tiene nombre
                         formData.otrasHerramientas.push({
                             nombre: nombre,
-                            estado: div.querySelector(`input[name^="otraHerramientaEstado"]:checked`)?.value || 'N/A',
-                            color: div.querySelector(`input[name^="otraHerramientaColor"]:checked`)?.value || 'No',
-                            obs: div.querySelector(`input[name^="otraHerramientaObs"]`).value
+                            estado: div.querySelector('input[name^="otraHerramientaEstado"]:checked')?.value || 'N/A',
+                            color: div.querySelector('input[name^="otraHerramientaColor"]:checked')?.value || 'No',
+                            obs: div.querySelector('input[name^="otraHerramientaObs"]')?.value || ''
                         });
                     }
                 });
@@ -503,6 +504,7 @@
                     if (response.ok) {
                         alert('¡Checklist enviado con éxito!');
                         form.reset();
+                        nombreRealizo.textContent = 'Nombre del Trabajador';
                         firmaRealizo.clear();
                         firmaReviso.clear();
                         firmaPrevencion.clear();
