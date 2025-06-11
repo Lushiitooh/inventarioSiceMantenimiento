@@ -33,6 +33,15 @@
                 height: 100px;
             }
         }
+        .table-cell-sm {
+            width: 8%; /* Para Estado y Color */
+        }
+        .table-cell-md {
+            width: 30%; /* Para Herramienta */
+        }
+        .table-cell-lg {
+            width: 40%; /* Para Observaciones */
+        }
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen">
@@ -52,38 +61,13 @@
                         </h1>
                     </div>
                 </div>
-
-                <!-- Navegación Desktop -->
-                <div class="hidden md:flex space-x-8 items-center">
-                    <a href="./index.html" 
-                       class="nav-link px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200
-                              text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 
-                              hover:bg-gray-100 dark:hover:bg-gray-700"
-                       data-page="inventario">
-                        📦 Inventario
-                    </a>
-                    <a href="./certificados.html" 
-                       class="nav-link px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200
-                              text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 
-                              hover:bg-gray-100 dark:hover:bg-gray-700"
-                       data-page="certificados">
-                        📋 Certificados
-                    </a>
-                    <a href="./checklist.html" 
-                       class="nav-link px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200
-                              text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
-                       data-page="checklist">
-                        ✅ Checklist
-                    </a>
+                 <div class="hidden md:flex space-x-8 items-center">
+                    <a href="./index.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700" data-page="inventario"> 📦 Inventario </a>
+                    <a href="./certificados.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700" data-page="certificados"> 📋 Certificados </a>
+                    <a href="./checklist.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20" data-page="checklist"> ✅ Checklist </a>
                 </div>
-
-                <!-- Botón menú móvil -->
                 <div class="md:hidden flex items-center">
-                    <button id="mobile-menu-button" 
-                            class="inline-flex items-center justify-center p-2 rounded-md 
-                                   text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 
-                                   hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 
-                                   focus:ring-inset focus:ring-blue-500">
+                    <button id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
                         <span class="sr-only">Abrir menú principal</span>
                         <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -92,8 +76,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Menú móvil -->
         <div id="mobile-menu" class="md:hidden fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 shadow-xl transform -translate-x-full transition-transform duration-300 ease-in-out z-40">
             <div class="flex flex-col h-full">
                 <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
@@ -103,55 +85,29 @@
                         </div>
                         <span class="text-lg font-bold text-gray-900 dark:text-white">Control EPP</span>
                     </div>
-                    <button id="close-mobile-menu" 
-                            class="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <button id="close-mobile-menu" class="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                         <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
-
                 <div class="flex-1 px-4 py-6 space-y-1">
-                    <a href="./index.html" 
-                       class="mobile-nav-link flex items-center px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200
-                              text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400"
-                       data-page="inventario">
-                        <span class="mr-3 text-xl">📦</span>
-                        Inventario
-                    </a>
-                    <a href="./certificados.html" 
-                       class="mobile-nav-link flex items-center px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200
-                              text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400"
-                       data-page="certificados">
-                        <span class="mr-3 text-xl">📋</span>
-                        Certificados
-                    </a>
-                    <a href="./checklist.html" 
-                       class="mobile-nav-link flex items-center px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200
-                              bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                       data-page="checklist">
-                        <span class="mr-3 text-xl">✅</span>
-                        Checklist
-                    </a>
+                    <a href="./index.html" class="mobile-nav-link flex items-center px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200 text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400" data-page="inventario"> <span class="mr-3 text-xl">📦</span> Inventario </a>
+                    <a href="./certificados.html" class="mobile-nav-link flex items-center px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200 text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400" data-page="certificados"> <span class="mr-3 text-xl">📋</span> Certificados </a>
+                    <a href="./checklist.html" class="mobile-nav-link flex items-center px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400" data-page="checklist"> <span class="mr-3 text-xl">✅</span> Checklist </a>
                 </div>
-
                 <div class="p-4 border-t border-gray-200 dark:border-gray-700">
-                    <div class="text-sm text-gray-500 dark:text-gray-400">
-                        Sistema de Control EPP v1.0
-                    </div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400"> Sistema de Control EPP v1.0 </div>
                 </div>
             </div>
         </div>
-
-        <!-- Overlay para cerrar menú móvil -->
         <div id="mobile-menu-overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"></div>
     </nav>
 
     <!-- Contenido Principal -->
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6 lg:p-8">
             
-            <!-- Header del formulario -->
             <div class="text-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
                 <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">INSPECCIÓN DE HERRAMIENTAS MANUALES</h1>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">FTO-AL10195-24 / Versión 03</p>
@@ -204,14 +160,14 @@
                 <div>
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">1. Herramientas Manuales</h3>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+                        <table class="w-full text-sm border-collapse">
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
-                                    <th class="p-3 text-left text-gray-700 dark:text-gray-300 border-b border-gray-300 dark:border-gray-600">Ítem</th>
-                                    <th class="p-3 text-left text-gray-700 dark:text-gray-300 border-b border-gray-300 dark:border-gray-600">Herramienta</th>
-                                    <th class="p-3 text-center text-gray-700 dark:text-gray-300 border-b border-gray-300 dark:border-gray-600">Estado (B/M/N/A)</th>
-                                    <th class="p-3 text-center text-gray-700 dark:text-gray-300 border-b border-gray-300 dark:border-gray-600">Color del Mes (Sí/No)</th>
-                                    <th class="p-3 text-left text-gray-700 dark:text-gray-300 border-b border-gray-300 dark:border-gray-600">Observaciones</th>
+                                    <th class="p-2 text-left text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600">Ítem</th>
+                                    <th class="p-2 text-left text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 table-cell-md">Herramienta</th>
+                                    <th class="p-2 text-center text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 table-cell-sm">Estado<br>(B/M/N/A)</th>
+                                    <th class="p-2 text-center text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 table-cell-sm">Color Mes<br>(Sí/No)</th>
+                                    <th class="p-2 text-left text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 table-cell-lg">Observaciones</th>
                                 </tr>
                             </thead>
                             <tbody id="herramientasTableBody" class="bg-white dark:bg-gray-800">
@@ -223,31 +179,24 @@
                 <!-- SECCIÓN OTRAS HERRAMIENTAS -->
                 <div>
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">2. Otras Herramientas</h3>
-                    <div id="otras-herramientas-container" class="space-y-3"></div>
-                    <button type="button" id="add-tool-btn" class="mt-4 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm">Agregar Otra Herramienta</button>
+                    <div id="otras-herramientas-container" class="space-y-4"></div>
+                    <button type="button" id="add-tool-btn" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm transition-colors">
+                        + Agregar Herramienta
+                    </button>
                 </div>
+
 
                 <!-- SECCIÓN PLAN DE ACCIÓN -->
                 <div>
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">3. Plan de Acción (No obligatorio)</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div>
-                            <label for="planAccion" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Plan de Acción:</label>
-                            <input type="text" id="planAccion" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label for="fechaPlan" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fecha:</label>
-                            <input type="date" id="fechaPlan" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label for="responsablePlan" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Responsable:</label>
-                            <input type="text" id="responsablePlan" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500">
-                        </div>
+                    <div id="plan-accion-container" class="space-y-4">
+                        <!-- Las filas del plan de acción se generarán aquí -->
                     </div>
                 </div>
 
+
                 <!-- SECCIÓN DE FIRMAS -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
                     <div class="text-center space-y-3">
                         <div class="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg">
                             <h4 class="font-semibold text-gray-900 dark:text-white">Realizó</h4>
@@ -304,12 +253,12 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     <script type="module">
-        // Importamos desde tu archivo de configuración
-        import { db } from './firebase-config.js'; 
-        import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Este es un ejemplo, asegúrate de que la ruta sea correcta
+        // import { db } from './firebase-config.js'; 
+        // import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         document.addEventListener('DOMContentLoaded', function () {
-            // JavaScript para el menú móvil
+            // --- Lógica del Menú Móvil (sin cambios) ---
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
             const closeMobileMenu = document.getElementById('close-mobile-menu');
@@ -335,7 +284,8 @@
                 link.addEventListener('click', closeMobileMenuHandler);
             });
 
-            // Lógica del formulario
+
+            // --- Lógica del Formulario (Actualizada) ---
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('fechaInspeccion').value = today;
             document.getElementById('fechaRealizo').value = today;
@@ -347,7 +297,8 @@
             trabajadorSelect.addEventListener('change', function() {
                 nombreRealizo.textContent = this.value || 'Nombre del Trabajador';
             });
-
+            
+            // --- Carga de Herramientas Predeterminadas ---
             const herramientas = [
                 "Caja Herramientas negra", "Juego de Dados 36 piezas", "Alicate Universal", 
                 "Alicate Punta", "Alicate Cortante", "Caiman", "Flexometro", "Juego de dados", 
@@ -360,32 +311,97 @@
             const tbody = document.getElementById('herramientasTableBody');
             herramientas.forEach((herramienta, index) => {
                 const tr = document.createElement('tr');
-                tr.className = 'border-b border-gray-200 dark:border-gray-700';
+                tr.className = 'border border-gray-200 dark:border-gray-700';
                 tr.innerHTML = `
-                    <td class="p-3 text-gray-900 dark:text-white">1.${index + 1}</td>
-                    <td class="p-3 text-gray-900 dark:text-white">${herramienta}</td>
-                    <td class="p-3 text-center">
-                        <div class="flex justify-center space-x-4 text-sm">
-                            <label class="flex items-center"><input type="radio" name="estado_${index}" value="Bueno" required class="mr-1"> B</label>
-                            <label class="flex items-center"><input type="radio" name="estado_${index}" value="Malo" class="mr-1"> M</label>
-                            <label class="flex items-center"><input type="radio" name="estado_${index}" value="N/A" class="mr-1"> N/A</label>
+                    <td class="p-2 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600">1.${index + 1}</td>
+                    <td class="p-2 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600">${herramienta}</td>
+                    <td class="p-2 text-center border border-gray-300 dark:border-gray-600">
+                        <div class="flex justify-center items-center space-x-2 sm:space-x-4 text-xs sm:text-sm">
+                            <label class="flex items-center cursor-pointer"><input type="radio" name="estado_${index}" value="Bueno" required class="mr-1"> B</label>
+                            <label class="flex items-center cursor-pointer"><input type="radio" name="estado_${index}" value="Malo" class="mr-1"> M</label>
+                            <label class="flex items-center cursor-pointer"><input type="radio" name="estado_${index}" value="N/A" class="mr-1"> N/A</label>
                         </div>
                     </td>
-                    <td class="p-3 text-center">
-                        <div class="flex justify-center space-x-4 text-sm">
-                            <label class="flex items-center"><input type="radio" name="color_${index}" value="Si" required class="mr-1"> Sí</label>
-                            <label class="flex items-center"><input type="radio" name="color_${index}" value="No" class="mr-1"> No</label>
+                    <td class="p-2 text-center border border-gray-300 dark:border-gray-600">
+                        <div class="flex justify-center items-center space-x-2 sm:space-x-4 text-xs sm:text-sm">
+                            <label class="flex items-center cursor-pointer"><input type="radio" name="color_${index}" value="Si" required class="mr-1"> Sí</label>
+                            <label class="flex items-center cursor-pointer"><input type="radio" name="color_${index}" value="No" class="mr-1"> No</label>
                         </div>
                     </td>
-                    <td class="p-3"><input type="text" name="obs_${index}" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"></td>
+                    <td class="p-2 border border-gray-300 dark:border-gray-600"><input type="text" name="obs_${index}" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"></td>
                 `;
                 tbody.appendChild(tr);
             });
 
-            // Configuración de firmas
+            // --- Lógica para "Agregar Otra Herramienta" ---
+            const addToolBtn = document.getElementById('add-tool-btn');
+            const otrasContainer = document.getElementById('otras-herramientas-container');
+            let otherToolIndex = 0;
+
+            addToolBtn.addEventListener('click', () => {
+                otherToolIndex++;
+                const toolDiv = document.createElement('div');
+                toolDiv.className = 'grid grid-cols-1 sm:grid-cols-12 gap-2 p-2 border rounded-lg border-gray-300 dark:border-gray-600 items-center';
+                toolDiv.innerHTML = `
+                    <div class="sm:col-span-4">
+                        <input type="text" name="otraHerramientaNombre_${otherToolIndex}" placeholder="Nombre de la herramienta" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-sm" required>
+                    </div>
+                    <div class="sm:col-span-3">
+                         <div class="flex justify-center items-center space-x-2 text-xs sm:text-sm">
+                            <label class="flex items-center cursor-pointer"><input type="radio" name="otraHerramientaEstado_${otherToolIndex}" value="Bueno" required class="mr-1"> B</label>
+                            <label class="flex items-center cursor-pointer"><input type="radio" name="otraHerramientaEstado_${otherToolIndex}" value="Malo" class="mr-1"> M</label>
+                            <label class="flex items-center cursor-pointer"><input type="radio" name="otraHerramientaEstado_${otherToolIndex}" value="N/A" class="mr-1"> N/A</label>
+                        </div>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <div class="flex justify-center items-center space-x-2 text-xs sm:text-sm">
+                            <label class="flex items-center cursor-pointer"><input type="radio" name="otraHerramientaColor_${otherToolIndex}" value="Si" required class="mr-1"> Sí</label>
+                            <label class="flex items-center cursor-pointer"><input type="radio" name="otraHerramientaColor_${otherToolIndex}" value="No" class="mr-1"> No</label>
+                        </div>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <input type="text" name="otraHerramientaObs_${otherToolIndex}" placeholder="Observación" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-sm">
+                    </div>
+                    <div class="sm:col-span-1 text-right">
+                        <button type="button" class="remove-tool-btn p-2 text-red-500 hover:text-red-700">&times;</button>
+                    </div>
+                `;
+                otrasContainer.appendChild(toolDiv);
+            });
+            
+            otrasContainer.addEventListener('click', (e) => {
+                if (e.target.classList.contains('remove-tool-btn')) {
+                    e.target.closest('.grid').remove();
+                }
+            });
+
+            // --- Lógica para "Plan de Acción" ---
+            const planContainer = document.getElementById('plan-accion-container');
+            for (let i = 0; i < 3; i++) {
+                const planDiv = document.createElement('div');
+                planDiv.className = 'grid grid-cols-1 sm:grid-cols-3 gap-4';
+                planDiv.innerHTML = `
+                    <div>
+                        <label class="hidden">Plan ${i+1}</label>
+                        <input type="text" name="planAccion_${i}" placeholder="Plan de Acción ${i+1}" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm">
+                    </div>
+                    <div>
+                        <label class="hidden">Fecha Plan ${i+1}</label>
+                        <input type="date" name="fechaPlan_${i}" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm">
+                    </div>
+                    <div>
+                        <label class="hidden">Responsable ${i+1}</label>
+                        <input type="text" name="responsablePlan_${i}" placeholder="Responsable ${i+1}" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm">
+                    </div>
+                `;
+                planContainer.appendChild(planDiv);
+            }
+
+
+            // --- Configuración de Firmas (sin cambios) ---
             function setupSignaturePad(canvasId) {
                 const canvas = document.getElementById(canvasId);
-                const signaturePad = new SignaturePad(canvas, { backgroundColor: 'rgb(255, 255, 255)' });
+                const signaturePad = new SignaturePad(canvas, { backgroundColor: 'rgb(249, 250, 251)' });
                 
                 function resizeCanvas() {
                     const ratio = Math.max(window.devicePixelRatio || 1, 1);
@@ -413,42 +429,68 @@
                 });
             });
             
-            // Envío del formulario
+            // --- Envío del Formulario (Actualizado) ---
             document.getElementById('checklistForm').addEventListener('submit', async function(event) {
                 event.preventDefault();
                 const submitButton = event.currentTarget.querySelector('button[type="submit"]');
                 submitButton.disabled = true;
                 submitButton.textContent = 'Enviando...';
 
+                // Recolectar datos del formulario
+                const form = event.target;
+                const data = new FormData(form);
+
                 const formData = {
                     contrato: "Suministro de Puertas Bidireccionales de Control en 7 Estaciones de la Red de Metro",
-                    sitio: document.getElementById('sitio').value,
-                    fechaInspeccion: document.getElementById('fechaInspeccion').value,
-                    trabajador: document.getElementById('trabajador').value,
-                    prevencionista: document.getElementById('prevencionista').value,
+                    sitio: data.get('sitio'),
+                    fechaInspeccion: data.get('fechaInspeccion'),
+                    trabajador: data.get('trabajador'),
+                    prevencionista: data.get('prevencionista'),
                     herramientas: [],
+                    otrasHerramientas: [],
+                    planAccion: [],
                     firmaRealizoImg: firmaRealizo.isEmpty() ? "" : firmaRealizo.toDataURL(),
                     firmaRevisoImg: firmaReviso.isEmpty() ? "" : firmaReviso.toDataURL(),
                     firmaPrevencionImg: firmaPrevencion.isEmpty() ? "" : firmaPrevencion.toDataURL()
                 };
 
-                const herramientasRows = document.querySelectorAll('#herramientasTableBody tr');
-                herramientasRows.forEach((row, index) => {
+                // Recolectar herramientas predeterminadas
+                herramientas.forEach((herramienta, index) => {
                     formData.herramientas.push({
-                        nombre: row.cells[1].textContent,
-                        estado: row.querySelector(`input[name="estado_${index}"]:checked`)?.value || 'N/A',
-                        color: row.querySelector(`input[name="color_${index}"]:checked`)?.value || 'No',
-                        obs: row.querySelector(`input[name="obs_${index}"]`).value
+                        nombre: herramienta,
+                        estado: data.get(`estado_${index}`) || 'N/A',
+                        color: data.get(`color_${index}`) || 'No',
+                        obs: data.get(`obs_${index}`)
                     });
                 });
 
-                try {
-                    await addDoc(collection(db, "checklists"), {...formData, createdAt: serverTimestamp()});
-                    console.log("Respaldo guardado en Firestore.");
-                } catch (error) {
-                    console.error("Error al guardar respaldo en Firestore:", error);
+                // Recolectar otras herramientas
+                const otrasHerramientasDivs = otrasContainer.querySelectorAll('.grid');
+                otrasHerramientasDivs.forEach((div, index) => {
+                    const nombre = div.querySelector(`input[name^="otraHerramientaNombre"]`).value;
+                    if(nombre) { // Solo agregar si tiene nombre
+                        formData.otrasHerramientas.push({
+                            nombre: nombre,
+                            estado: div.querySelector(`input[name^="otraHerramientaEstado"]:checked`)?.value || 'N/A',
+                            color: div.querySelector(`input[name^="otraHerramientaColor"]:checked`)?.value || 'No',
+                            obs: div.querySelector(`input[name^="otraHerramientaObs"]`).value
+                        });
+                    }
+                });
+
+                // Recolectar plan de acción
+                for (let i = 0; i < 3; i++) {
+                    const accion = data.get(`planAccion_${i}`);
+                    if (accion) { // Solo agregar si hay una acción descrita
+                        formData.planAccion.push({
+                            accion: accion,
+                            fecha: data.get(`fechaPlan_${i}`),
+                            responsable: data.get(`responsablePlan_${i}`)
+                        });
+                    }
                 }
 
+                // URL de Pipedream (Webhook)
                 const pipedreamUrl = "https://eopkzao9ptejwdl.m.pipedream.net";
 
                 try {
@@ -460,12 +502,18 @@
 
                     if (response.ok) {
                         alert('¡Checklist enviado con éxito!');
+                        form.reset();
+                        firmaRealizo.clear();
+                        firmaReviso.clear();
+                        firmaPrevencion.clear();
+                        otrasContainer.innerHTML = '';
                     } else {
-                        throw new Error('El servidor de Pipedream respondió con un error.');
+                        const errorText = await response.text();
+                        throw new Error(`El servidor respondió con un error: ${response.status}. ${errorText}`);
                     }
                 } catch (error) {
-                    console.error("Error al enviar a Pipedream:", error);
-                    alert("Hubo un error al enviar el checklist.");
+                    console.error("Error al enviar el formulario:", error);
+                    alert("Hubo un error al enviar el checklist. Por favor, revisa la consola para más detalles.");
                 } finally {
                     submitButton.disabled = false;
                     submitButton.textContent = 'Guardar y Enviar';
