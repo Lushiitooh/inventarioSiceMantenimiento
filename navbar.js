@@ -9,9 +9,13 @@ document.addEventListener('DOMContentLoaded', function() {
         'formulario-ast.html': 'formulario-ast'
     };
 
+    // --- Generar timestamp para evitar cache ---
+    function getCacheBreaker() {
+        return Math.floor(Date.now() / (1000 * 60 * 10)); // Cada 10 minutos
+    }
+
     // --- Detectar si es uso externo ---
     function isExternalUsage() {
-        // Si el script se carga desde jsDelivr, es uso externo
         const scripts = document.getElementsByTagName('script');
         for (let script of scripts) {
             if (script.src && script.src.includes('jsdelivr.net')) {
@@ -48,7 +52,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Si es uso externo, cargar desde jsDelivr CDN
             if (isExternalUsage()) {
-                navbarUrl = 'https://cdn.jsdelivr.net/gh/Lushiitooh/inventarioSiceMantenimiento@main/navbar.html';
+                const cacheBreaker = getCacheBreaker();
+                navbarUrl = `https://cdn.jsdelivr.net/gh/Lushiitooh/inventarioSiceMantenimiento@main/navbar.html?cb=${cacheBreaker}`;
             } else {
                 // Uso local, cargar desde el mismo directorio
                 navbarUrl = './navbar.html';
@@ -77,13 +82,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const mobileMenu = document.getElementById('mobile-menu');
         const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
         
-        // Verificar que todos los elementos existen
         if (!mobileMenuButton || !closeMobileMenuButton || !mobileMenu || !mobileMenuOverlay) {
             console.error('Faltan elementos del menú móvil en navbar.html');
             return;
         }
 
-        // Función para alternar el menú
         function toggleMenu(open) {
             if (open) {
                 mobileMenu.style.transform = 'translateX(0)';
@@ -96,17 +99,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // Event listeners
         mobileMenuButton.addEventListener('click', () => toggleMenu(true));
         closeMobileMenuButton.addEventListener('click', () => toggleMenu(false));
         mobileMenuOverlay.addEventListener('click', () => toggleMenu(false));
 
-        // Cerrar menú al hacer click en enlaces móviles
         document.querySelectorAll('.mobile-nav-link').forEach(link => {
             link.addEventListener('click', () => toggleMenu(false));
         });
 
-        // Cerrar menú con tecla Escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 toggleMenu(false);
@@ -124,26 +124,22 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Obtener todos los enlaces de navegación
         const navLinks = document.querySelectorAll('.nav-link, .mobile-nav-link');
 
         navLinks.forEach(link => {
             const linkPage = link.getAttribute('data-page');
             
-            // Remover clases activas existentes
             link.classList.remove(
                 'text-blue-600', 'dark:text-blue-400', 
                 'bg-blue-50', 'dark:bg-blue-900/20'
             );
             
-            // Añadir clases por defecto
             link.classList.add(
                 'text-gray-600', 'dark:text-gray-300',
                 'hover:text-blue-600', 'dark:hover:text-blue-400',
                 'hover:bg-gray-100', 'dark:hover:bg-gray-700'
             );
 
-            // Si es la página actual, marcar como activo
             if (linkPage === currentPageKey) {
                 link.classList.remove(
                     'text-gray-600', 'dark:text-gray-300',
@@ -157,16 +153,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- Obtener nombre de la página actual ---
     function getCurrentPageName() {
         const path = window.location.pathname;
         const filename = path.substring(path.lastIndexOf('/') + 1);
-        
-        // Si está en la raíz o es una página vacía, asumir index.html
         return filename || 'index.html';
     }
 
-    // --- Mostrar error en la navbar ---
     function showNavbarError(container) {
         container.innerHTML = `
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
@@ -176,19 +168,15 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
 
-    // --- Función para añadir nuevas páginas dinámicamente ---
     window.addNavbarPage = function(filename, pageKey, displayName, icon = '📄') {
         pageConfig[filename] = pageKey;
         
-        // Si la navbar ya está cargada, actualizar los enlaces
         if (document.getElementById('mobile-menu')) {
             addNavLinkToExistingNavbar(filename, pageKey, displayName, icon);
         }
     };
 
-    // --- Añadir enlace a navbar existente ---
     function addNavLinkToExistingNavbar(filename, pageKey, displayName, icon) {
-        // Añadir a navegación desktop
         const desktopNav = document.querySelector('.hidden.md\\:flex');
         if (desktopNav) {
             const desktopLink = document.createElement('a');
@@ -199,7 +187,6 @@ document.addEventListener('DOMContentLoaded', function() {
             desktopNav.appendChild(desktopLink);
         }
 
-        // Añadir a navegación móvil
         const mobileNav = document.querySelector('.flex-1.px-4.py-6.space-y-1');
         if (mobileNav) {
             const mobileLink = document.createElement('a');
@@ -210,18 +197,14 @@ document.addEventListener('DOMContentLoaded', function() {
             mobileNav.appendChild(mobileLink);
         }
 
-        // Reinicializar eventos
         initializeMobileMenu();
         setActiveNavLink();
     }
 
-    // --- Inicializar todo ---
     initializeNavbar();
 });
 
-// --- API pública para uso externo ---
 window.NavbarAPI = {
-    // Refrescar el estado activo de la navbar
     refresh: function() {
         const setActiveNavLink = () => {
             console.log('Navbar refreshed');
@@ -229,7 +212,6 @@ window.NavbarAPI = {
         setActiveNavLink();
     },
     
-    // Añadir nueva página
     addPage: function(filename, pageKey, displayName, icon) {
         if (window.addNavbarPage) {
             window.addNavbarPage(filename, pageKey, displayName, icon);
