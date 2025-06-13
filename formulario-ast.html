@@ -17,21 +17,22 @@
     <style>
         body { 
             font-family: 'Inter', sans-serif; 
-            background-color: #f3f4f6; /* Fondo gris claro para la página */
+            background-color: #f3f4f6;
         }
         .dark body {
-             background-color: #111827; /* Fondo oscuro */
+             background-color: #111827;
         }
         .signature-pad-container {
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem;
+            border: 2px solid #3b82f6;
+            border-radius: 0.5rem;
             position: relative;
             height: 150px;
             background-color: #f9fafb;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .dark .signature-pad-container {
             background-color: #374151;
-            border-color: #4b5563;
+            border-color: #60a5fa;
         }
         .signature-pad-container canvas {
             width: 100%;
@@ -50,12 +51,31 @@
                 height: 120px;
             }
         }
-        /* Estilos para que los inputs se vean consistentes */
+        /* Estilos mejorados para mayor visibilidad */
         .form-input {
-            @apply w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-400;
+            @apply w-full rounded-lg border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 sm:text-sm dark:bg-gray-700 dark:border-gray-500 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-400 px-4 py-3 transition-all duration-200;
+            background-color: #ffffff;
+        }
+        .dark .form-input {
+            background-color: #374151;
         }
         .form-label {
-            @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
+            @apply block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2;
+        }
+        .section-header {
+            @apply text-lg font-bold text-gray-900 dark:text-white mb-6 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 p-4 rounded-lg border-l-4 border-blue-500;
+        }
+        .checkbox-item {
+            @apply flex items-center p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors;
+        }
+        .checkbox-item input[type="checkbox"] {
+            @apply h-5 w-5 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-500 mr-3;
+        }
+        .danger-item {
+            @apply flex items-center p-2 rounded hover:bg-red-50 dark:hover:bg-red-900 transition-colors;
+        }
+        .danger-item input[type="checkbox"] {
+            @apply h-4 w-4 text-red-600 border-2 border-red-300 rounded focus:ring-red-500 mr-2;
         }
     </style>
 </head>
@@ -66,94 +86,168 @@
 
     <!-- Contenido Principal del Formulario -->
     <main class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-        <form class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 space-y-8">
+        <form id="astForm" class="bg-white dark:bg-gray-800 shadow-xl rounded-xl p-8 space-y-10">
             
             <!-- Cabecera del Formulario -->
-            <div class="text-center">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">ANÁLISIS DE SEGURIDAD EN EL TRABAJO (AST)</h2>
-                <p class="text-sm text-gray-500 dark:text-gray-400">FTO-AL10195-01</p>
+            <div class="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
+                <h2 class="text-3xl font-bold text-gray-900 dark:text-white">ANÁLISIS DE SEGURIDAD EN EL TRABAJO (AST)</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">FTO-AL10195-01</p>
+                <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900 rounded-lg">
+                    <p class="text-sm font-medium text-blue-800 dark:text-blue-200">
+                        Fecha y hora de creación: <span id="fechaHoraActual" class="font-bold"></span>
+                    </p>
+                </div>
             </div>
 
-            <!-- Información General -->
-            <section class="border-t border-gray-200 dark:border-gray-700 pt-6">
-                <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-white mb-4">1. Información General del Trabajo</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- 1. Información General -->
+            <section>
+                <h3 class="section-header">1. Información General del Trabajo</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div>
-                        <label for="gerencia" class="form-label">Gerencia</label>
-                        <input type="text" id="gerencia" name="gerencia" class="form-input">
+                        <label for="empresa" class="form-label">Empresa</label>
+                        <input type="text" id="empresa" name="empresa" class="form-input" value="SICE AGENCIA CHILE S.A" readonly>
                     </div>
-                    <div>
-                        <label for="area" class="form-label">Área</label>
-                        <input type="text" id="area" name="area" class="form-input">
+                    <div class="md:col-span-2 lg:col-span-2">
+                        <label for="obra_area" class="form-label">OBRA/Área</label>
+                        <input type="text" id="obra_area" name="obra_area" class="form-input" value="Suministro de Puertas Bidireccionales de Control en 7 Estaciones de la Red de Metro." readonly>
                     </div>
-                    <div class="md:col-span-2">
+                    <div class="md:col-span-2 lg:col-span-3">
                         <label for="lugar" class="form-label">Lugar Específico</label>
-                        <input type="text" id="lugar" name="lugar" class="form-input">
+                        <select id="lugar" name="lugar" class="form-input" required>
+                            <option value="">Seleccione una estación...</option>
+                            <option value="Estacion Universidad de Chile">Estación Universidad de Chile</option>
+                            <option value="Estacion San Pablo">Estación San Pablo</option>
+                            <option value="Estacion Departamental">Estación Departamental</option>
+                            <option value="Estacion Santa Julia">Estación Santa Julia</option>
+                            <option value="Estacion San Ramon">Estación San Ramón</option>
+                            <option value="Estacion San Joaquin">Estación San Joaquín</option>
+                            <option value="Estacion La Granja">Estación La Granja</option>
+                        </select>
                     </div>
-                    <div class="md:col-span-2 lg:col-span-4">
+                    <div class="md:col-span-2 lg:col-span-3">
                         <label for="trabajo" class="form-label">Trabajo a Realizar</label>
-                        <textarea id="trabajo" name="trabajo" rows="3" class="form-input"></textarea>
-                    </div>
-                     <div>
-                        <label for="fecha" class="form-label">Fecha de Realización</label>
-                        <input type="date" id="fecha" name="fecha" class="form-input">
-                    </div>
-                    <div>
-                        <label for="hora_inicio" class="form-label">Hora Inicio</label>
-                        <input type="time" id="hora_inicio" name="hora_inicio" class="form-input">
-                    </div>
-                    <div>
-                        <label for="hora_termino" class="form-label">Hora Término</label>
-                        <input type="time" id="hora_termino" name="hora_termino" class="form-input">
+                        <textarea id="trabajo" name="trabajo" rows="5" class="form-input" placeholder="Describa detalladamente el trabajo que se va a realizar..."></textarea>
                     </div>
                 </div>
             </section>
 
-            <!-- EPP -->
-            <section class="border-t border-gray-200 dark:border-gray-700 pt-6">
-                 <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-white mb-4">2. Equipo de Protección Personal (EPP) a Utilizar</h3>
-                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                     <div class="flex items-center">
-                         <input id="casco" name="epp" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                         <label for="casco" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">Casco</label>
-                     </div>
-                     <div class="flex items-center">
-                         <input id="lentes" name="epp" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                         <label for="lentes" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">Lentes de seguridad</label>
-                     </div>
-                     <div class="flex items-center">
-                         <input id="zapatos" name="epp" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                         <label for="zapatos" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">Zapatos de seguridad</label>
-                     </div>
-                     <div class="flex items-center">
-                         <input id="guantes" name="epp" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                         <label for="guantes" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">Guantes</label>
-                     </div>
-                     <div class="flex items-center">
-                         <input id="protector_auditivo" name="epp" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                         <label for="protector_auditivo" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">Protector auditivo</label>
-                     </div>
-                      <div class="flex items-center">
-                         <input id="protector_respiratorio" name="epp" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                         <label for="protector_respiratorio" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">Protector respiratorio</label>
-                     </div>
-                      <div class="flex items-center">
-                         <input id="arnes" name="epp" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                         <label for="arnes" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">Arnés de seguridad</label>
-                     </div>
-                 </div>
+            <!-- 2. Documento de Respaldo -->
+            <section>
+                <h3 class="section-header">2. Documento de Respaldo</h3>
+                <div id="documentos-container" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600" id="documento-inicial">
+                        <div>
+                            <label for="tipoDocumento" class="form-label">Tipo de Documento</label>
+                            <select id="tipoDocumento" name="tipoDocumento" class="form-input">
+                                <option value="">Seleccione tipo de documento...</option>
+                                <option value="procedimiento">Procedimiento</option>
+                                <option value="instructivo">Instructivo</option>
+                                <option value="otro">Otro</option>
+                                <option value="no_requiere">No requiere</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="nombreCodigo" class="form-label">Nombre o Código del Documento</label>
+                            <input type="text" id="nombreCodigo" name="nombreCodigo" class="form-input" placeholder="Ingrese nombre o código del documento">
+                        </div>
+                    </div>
+                    <div id="documentos-adicionales" class="space-y-3">
+                        <!-- Documentos adicionales se agregarán aquí -->
+                    </div>
+                </div>
+                <button type="button" id="add-documento-button" class="mt-4 w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                    + Agregar Otro Documento de Respaldo
+                </button>
             </section>
 
-            <!-- Personal Participante -->
-            <section class="border-t border-gray-200 dark:border-gray-700 pt-6">
-                <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-white mb-4">3. Personal que Participa en la Actividad</h3>
+            <!-- 3. Elementos de Apoyo -->
+            <section>
+                <h3 class="section-header">3. Elementos de Apoyo para el Control de los Riesgos</h3>
+                <div id="epp-container" class="space-y-4">
+                    <!-- EPP predeterminados -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="checkbox-item">
+                            <input id="casco" name="epp_predeterminado" type="checkbox" value="Casco">
+                            <label for="casco" class="text-sm font-medium text-gray-900 dark:text-gray-300">Casco</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input id="linterna_casco" name="epp_predeterminado" type="checkbox" value="Linterna Adosable al Casco">
+                            <label for="linterna_casco" class="text-sm font-medium text-gray-900 dark:text-gray-300">Linterna Adosable al Casco</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input id="lentes" name="epp_predeterminado" type="checkbox" value="Lentes de seguridad">
+                            <label for="lentes" class="text-sm font-medium text-gray-900 dark:text-gray-300">Lentes de seguridad</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input id="zapatos" name="epp_predeterminado" type="checkbox" value="Zapatos de seguridad">
+                            <label for="zapatos" class="text-sm font-medium text-gray-900 dark:text-gray-300">Zapatos de seguridad</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input id="guantes" name="epp_predeterminado" type="checkbox" value="Guantes">
+                            <label for="guantes" class="text-sm font-medium text-gray-900 dark:text-gray-300">Guantes</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input id="guantes_hyflex" name="epp_predeterminado" type="checkbox" value="Guantes Hyflex">
+                            <label for="guantes_hyflex" class="text-sm font-medium text-gray-900 dark:text-gray-300">Guantes Hyflex</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input id="guantes_cabritilla" name="epp_predeterminado" type="checkbox" value="Guantes Cabritilla">
+                            <label for="guantes_cabritilla" class="text-sm font-medium text-gray-900 dark:text-gray-300">Guantes Cabritilla</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input id="protector_auditivo" name="epp_predeterminado" type="checkbox" value="Protector auditivo">
+                            <label for="protector_auditivo" class="text-sm font-medium text-gray-900 dark:text-gray-300">Protector auditivo</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input id="protector_respiratorio" name="epp_predeterminado" type="checkbox" value="Protector respiratorio">
+                            <label for="protector_respiratorio" class="text-sm font-medium text-gray-900 dark:text-gray-300">Protector respiratorio</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input id="arnes" name="epp_predeterminado" type="checkbox" value="Arnés de seguridad">
+                            <label for="arnes" class="text-sm font-medium text-gray-900 dark:text-gray-300">Arnés de seguridad</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input id="cono" name="epp_predeterminado" type="checkbox" value="Cono">
+                            <label for="cono" class="text-sm font-medium text-gray-900 dark:text-gray-300">Cono</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input id="taladro_inalambrico" name="epp_predeterminado" type="checkbox" value="Taladro Inalámbrico">
+                            <label for="taladro_inalambrico" class="text-sm font-medium text-gray-900 dark:text-gray-300">Taladro Inalámbrico</label>
+                        </div>
+                    </div>
+                    
+                    <!-- EPP adicionales -->
+                    <div id="epp-adicionales" class="space-y-3">
+                        <h4 class="text-md font-semibold text-gray-800 dark:text-gray-200 mt-6 mb-3">Elementos Adicionales</h4>
+                    </div>
+                </div>
+                <button type="button" id="add-epp-button" class="mt-4 w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+                    + Agregar Elemento Adicional
+                </button>
+            </section>
+
+            <!-- 4. Secuencia del Trabajo -->
+            <section>
+                <h3 class="section-header">4. Secuencia de las Etapas del Trabajo</h3>
+                <div id="etapas-container" class="space-y-6">
+                    <!-- Las etapas se generarán dinámicamente -->
+                </div>
+                <button type="button" id="add-etapa-button" class="mt-6 w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors">
+                    + Agregar Otra Etapa
+                </button>
+            </section>
+
+            <!-- 5. Personal Participante -->
+            <section>
+                <h3 class="section-header">5. Personal que Participa en la Actividad</h3>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-lg">
                         <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nombre Completo</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Firma</th>
-                                <th scope="col" class="relative px-6 py-3">
+                                <th scope="col" class="px-3 py-3 sm:px-6 sm:py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider border-r border-gray-200 dark:border-gray-600">Nombre Completo</th>
+                                <th scope="col" class="px-3 py-3 sm:px-6 sm:py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider border-r border-gray-200 dark:border-gray-600">RUT</th>
+                                <th scope="col" class="px-3 py-3 sm:px-6 sm:py-4 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider border-r border-gray-200 dark:border-gray-600">Firma</th>
+                                <th scope="col" class="relative px-3 py-3 sm:px-6 sm:py-4">
                                     <span class="sr-only">Eliminar</span>
                                 </th>
                             </tr>
@@ -163,67 +257,47 @@
                         </tbody>
                     </table>
                 </div>
-                 <button type="button" id="add-personal-button" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    Añadir Persona
+                <button type="button" id="add-personal-button" class="mt-4 w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                    + Añadir Persona
                 </button>
             </section>
-            
-            <!-- Secuencia del Trabajo -->
-            <section class="border-t border-gray-200 dark:border-gray-700 pt-6">
-                <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-white mb-4">4. Secuencia de las Etapas del Trabajo</h3>
-                <div class="space-y-4">
-                    <div>
-                        <label for="etapas" class="form-label">Etapas del Trabajo</label>
-                        <textarea id="etapas" name="etapas" rows="4" class="form-input" placeholder="Describa paso a paso las etapas del trabajo..."></textarea>
-                    </div>
-                    <div>
-                        <label for="riesgos" class="form-label">Riesgos Potenciales</label>
-                        <textarea id="riesgos" name="riesgos" rows="4" class="form-input" placeholder="Identifique los riesgos asociados a cada etapa..."></textarea>
-                    </div>
-                    <div>
-                        <label for="medidas" class="form-label">Medidas de Control</label>
-                        <textarea id="medidas" name="medidas" rows="4" class="form-input" placeholder="Describa las medidas para mitigar cada riesgo..."></textarea>
-                    </div>
-                </div>
-            </section>
 
-            <!-- Firmas -->
-            <section class="border-t border-gray-200 dark:border-gray-700 pt-6">
-                <h3 class="text-lg font-semibold leading-6 text-gray-900 dark:text-white mb-4">5. Firmas de Autorización</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <div>
-                        <label class="form-label text-center">Supervisor a Cargo</label>
+            <!-- 6. Firmas -->
+            <section>
+                <h3 class="section-header">6. Firmas de Autorización</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+                    <div class="text-center space-y-4">
+                        <label class="form-label text-center text-lg">Supervisor a Cargo</label>
                         <div class="signature-pad-container">
                             <canvas id="signature-supervisor"></canvas>
-                            <button type="button" onclick="clearSignature('signature-supervisor')" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 py-1 px-2 rounded">Limpiar</button>
+                            <button type="button" onclick="clearSignature('signature-supervisor')" class="text-xs bg-red-500 hover:bg-red-600 text-white py-1 px-2 rounded">Limpiar</button>
                         </div>
-                        <input type="text" placeholder="Nombre del Supervisor" class="form-input mt-2">
+                        <p class="font-bold text-gray-900 dark:text-white text-lg">Guillermo Osorio</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Supervisor</p>
                     </div>
-                    <div>
-                        <label class="form-label text-center">Jefe de Área</label>
-                        <div class="signature-pad-container">
-                            <canvas id="signature-jefe"></canvas>
-                             <button type="button" onclick="clearSignature('signature-jefe')" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 py-1 px-2 rounded">Limpiar</button>
-                        </div>
-                        <input type="text" placeholder="Nombre del Jefe de Área" class="form-input mt-2">
-                    </div>
-                    <div>
-                        <label class="form-label text-center">Prevencionista de Riesgos (APR)</label>
+
+                    <div class="text-center space-y-4">
+                        <label class="form-label text-center text-lg">Prevencionista de Riesgos (APR)</label>
                         <div class="signature-pad-container">
                             <canvas id="signature-apr"></canvas>
-                             <button type="button" onclick="clearSignature('signature-apr')" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 py-1 px-2 rounded">Limpiar</button>
+                            <button type="button" onclick="clearSignature('signature-apr')" class="text-xs bg-red-500 hover:bg-red-600 text-white py-1 px-2 rounded">Limpiar</button>
                         </div>
-                        <input type="text" placeholder="Nombre del APR" class="form-input mt-2">
+                        <select id="prevencionista" name="prevencionista" class="form-input max-w-xs mx-auto" required>
+                            <option value="">Seleccione prevencionista...</option>
+                            <option value="Luis Sepúlveda">Luis Sepúlveda</option>
+                            <option value="Valeria Huichipan">Valeria Huichipan</option>
+                        </select>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Prevención de Riesgos</p>
                     </div>
                 </div>
             </section>
 
             <!-- Botones de Acción -->
-            <div class="flex justify-end space-x-4 pt-8">
-                <button type="button" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg transition duration-300">
+            <div class="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-8 border-t border-gray-200 dark:border-gray-700">
+                <button type="button" class="w-full sm:w-auto bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-8 rounded-lg transition duration-300 text-lg order-2 sm:order-1">
                     Cancelar
                 </button>
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300">
+                <button type="submit" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300 text-lg shadow-lg order-1 sm:order-2">
                     Guardar y Enviar
                 </button>
             </div>
@@ -233,20 +307,61 @@
     <!-- Scripts -->
     <script src="navbar.js"></script>
     <script>
+        // Lista de riesgos potenciales
+        const riesgosPotenciales = [
+            "Atrapado por objeto en movimiento",
+            "Atrapado entre objetos",
+            "Caída a mismo nivel",
+            "Caída a distinto nivel", 
+            "Caída de objetos",
+            "Contacto con electricidad",
+            "Contacto con sustancias químicas",
+            "Contacto con superficies calientes",
+            "Contacto con superficies frías",
+            "Cortes y laceraciones",
+            "Exposición a ruido",
+            "Exposición a vibraciones",
+            "Exposición a radiaciones",
+            "Exposición a temperatura extrema",
+            "Golpes contra objetos",
+            "Golpes por objetos",
+            "Incendio",
+            "Explosión",
+            "Intoxicación por gases",
+            "Lesiones ergonómicas",
+            "Proyección de partículas",
+            "Sobreesfuerzo físico",
+            "Contacto con herramientas cortantes",
+            "Pisadas sobre objetos",
+            "Contacto con materiales abrasivos"
+        ];
+
+        // Inicializar fecha y hora actual
+        function setCurrentDateTime() {
+            const now = new Date();
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit',
+                timeZone: 'America/Santiago'
+            };
+            document.getElementById('fechaHoraActual').textContent = now.toLocaleDateString('es-CL', options);
+        }
+
         // --- Lógica para los Canvas de Firma ---
         function setupSignaturePad(canvasId) {
             const canvas = document.getElementById(canvasId);
             const ctx = canvas.getContext('2d');
             let drawing = false;
 
-            // Ajustar el tamaño del canvas al de su contenedor
             function resizeCanvas() {
                 const rect = canvas.getBoundingClientRect();
                 canvas.width = rect.width;
                 canvas.height = rect.height;
             }
             
-            // Redimensionar al cargar y al cambiar el tamaño de la ventana
             window.addEventListener('resize', resizeCanvas);
             resizeCanvas();
 
@@ -275,10 +390,10 @@
 
             function draw(e) {
                 if (!drawing) return;
-                e.preventDefault(); // Evitar scroll en móvil
+                e.preventDefault();
                 const pos = e.type.includes('touch') ? getTouchPos(e) : getMousePos(e);
                 ctx.lineTo(pos.x, pos.y);
-                ctx.strokeStyle = '#374151'; // Color de la firma
+                ctx.strokeStyle = '#1f2937';
                 ctx.lineWidth = 2;
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
@@ -306,43 +421,157 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
-        // Inicializar todos los pads de firma
-        setupSignaturePad('signature-supervisor');
-        setupSignaturePad('signature-jefe');
-        setupSignaturePad('signature-apr');
-        
-        // --- Lógica para añadir personal dinámicamente ---
-        const addPersonalButton = document.getElementById('add-personal-button');
-        const personalTableBody = document.getElementById('personal-table-body');
-        let personalCount = 0;
+        // --- Lógica para documentos adicionales ---
+        let documentoCount = 0;
+        document.getElementById('add-documento-button').addEventListener('click', function() {
+            documentoCount++;
+            const docDiv = document.createElement('div');
+            docDiv.className = 'grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 relative';
+            docDiv.innerHTML = `
+                <div>
+                    <label class="form-label">Tipo de Documento</label>
+                    <select name="tipoDocumento_adicional_${documentoCount}" class="form-input">
+                        <option value="">Seleccione tipo de documento...</option>
+                        <option value="procedimiento">Procedimiento</option>
+                        <option value="instructivo">Instructivo</option>
+                        <option value="otro">Otro</option>
+                        <option value="no_requiere">No requiere</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Nombre o Código del Documento</label>
+                    <input type="text" name="nombreCodigo_adicional_${documentoCount}" class="form-input" placeholder="Ingrese nombre o código del documento">
+                </div>
+                <button type="button" class="absolute top-2 right-2 text-red-600 hover:text-red-800 font-bold text-xl remove-documento-btn">&times;</button>
+            `;
+            document.getElementById('documentos-adicionales').appendChild(docDiv);
+        });
 
+        document.getElementById('documentos-adicionales').addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-documento-btn')) {
+                e.target.closest('div').remove();
+            }
+        });
+
+        // --- Lógica para EPP adicionales ---
+        let eppCount = 0;
+        document.getElementById('add-epp-button').addEventListener('click', function() {
+            eppCount++;
+            const eppDiv = document.createElement('div');
+            eppDiv.className = 'flex items-center space-x-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg';
+            eppDiv.innerHTML = `
+                <input type="text" placeholder="Nombre del Elemento" name="epp_adicional_${eppCount}" class="form-input flex-1" required>
+                <div class="flex items-center">
+                    <input type="checkbox" id="epp_adicional_check_${eppCount}" name="epp_adicional_check_${eppCount}" class="h-5 w-5 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-500 mr-2">
+                    <label for="epp_adicional_check_${eppCount}" class="text-sm font-medium text-gray-900 dark:text-gray-300">Usar</label>
+                </div>
+                <button type="button" class="text-red-600 hover:text-red-800 font-bold text-lg remove-epp-btn">&times;</button>
+            `;
+            document.getElementById('epp-adicionales').appendChild(eppDiv);
+        });
+
+        document.getElementById('epp-adicionales').addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-epp-btn')) {
+                e.target.closest('div').remove();
+            }
+        });
+
+        // --- Lógica para añadir personal con firma ---
+        let personalCount = 0;
         function addPersonalRow() {
             personalCount++;
             const row = document.createElement('tr');
+            row.className = 'border-b border-gray-200 dark:border-gray-600';
             row.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <input type="text" placeholder="Nombre y Apellido" class="form-input text-sm">
+                <td class="px-2 py-3 sm:px-6 sm:py-4 border-r border-gray-200 dark:border-gray-600">
+                    <input type="text" placeholder="Nombre y Apellido" name="personal_nombre_${personalCount}" class="form-input text-xs sm:text-sm w-full" required>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                     <span class="text-sm text-gray-500 dark:text-gray-400">Firma en papel</span>
+                <td class="px-2 py-3 sm:px-6 sm:py-4 border-r border-gray-200 dark:border-gray-600">
+                    <input type="text" placeholder="12.345.678-9" name="personal_rut_${personalCount}" class="form-input text-xs sm:text-sm w-full" required>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button type="button" class="text-red-600 hover:text-red-900 dark:hover:text-red-400 remove-personal-button">Eliminar</button>
+                <td class="px-2 py-3 sm:px-6 sm:py-4 border-r border-gray-200 dark:border-gray-600">
+                    <div class="signature-pad-container" style="height: 60px; min-height: 60px;">
+                        <canvas id="firma-personal-${personalCount}"></canvas>
+                        <button type="button" onclick="clearSignature('firma-personal-${personalCount}')" class="text-xs bg-red-500 hover:bg-red-600 text-white py-1 px-1 sm:px-2 rounded" style="top: 2px; right: 2px;">Limpiar</button>
+                    </div>
+                </td>
+                <td class="px-2 py-3 sm:px-6 sm:py-4 text-center">
+                    <button type="button" class="text-red-600 hover:text-red-900 dark:hover:text-red-400 remove-personal-button font-bold text-lg w-6 h-6 flex items-center justify-center">&times;</button>
                 </td>
             `;
-            personalTableBody.appendChild(row);
+            document.getElementById('personal-table-body').appendChild(row);
+            
+            // Configurar canvas de firma para este personal
+            setTimeout(() => setupSignaturePad(`firma-personal-${personalCount}`), 100);
         }
 
-        personalTableBody.addEventListener('click', function(e) {
+        document.getElementById('personal-table-body').addEventListener('click', function(e) {
             if (e.target.classList.contains('remove-personal-button')) {
                 e.target.closest('tr').remove();
             }
         });
 
-        addPersonalButton.addEventListener('click', addPersonalRow);
+        document.getElementById('add-personal-button').addEventListener('click', addPersonalRow);
 
-        // Añadir una fila inicial
-        addPersonalRow();
+        // --- Lógica para etapas de trabajo ---
+        let etapaCount = 0;
+        function addEtapaRow() {
+            etapaCount++;
+            const etapaDiv = document.createElement('div');
+            etapaDiv.className = 'bg-gray-50 dark:bg-gray-700 p-4 sm:p-6 rounded-lg border-2 border-gray-200 dark:border-gray-600';
+            etapaDiv.innerHTML = `
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-2 sm:space-y-0">
+                    <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Etapa ${etapaCount}</h4>
+                    <button type="button" class="text-red-600 hover:text-red-800 font-bold text-xl remove-etapa-btn self-end sm:self-auto">&times;</button>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="form-label">Descripción de la Etapa</label>
+                        <textarea name="etapa_descripcion_${etapaCount}" rows="3" class="form-input" placeholder="Describa detalladamente esta etapa del trabajo..." required></textarea>
+                    </div>
+                    <div>
+                        <label class="form-label">Riesgos Potenciales (Seleccione todos los que apliquen)</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-60 overflow-y-auto border border-gray-300 dark:border-gray-500 rounded-lg p-3 sm:p-4 bg-white dark:bg-gray-800">
+                            ${riesgosPotenciales.map((riesgo, index) => `
+                                <div class="danger-item">
+                                    <input type="checkbox" id="riesgo_${etapaCount}_${index}" name="etapa_riesgos_${etapaCount}" value="${riesgo}">
+                                    <label for="riesgo_${etapaCount}_${index}" class="text-xs sm:text-sm text-gray-900 dark:text-gray-300">${riesgo}</label>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div>
+                        <label class="form-label">Medidas de Control</label>
+                        <textarea name="etapa_medidas_${etapaCount}" rows="4" class="form-input" placeholder="Describa las medidas de control para mitigar los riesgos identificados..." required></textarea>
+                    </div>
+                </div>
+            `;
+            document.getElementById('etapas-container').appendChild(etapaDiv);
+        }
+
+        document.getElementById('etapas-container').addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-etapa-btn')) {
+                e.target.closest('div').remove();
+            }
+        });
+
+        document.getElementById('add-etapa-button').addEventListener('click', addEtapaRow);
+
+        // --- Inicialización ---
+        document.addEventListener('DOMContentLoaded', function() {
+            setCurrentDateTime();
+            setupSignaturePad('signature-supervisor');
+            setupSignaturePad('signature-apr');
+            addPersonalRow(); // Agregar una fila inicial de personal
+            addEtapaRow(); // Agregar una etapa inicial
+        });
+
+        // --- Envío del formulario ---
+        document.getElementById('astForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Formulario AST enviado correctamente!');
+            // Aquí iría la lógica de envío real
+        });
     </script>
 </body>
 </html>
