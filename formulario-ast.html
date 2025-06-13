@@ -235,4 +235,114 @@
     <script>
         // --- Lógica para los Canvas de Firma ---
         function setupSignaturePad(canvasId) {
-            const canvas =
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            let drawing = false;
+
+            // Ajustar el tamaño del canvas al de su contenedor
+            function resizeCanvas() {
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+            }
+            
+            // Redimensionar al cargar y al cambiar el tamaño de la ventana
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            function getMousePos(evt) {
+                const rect = canvas.getBoundingClientRect();
+                return {
+                    x: evt.clientX - rect.left,
+                    y: evt.clientY - rect.top
+                };
+            }
+            
+            function getTouchPos(evt) {
+                const rect = canvas.getBoundingClientRect();
+                return {
+                    x: evt.touches[0].clientX - rect.left,
+                    y: evt.touches[0].clientY - rect.top
+                };
+            }
+
+            function startDrawing(e) {
+                drawing = true;
+                const pos = e.type.includes('touch') ? getTouchPos(e) : getMousePos(e);
+                ctx.beginPath();
+                ctx.moveTo(pos.x, pos.y);
+            }
+
+            function draw(e) {
+                if (!drawing) return;
+                e.preventDefault(); // Evitar scroll en móvil
+                const pos = e.type.includes('touch') ? getTouchPos(e) : getMousePos(e);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.strokeStyle = '#374151'; // Color de la firma
+                ctx.lineWidth = 2;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.stroke();
+            }
+
+            function stopDrawing() {
+                drawing = false;
+                ctx.closePath();
+            }
+
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseleave', stopDrawing);
+            
+            canvas.addEventListener('touchstart', startDrawing);
+            canvas.addEventListener('touchmove', draw);
+            canvas.addEventListener('touchend', stopDrawing);
+        }
+
+        window.clearSignature = function(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Inicializar todos los pads de firma
+        setupSignaturePad('signature-supervisor');
+        setupSignaturePad('signature-jefe');
+        setupSignaturePad('signature-apr');
+        
+        // --- Lógica para añadir personal dinámicamente ---
+        const addPersonalButton = document.getElementById('add-personal-button');
+        const personalTableBody = document.getElementById('personal-table-body');
+        let personalCount = 0;
+
+        function addPersonalRow() {
+            personalCount++;
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <input type="text" placeholder="Nombre y Apellido" class="form-input text-sm">
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                     <span class="text-sm text-gray-500 dark:text-gray-400">Firma en papel</span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button type="button" class="text-red-600 hover:text-red-900 dark:hover:text-red-400 remove-personal-button">Eliminar</button>
+                </td>
+            `;
+            personalTableBody.appendChild(row);
+        }
+
+        personalTableBody.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-personal-button')) {
+                e.target.closest('tr').remove();
+            }
+        });
+
+        addPersonalButton.addEventListener('click', addPersonalRow);
+
+        // Añadir una fila inicial
+        addPersonalRow();
+    </script>
+</body>
+</html>
