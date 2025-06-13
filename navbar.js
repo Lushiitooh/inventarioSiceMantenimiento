@@ -1,4 +1,4 @@
-// navbar.js - Sistema de navegación modular
+// navbar.js - Sistema de navegación modular UNIVERSAL
 document.addEventListener('DOMContentLoaded', function() {
     
     // --- Configuración de páginas ---
@@ -8,6 +8,18 @@ document.addEventListener('DOMContentLoaded', function() {
         'checklist.html': 'checklist',
         'formulario-ast.html': 'formulario-ast'
     };
+
+    // --- Detectar si es uso externo ---
+    function isExternalUsage() {
+        // Si el script se carga desde jsDelivr, es uso externo
+        const scripts = document.getElementsByTagName('script');
+        for (let script of scripts) {
+            if (script.src && script.src.includes('jsdelivr.net')) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     // --- Función principal para inicializar la navbar ---
     function initializeNavbar() {
@@ -32,7 +44,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Cargar HTML de la navbar ---
     async function loadNavbarHTML() {
         try {
-            const response = await fetch('./navbar.html');
+            let navbarUrl;
+            
+            // Si es uso externo, cargar desde jsDelivr CDN
+            if (isExternalUsage()) {
+                navbarUrl = 'https://cdn.jsdelivr.net/gh/Lushiitooh/inventarioSiceMantenimiento@main/navbar.html';
+            } else {
+                // Uso local, cargar desde el mismo directorio
+                navbarUrl = './navbar.html';
+            }
+            
+            const response = await fetch(navbarUrl);
             
             if (!response.ok) {
                 throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
@@ -202,7 +224,6 @@ window.NavbarAPI = {
     // Refrescar el estado activo de la navbar
     refresh: function() {
         const setActiveNavLink = () => {
-            // Reimplementar la lógica de setActiveNavLink aquí si es necesario
             console.log('Navbar refreshed');
         };
         setActiveNavLink();
