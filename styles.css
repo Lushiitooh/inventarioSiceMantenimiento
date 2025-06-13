@@ -1,41 +1,142 @@
-/* Estilos generales del cuerpo del documento */
+/* ====================================================================
+   SISTEMA DE DISEÑO UNIFICADO - CONTROL EPP
+   Fusión de styles.css + ast-styles.css
+   ==================================================================== */
+
+/* ====================================================================
+   VARIABLES CSS GLOBALES
+   ==================================================================== */
+
+:root {
+    /* Colores primarios del sistema */
+    --primary-color: #1e40af;
+    --primary-dark: #1e3a8a;
+    --secondary-color: #3b82f6;
+    --accent-color: #06b6d4;
+    --success-color: #059669;
+    --warning-color: #d97706;
+    --danger-color: #dc2626;
+    
+    /* Escala de grises neutra */
+    --neutral-50: #f8fafc;
+    --neutral-100: #f1f5f9;
+    --neutral-200: #e2e8f0;
+    --neutral-300: #cbd5e1;
+    --neutral-400: #94a3b8;
+    --neutral-500: #64748b;
+    --neutral-600: #475569;
+    --neutral-700: #334155;
+    --neutral-800: #1e293b;
+    --neutral-900: #0f172a;
+    
+    /* Sistema de sombras */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    
+    /* Transiciones estándar */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.2s ease;
+    --transition-slow: 0.3s ease;
+    
+    /* Radius estándar */
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+}
+
+/* ====================================================================
+   TEMA OSCURO
+   ==================================================================== */
+
+.dark {
+    --neutral-50: #0f172a;
+    --neutral-100: #1e293b;
+    --neutral-200: #334155;
+    --neutral-300: #475569;
+    --neutral-400: #64748b;
+    --neutral-500: #94a3b8;
+    --neutral-600: #cbd5e1;
+    --neutral-700: #e2e8f0;
+    --neutral-800: #f1f5f9;
+    --neutral-900: #f8fafc;
+}
+
+/* ====================================================================
+   RESET Y BASE GLOBAL
+   ==================================================================== */
+
+/* Fuente global del sistema */
 body { 
     font-family: 'Inter', sans-serif; 
+    background: linear-gradient(135deg, var(--neutral-50) 0%, var(--neutral-100) 100%);
+    color: var(--neutral-800);
+    line-height: 1.6;
 }
 
-/* Estilos para la barra de desplazamiento (scrollbar) en navegadores WebKit */
+.dark body {
+    background: linear-gradient(135deg, var(--neutral-50) 0%, var(--neutral-100) 100%);
+    color: var(--neutral-800);
+}
+
+/* ====================================================================
+   SCROLLBAR PERSONALIZADO GLOBAL
+   ==================================================================== */
+
 ::-webkit-scrollbar { 
     width: 8px; 
+    height: 8px;
 }
+
 ::-webkit-scrollbar-track { 
-    background: #f1f5f9; 
-    border-radius: 10px; 
+    background: var(--neutral-100); 
+    border-radius: 4px; 
 }
+
 ::-webkit-scrollbar-thumb { 
-    background: #94a3b8; 
-    border-radius: 10px; 
+    background: var(--neutral-400); 
+    border-radius: 4px; 
 }
+
 ::-webkit-scrollbar-thumb:hover { 
-    background: #64748b; 
+    background: var(--neutral-500); 
 }
 
-/* Tema oscuro para scrollbar */
 .dark ::-webkit-scrollbar-track { 
-    background: #374151; 
-}
-.dark ::-webkit-scrollbar-thumb { 
-    background: #6b7280; 
-}
-.dark ::-webkit-scrollbar-thumb:hover { 
-    background: #9ca3af; 
+    background: var(--neutral-200); 
 }
 
-/* Contenedor para las tablas con desplazamiento vertical */
+.dark ::-webkit-scrollbar-thumb { 
+    background: var(--neutral-500); 
+}
+
+.dark ::-webkit-scrollbar-thumb:hover { 
+    background: var(--neutral-400); 
+}
+
+/* ====================================================================
+   CONTENEDORES DE TABLA RESPONSIVOS
+   ==================================================================== */
+
 .table-container { 
     max-height: calc(100vh - 450px); 
     overflow-y: auto; 
-    border-radius: 0.5rem;
+    border-radius: var(--radius-lg);
+    background: white;
+    border: 1px solid var(--neutral-200);
+    box-shadow: var(--shadow-md);
 } 
+
+.dark .table-container {
+    background: var(--neutral-100);
+    border-color: var(--neutral-300);
+}
+
+/* ====================================================================
+   RESPONSIVE BREAKPOINTS
+   ==================================================================== */
 
 /* Mejoras para móviles */
 @media (max-width: 640px) {
@@ -86,6 +187,10 @@ body {
     }
 }
 
+/* ====================================================================
+   COLUMNAS ADMINISTRATIVAS
+   ==================================================================== */
+
 /* Columnas de administrador: ocultas por defecto */
 .admin-col { 
     display: none; 
@@ -93,13 +198,25 @@ body {
 
 /* Enlace activo en navbar */
 .active-link {
-    background-color: #3b82f6; 
+    background-color: var(--primary-color); 
     color: #ffffff;
 }
 
+/* ====================================================================
+   TRANSICIONES Y ANIMACIONES GLOBALES
+   ==================================================================== */
+
 /* Transiciones suaves */
 .transition-all {
-    transition: all 0.2s ease-in-out;
+    transition: all var(--transition-normal);
+}
+
+.transition-fast {
+    transition: all var(--transition-fast);
+}
+
+.transition-slow {
+    transition: all var(--transition-slow);
 }
 
 /* Estados de hover mejorados */
@@ -109,7 +226,7 @@ body {
 
 /* Mejoras para accesibilidad */
 .focus-visible:focus {
-    outline: 2px solid #3b82f6;
+    outline: 2px solid var(--primary-color);
     outline-offset: 2px;
 }
 
@@ -121,7 +238,7 @@ body {
 
 /* Animación para el menú móvil */
 .mobile-menu-transition {
-    transition: transform 0.3s ease-in-out;
+    transition: transform var(--transition-slow);
 }
 
 /* Estilos para modales */
@@ -129,7 +246,10 @@ body {
     backdrop-filter: blur(4px);
 }
 
-/* Mejoras para tablas responsivas */
+/* ====================================================================
+   TABLAS RESPONSIVAS AVANZADAS
+   ==================================================================== */
+
 @media (max-width: 768px) {
     .table-responsive {
         font-size: 0.75rem;
@@ -147,103 +267,356 @@ body {
     }
 }
 
-/* Estilos para formularios */
+/* ====================================================================
+   SISTEMA DE FORMULARIOS UNIFICADO
+   ==================================================================== */
+
+/* Contenedor principal del formulario */
+.form-container {
+    background: linear-gradient(145deg, #ffffff 0%, #fefefe 100%);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    border: 1px solid var(--neutral-200);
+    overflow: hidden;
+}
+
+.dark .form-container {
+    background: linear-gradient(145deg, var(--neutral-100) 0%, var(--neutral-200) 100%);
+    border-color: var(--neutral-300);
+}
+
+/* Grupos de formulario */
 .form-group {
     margin-bottom: 1rem;
 }
 
-.form-control {
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+/* Controles de formulario */
+.form-control,
+.form-input, 
+.form-select, 
+.form-textarea {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 1.5px solid var(--neutral-300);
+    border-radius: var(--radius-md);
+    background: white;
+    color: var(--neutral-700);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all var(--transition-normal);
+    box-shadow: var(--shadow-sm);
 }
 
-.form-control:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+.dark .form-control,
+.dark .form-input, 
+.dark .form-select, 
+.dark .form-textarea {
+    background: var(--neutral-100);
+    border-color: var(--neutral-400);
+    color: var(--neutral-700);
 }
+
+.form-control:focus,
+.form-input:focus, 
+.form-select:focus, 
+.form-textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    transform: translateY(-1px);
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 100px;
+    max-height: 200px;
+    line-height: 1.5;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Labels de formulario */
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--neutral-700);
+    font-size: 0.875rem;
+}
+
+.dark .form-label {
+    color: var(--neutral-600);
+}
+
+/* ====================================================================
+   ESTADOS DE FORMULARIO
+   ==================================================================== */
 
 /* Estados de error */
-.error {
-    border-color: #ef4444;
+.error,
+.field-error {
+    border-color: var(--danger-color) !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
 }
 
-.error:focus {
-    border-color: #ef4444;
-    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+.error:focus,
+.field-error:focus {
+    border-color: var(--danger-color);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
 /* Estados de éxito */
-.success {
-    border-color: #10b981;
+.success,
+.field-success {
+    border-color: var(--success-color) !important;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1) !important;
 }
 
-/* Indicadores de estado */
-.status-indicator {
-    display: inline-block;
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 50%;
-    margin-right: 0.5rem;
+/* Campos requeridos */
+.required-field::after {
+    content: '*';
+    color: var(--danger-color);
+    margin-left: 0.25rem;
 }
 
-.status-online {
-    background-color: #10b981;
+/* ====================================================================
+   SISTEMA DE GRID RESPONSIVO
+   ==================================================================== */
+
+.form-grid {
+    display: grid;
+    gap: 1.5rem;
 }
 
-.status-offline {
-    background-color: #ef4444;
+.form-grid-2 {
+    grid-template-columns: 1fr;
 }
 
-.status-warning {
-    background-color: #f59e0b;
+.form-grid-3 {
+    grid-template-columns: 1fr;
 }
 
-/* Mejoras para dark mode */
-@media (prefers-color-scheme: dark) {
-    .auto-dark {
-        background-color: #1f2937;
-        color: #f9fafb;
+@media (min-width: 768px) {
+    .form-grid-2 {
+        grid-template-columns: repeat(2, 1fr);
     }
-}
-
-/* Animaciones sutiles */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.fade-in {
-    animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-    from { transform: translateX(-100%); }
-    to { transform: translateX(0); }
-}
-
-.slide-in {
-    animation: slideIn 0.3s ease-out;
-}
-
-/* Utilidades para spacing responsivo */
-.p-responsive {
-    padding: 1rem;
-}
-
-@media (min-width: 640px) {
-    .p-responsive {
-        padding: 1.5rem;
+    .form-grid-3 {
+        grid-template-columns: repeat(3, 1fr);
     }
 }
 
 @media (min-width: 1024px) {
-    .p-responsive {
-        padding: 2rem;
+    .form-grid-3 {
+        grid-template-columns: repeat(3, 1fr);
     }
 }
 
-/* Mejoras para accesibilidad de contraste */
-.high-contrast {
-    filter: contrast(1.2);
+/* ====================================================================
+   CABECERAS DE FORMULARIO
+   ==================================================================== */
+
+.form-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.form-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" stroke-width="0.5" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+    pointer-events: none;
+}
+
+.form-header h1,
+.form-header h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.form-header p {
+    opacity: 0.9;
+    position: relative;
+    z-index: 1;
+}
+
+@media (max-width: 768px) {
+    .form-header {
+        padding: 1.5rem 1rem;
+    }
+    
+    .form-header h1,
+    .form-header h2 {
+        font-size: 1.5rem;
+    }
+}
+
+/* ====================================================================
+   SECCIONES DE FORMULARIO
+   ==================================================================== */
+
+.form-section {
+    margin: 2rem 0;
+    padding: 0 2rem;
+}
+
+@media (max-width: 768px) {
+    .form-section {
+        padding: 0 1rem;
+        margin: 1.5rem 0;
+    }
+}
+
+.section-header {
+    background: linear-gradient(135deg, var(--neutral-50) 0%, var(--neutral-100) 100%);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--primary-color);
+}
+
+.dark .section-header {
+    background: linear-gradient(135deg, var(--neutral-200) 0%, var(--neutral-300) 100%);
+    border-color: var(--neutral-400);
+}
+
+@media (max-width: 768px) {
+    .section-header {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+@media (max-width: 768px) {
+    .section-title {
+        font-size: 1rem;
+    }
+}
+
+.section-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    background: var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+
+@media (max-width: 768px) {
+    .section-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* ====================================================================
+   SISTEMA DE BOTONES UNIFICADO
+   ==================================================================== */
+
+.btn {
+    padding: 0.875rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all var(--transition-normal);
+    cursor: pointer;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    min-height: 44px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    box-shadow: var(--shadow-md);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-secondary {
+    background: var(--neutral-200);
+    color: var(--neutral-700);
+    border: 1px solid var(--neutral-300);
+}
+
+.btn-secondary:hover {
+    background: var(--neutral-300);
+    transform: translateY(-1px);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--success-color) 0%, #10b981 100%);
+    color: white;
+}
+
+.btn-success:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--danger-color) 0%, #ef4444 100%);
+    color: white;
+}
+
+.btn-danger:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, var(--warning-color) 0%, #f59e0b 100%);
+    color: white;
+}
+
+.btn-warning:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+@media (max-width: 768px) {
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
 }
 
 /* Estados de loading para botones */
@@ -271,17 +644,191 @@ body {
     to { transform: rotate(360deg); }
 }
 
-/* Estilos para notificaciones/toasts */
-.toast {
-    position: fixed;
-    top: 1rem;
-    right: 1rem;
-    z-index: 1000;
-    min-width: 300px;
-    border-radius: 0.5rem;
+/* ====================================================================
+   CHECKBOXES Y ELEMENTOS DE SELECCIÓN
+   ==================================================================== */
+
+.checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 0.75rem;
+    max-height: 300px;
+    overflow-y: auto;
     padding: 1rem;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    animation: slideInRight 0.3s ease-out;
+    background: var(--neutral-50);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-md);
+}
+
+.dark .checkbox-group {
+    background: var(--neutral-200);
+    border-color: var(--neutral-400);
+}
+
+@media (max-width: 768px) {
+    .checkbox-group {
+        grid-template-columns: 1fr;
+        max-height: 250px;
+    }
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background: white;
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-normal);
+    cursor: pointer;
+}
+
+.dark .checkbox-item {
+    background: var(--neutral-100);
+    border-color: var(--neutral-300);
+}
+
+.checkbox-item:hover {
+    background: var(--neutral-50);
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.dark .checkbox-item:hover {
+    background: var(--neutral-200);
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.75rem;
+    accent-color: var(--primary-color);
+}
+
+.checkbox-item label {
+    margin: 0;
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+
+/* ====================================================================
+   INDICADORES DE ESTADO
+   ==================================================================== */
+
+.status-indicator {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+}
+
+.status-online {
+    background-color: var(--success-color);
+}
+
+.status-offline {
+    background-color: var(--danger-color);
+}
+
+.status-warning {
+    background-color: var(--warning-color);
+}
+
+/* ====================================================================
+   CANVAS DE FIRMAS
+   ==================================================================== */
+
+.signature-container {
+    border: 2px dashed var(--neutral-300);
+    border-radius: var(--radius-lg);
+    position: relative;
+    height: 150px;
+    background: var(--neutral-50);
+    transition: all var(--transition-normal);
+}
+
+.signature-container:hover {
+    border-color: var(--primary-color);
+    border-style: solid;
+}
+
+.signature-container canvas {
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius-md);
+    cursor: crosshair;
+}
+
+.dark .signature-container {
+    background: var(--neutral-200);
+    border-color: var(--neutral-400);
+}
+
+.has-signature {
+    border-style: solid !important;
+    border-color: var(--success-color) !important;
+    background: rgba(5, 150, 105, 0.05);
+}
+
+@media (max-width: 768px) {
+    .signature-container {
+        height: 120px;
+    }
+}
+
+/* ====================================================================
+   TIMESTAMP Y BADGES
+   ==================================================================== */
+
+.timestamp-badge {
+    background: linear-gradient(135deg, var(--accent-color) 0%, #0891b2 100%);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 600;
+    display: inline-block;
+    box-shadow: var(--shadow-md);
+}
+
+@media (max-width: 768px) {
+    .timestamp-badge {
+        font-size: 0.875rem;
+        padding: 0.5rem 1rem;
+    }
+}
+
+/* ====================================================================
+   ANIMACIONES GLOBALES
+   ==================================================================== */
+
+.fade-in {
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.slide-in {
+    animation: slideIn var(--transition-slow);
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+}
+
+.slide-in-right {
+    animation: slideInRight var(--transition-slow);
 }
 
 @keyframes slideInRight {
@@ -289,24 +836,186 @@ body {
     to { transform: translateX(0); }
 }
 
-/* Mejoras para el componente de firma */
-.signature-container {
-    border: 2px dashed #d1d5db;
-    border-radius: 0.5rem;
+/* ====================================================================
+   NOTIFICACIONES Y TOASTS
+   ==================================================================== */
+
+.toast {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1000;
+    min-width: 300px;
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    box-shadow: var(--shadow-lg);
+    animation: slideInRight var(--transition-slow);
+}
+
+/* ====================================================================
+   ELEMENTOS DINÁMICOS
+   ==================================================================== */
+
+.dynamic-section {
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-md);
+    background: var(--neutral-50);
     position: relative;
-    background-color: #f9fafb;
 }
 
-.signature-container:hover {
-    border-color: #3b82f6;
+.dark .dynamic-section {
+    background: var(--neutral-200);
+    border-color: var(--neutral-400);
 }
 
-.signature-container.has-signature {
-    border-style: solid;
-    border-color: #10b981;
+.remove-button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 10;
 }
 
-/* Print styles */
+.etapa-container {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-lg);
+    background: white;
+    box-shadow: var(--shadow-md);
+    position: relative;
+}
+
+.dark .etapa-container {
+    background: var(--neutral-100);
+    border-color: var(--neutral-300);
+}
+
+.etapa-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+.dark .etapa-header {
+    border-color: var(--neutral-300);
+}
+
+.etapa-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin: 0;
+}
+
+/* ====================================================================
+   UTILIDADES RESPONSIVAS
+   ==================================================================== */
+
+.p-responsive {
+    padding: 1rem;
+}
+
+@media (min-width: 640px) {
+    .p-responsive {
+        padding: 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .p-responsive {
+        padding: 2rem;
+    }
+}
+
+/* ====================================================================
+   MEJORAS PARA ACCESIBILIDAD
+   ==================================================================== */
+
+.high-contrast {
+    filter: contrast(1.2);
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Focus visible para navegación por teclado */
+.form-input:focus-visible,
+.form-select:focus-visible,
+.form-textarea:focus-visible,
+.btn:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* ====================================================================
+   UTILIDADES DE SPACING Y LAYOUT
+   ==================================================================== */
+
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.font-bold { font-weight: 700; }
+.font-semibold { font-weight: 600; }
+.font-medium { font-weight: 500; }
+
+.text-sm { font-size: 0.875rem; }
+.text-xs { font-size: 0.75rem; }
+
+.mt-1 { margin-top: 0.25rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 1.5rem; }
+.mt-8 { margin-top: 2rem; }
+
+.mb-1 { margin-bottom: 0.25rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-8 { margin-bottom: 2rem; }
+
+.p-1 { padding: 0.25rem; }
+.p-2 { padding: 0.5rem; }
+.p-4 { padding: 1rem; }
+.p-6 { padding: 1.5rem; }
+.p-8 { padding: 2rem; }
+
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+
+.gap-1 { gap: 0.25rem; }
+.gap-2 { gap: 0.5rem; }
+.gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; }
+
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+
+.relative { position: relative; }
+.absolute { position: absolute; }
+.hidden { display: none; }
+
+/* ====================================================================
+   PRINT STYLES
+   ==================================================================== */
+
 @media print {
     .no-print {
         display: none;
@@ -320,5 +1029,291 @@ body {
     .table-container {
         max-height: none;
         overflow: visible;
+    }
+    
+    .form-container {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+    
+    .form-header {
+        background: #f8f9fa !important;
+        color: #000 !important;
+        -webkit-print-color-adjust: exact;
+    }
+    
+    .btn,
+    .remove-button {
+        display: none;
+    }
+    
+    .signature-container {
+        border: 1px solid #000;
+        background: white;
+    }
+    
+    .checkbox-group {
+        max-height: none;
+        overflow: visible;
+    }
+    
+    .form-section {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+    
+    .etapa-container {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+}
+
+/* ====================================================================
+   CLASES ESPECÍFICAS PARA COMPATIBILIDAD CON CÓDIGO EXISTENTE
+   ==================================================================== */
+
+/* Mantener compatibilidad con estilos existentes del proyecto */
+
+/* Componente de firma del checklist */
+.signature-pad-container {
+    border: 1px solid var(--neutral-300);
+    border-radius: var(--radius-md);
+    position: relative;
+    height: 120px;
+    background-color: var(--neutral-50);
+}
+
+.signature-pad-container canvas {
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius-md);
+}
+
+.signature-pad-container button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 10;
+}
+
+@media (max-width: 640px) {
+    .signature-pad-container {
+        height: 100px;
+    }
+}
+
+/* Celdas de tabla específicas para checklist */
+.table-cell-sm {
+    width: 8%; /* Para Estado y Color */
+}
+
+.table-cell-md {
+    width: 30%; /* Para Herramienta */
+}
+
+.table-cell-lg {
+    width: 40%; /* Para Observaciones */
+}
+
+/* ====================================================================
+   ESTADOS HOVER Y FOCUS MEJORADOS PARA ELEMENTOS ESPECÍFICOS
+   ==================================================================== */
+
+/* Botones de firma */
+.clear-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    background: var(--neutral-500);
+    color: white;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.clear-btn:hover {
+    background: var(--neutral-600);
+}
+
+/* Elementos de navegación activos */
+.nav-link.active,
+.mobile-nav-link.active {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+}
+
+/* ====================================================================
+   MEJORAS ESPECÍFICAS PARA COMPONENTES DEL SISTEMA
+   ==================================================================== */
+
+/* Mejoras para el navbar */
+.navbar-container {
+    background: white;
+    box-shadow: var(--shadow-md);
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+.dark .navbar-container {
+    background: var(--neutral-100);
+    border-color: var(--neutral-300);
+}
+
+/* Mejoras para tarjetas */
+.card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--neutral-200);
+    overflow: hidden;
+    transition: all var(--transition-normal);
+}
+
+.dark .card {
+    background: var(--neutral-100);
+    border-color: var(--neutral-300);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--neutral-200);
+    background: var(--neutral-50);
+}
+
+.dark .card-header {
+    border-color: var(--neutral-300);
+    background: var(--neutral-200);
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--neutral-200);
+    background: var(--neutral-50);
+}
+
+.dark .card-footer {
+    border-color: var(--neutral-300);
+    background: var(--neutral-200);
+}
+
+/* ====================================================================
+   ELEMENTOS DE INVENTARIO ESPECÍFICOS
+   ==================================================================== */
+
+/* Estados de stock para inventario */
+.stock-alert-low {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border-left: 4px solid var(--danger-color);
+}
+
+.stock-alert-warning {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-left: 4px solid var(--warning-color);
+}
+
+.stock-alert-ok {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-left: 4px solid var(--success-color);
+}
+
+/* Indicadores de estado de certificados */
+.cert-vigente {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.cert-vencido {
+    color: var(--danger-color);
+    font-weight: 600;
+}
+
+.cert-por-vencer {
+    color: var(--warning-color);
+    font-weight: 600;
+}
+
+/* ====================================================================
+   MEJORAS PARA ACCESIBILIDAD MÓVIL
+   ==================================================================== */
+
+@media (max-width: 480px) {
+    /* Asegurar que todos los elementos táctiles sean accesibles */
+    .btn,
+    .checkbox-item,
+    input,
+    select,
+    textarea {
+        min-height: 44px;
+    }
+    
+    /* Aumentar área táctil para elementos pequeños */
+    .remove-button,
+    .clear-btn {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Espaciado generoso para navegación */
+    .mobile-nav-link {
+        padding: 0.75rem 1rem;
+        margin: 0.25rem 0;
+    }
+}
+
+/* ====================================================================
+   MODO DE ALTO CONTRASTE
+   ==================================================================== */
+
+@media (prefers-contrast: high) {
+    :root {
+        --neutral-100: #ffffff;
+        --neutral-200: #f0f0f0;
+        --neutral-300: #d0d0d0;
+        --neutral-700: #000000;
+        --neutral-800: #000000;
+    }
+    
+    .form-input,
+    .form-select,
+    .form-textarea {
+        border-width: 2px;
+    }
+    
+    .btn {
+        border: 2px solid currentColor;
+    }
+}
+
+/* ====================================================================
+   MODO DE MOVIMIENTO REDUCIDO
+   ==================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    
+    .hover-scale:hover {
+        transform: none;
+    }
+    
+    .btn:hover {
+        transform: none;
     }
 }
