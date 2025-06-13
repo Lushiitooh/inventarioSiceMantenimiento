@@ -13,107 +13,531 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Estilos personalizados del usuario y mejoras -->
+    <!-- Estilos CSS Unificados -->
     <style>
+        /* Variables CSS para tema profesional */
+        :root {
+            --primary-color: #1e40af;
+            --primary-dark: #1e3a8a;
+            --secondary-color: #3b82f6;
+            --accent-color: #06b6d4;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --danger-color: #dc2626;
+            --neutral-50: #f8fafc;
+            --neutral-100: #f1f5f9;
+            --neutral-200: #e2e8f0;
+            --neutral-300: #cbd5e1;
+            --neutral-400: #94a3b8;
+            --neutral-500: #64748b;
+            --neutral-600: #475569;
+            --neutral-700: #334155;
+            --neutral-800: #1e293b;
+            --neutral-900: #0f172a;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        /* Reset y base */
         body { 
             font-family: 'Inter', sans-serif; 
-            background-color: #f3f4f6;
+            background: linear-gradient(135deg, var(--neutral-50) 0%, var(--neutral-100) 100%);
+            color: var(--neutral-800);
+            line-height: 1.6;
         }
+
+        /* Tema oscuro */
+        .dark {
+            --neutral-50: #0f172a;
+            --neutral-100: #1e293b;
+            --neutral-200: #334155;
+            --neutral-300: #475569;
+            --neutral-400: #64748b;
+            --neutral-500: #94a3b8;
+            --neutral-600: #cbd5e1;
+            --neutral-700: #e2e8f0;
+            --neutral-800: #f1f5f9;
+            --neutral-900: #f8fafc;
+        }
+
         .dark body {
-             background-color: #111827;
+            background: linear-gradient(135deg, var(--neutral-50) 0%, var(--neutral-100) 100%);
+            color: var(--neutral-800);
         }
-        .signature-pad-container {
-            border: 2px solid #3b82f6;
-            border-radius: 0.5rem;
+
+        /* Contenedor principal del formulario */
+        .form-container {
+            background: linear-gradient(145deg, #ffffff 0%, #fefefe 100%);
+            border-radius: 16px;
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--neutral-200);
+            overflow: hidden;
+        }
+
+        .dark .form-container {
+            background: linear-gradient(145deg, var(--neutral-100) 0%, var(--neutral-200) 100%);
+            border-color: var(--neutral-300);
+        }
+
+        /* Cabecera del formulario */
+        .form-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
             position: relative;
-            height: 150px;
-            background-color: #f9fafb;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
-        .dark .signature-pad-container {
-            background-color: #374151;
-            border-color: #60a5fa;
-        }
-        .signature-pad-container canvas {
-            width: 100%;
-            height: 100%;
-            border-radius: 0.375rem;
-            cursor: crosshair;
-        }
-        .signature-pad-container button {
+
+        .form-header::before {
+            content: '';
             position: absolute;
-            top: 8px;
-            right: 8px;
-            z-index: 10;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" stroke-width="0.5" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            pointer-events: none;
         }
-        @media (max-width: 640px) {
-            .signature-pad-container {
-                height: 120px;
+
+        .form-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-header p {
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Secciones del formulario */
+        .form-section {
+            margin: 2rem 0;
+            padding: 0 2rem;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, var(--neutral-50) 0%, var(--neutral-100) 100%);
+            border: 1px solid var(--neutral-200);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .dark .section-header {
+            background: linear-gradient(135deg, var(--neutral-200) 0%, var(--neutral-300) 100%);
+            border-color: var(--neutral-400);
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 700;
+        }
+
+        /* Inputs y controles del formulario */
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 1.5px solid var(--neutral-300);
+            border-radius: 10px;
+            background: white;
+            color: var(--neutral-700);
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .dark .form-input, .dark .form-select, .dark .form-textarea {
+            background: var(--neutral-100);
+            border-color: var(--neutral-400);
+            color: var(--neutral-700);
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+            max-height: 200px;
+            line-height: 1.5;
+        }
+
+        /* Labels */
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--neutral-700);
+            font-size: 0.875rem;
+        }
+
+        .dark .form-label {
+            color: var(--neutral-600);
+        }
+
+        /* Grid responsive */
+        .form-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .form-grid-2 {
+            grid-template-columns: 1fr;
+        }
+
+        .form-grid-3 {
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 768px) {
+            .form-grid-2 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .form-grid-3 {
+                grid-template-columns: repeat(3, 1fr);
             }
         }
-        /* Estilos mejorados para mayor visibilidad */
-        .form-input {
-            @apply w-full rounded-lg border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 sm:text-sm dark:bg-gray-700 dark:border-gray-500 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-400 px-4 py-3 transition-all duration-200;
-            background-color: #ffffff;
+
+        @media (min-width: 1024px) {
+            .form-grid-3 {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
-        .dark .form-input {
-            background-color: #374151;
+
+        /* Checkboxes y elementos de selección */
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 0.75rem;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 1rem;
+            background: var(--neutral-50);
+            border: 1px solid var(--neutral-200);
+            border-radius: 8px;
         }
-        .form-label {
-            @apply block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2;
+
+        .dark .checkbox-group {
+            background: var(--neutral-200);
+            border-color: var(--neutral-400);
         }
-        .section-header {
-            @apply text-lg font-bold text-gray-900 dark:text-white mb-6 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 p-4 rounded-lg border-l-4 border-blue-500;
-        }
+
         .checkbox-item {
-            @apply flex items-center p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors;
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0.75rem;
+            background: white;
+            border: 1px solid var(--neutral-200);
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            cursor: pointer;
         }
+
+        .dark .checkbox-item {
+            background: var(--neutral-100);
+            border-color: var(--neutral-300);
+        }
+
+        .checkbox-item:hover {
+            background: var(--neutral-50);
+            border-color: var(--primary-color);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .dark .checkbox-item:hover {
+            background: var(--neutral-200);
+        }
+
         .checkbox-item input[type="checkbox"] {
-            @apply h-5 w-5 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-500 mr-3;
+            width: 1rem;
+            height: 1rem;
+            margin-right: 0.75rem;
+            accent-color: var(--primary-color);
         }
-        .danger-item {
-            @apply flex items-center p-2 rounded hover:bg-red-50 dark:hover:bg-red-900 transition-colors;
+
+        /* Botones */
+        .btn {
+            padding: 0.875rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-decoration: none;
         }
-        .danger-item input[type="checkbox"] {
-            @apply h-4 w-4 text-red-600 border-2 border-red-300 rounded focus:ring-red-500 mr-2;
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background: var(--neutral-200);
+            color: var(--neutral-700);
+            border: 1px solid var(--neutral-300);
+        }
+
+        .btn-secondary:hover {
+            background: var(--neutral-300);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #10b981 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color) 0%, #ef4444 100%);
+            color: white;
+        }
+
+        /* Tabla responsiva */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--neutral-200);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+
+        .dark .table-container {
+            background: var(--neutral-100);
+            border-color: var(--neutral-300);
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--neutral-200);
+        }
+
+        .dark th, .dark td {
+            border-color: var(--neutral-300);
+        }
+
+        th {
+            background: var(--neutral-50);
+            font-weight: 600;
+            color: var(--neutral-700);
+            font-size: 0.875rem;
+        }
+
+        .dark th {
+            background: var(--neutral-200);
+            color: var(--neutral-600);
+        }
+
+        /* Firmas */
+        .signature-container {
+            border: 2px dashed var(--neutral-300);
+            border-radius: 12px;
+            position: relative;
+            height: 150px;
+            background: var(--neutral-50);
+            transition: all 0.2s ease;
+        }
+
+        .signature-container:hover {
+            border-color: var(--primary-color);
+            border-style: solid;
+        }
+
+        .signature-container canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            cursor: crosshair;
+        }
+
+        /* Timestamp badge */
+        .timestamp-badge {
+            background: linear-gradient(135deg, var(--accent-color) 0%, #0891b2 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            display: inline-block;
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Animaciones y transiciones */
+        .fade-in {
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive mejoras */
+        @media (max-width: 768px) {
+            .form-container {
+                border-radius: 0;
+                margin: 0;
+            }
+            
+            .form-section {
+                padding: 0 1rem;
+            }
+            
+            .form-header {
+                padding: 1.5rem 1rem;
+            }
+            
+            .form-header h2 {
+                font-size: 1.5rem;
+            }
+            
+            .section-header {
+                padding: 1rem;
+            }
+            
+            .checkbox-group {
+                grid-template-columns: 1fr;
+                max-height: 250px;
+            }
+        }
+
+        /* Estados específicos */
+        .required-field::after {
+            content: '*';
+            color: var(--danger-color);
+            margin-left: 0.25rem;
+        }
+
+        .field-error {
+            border-color: var(--danger-color) !important;
+        }
+
+        .field-success {
+            border-color: var(--success-color) !important;
+        }
+
+        /* Scrollbar personalizado */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--neutral-100);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--neutral-400);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--neutral-500);
         }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900">
+<body>
     
     <!-- Navbar placeholder -->
     <div id="navbar-placeholder"></div>
 
     <!-- Contenido Principal del Formulario -->
-    <main class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-        <form id="astForm" class="bg-white dark:bg-gray-800 shadow-xl rounded-xl p-8 space-y-10">
+    <main class="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 min-h-screen">
+        <form id="astForm" class="form-container fade-in">
             
             <!-- Cabecera del Formulario -->
-            <div class="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
-                <h2 class="text-3xl font-bold text-gray-900 dark:text-white">ANÁLISIS DE SEGURIDAD EN EL TRABAJO (AST)</h2>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">FTO-AL10195-01</p>
-                <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900 rounded-lg">
-                    <p class="text-sm font-medium text-blue-800 dark:text-blue-200">
+            <div class="form-header">
+                <h2>ANÁLISIS DE SEGURIDAD EN EL TRABAJO (AST)</h2>
+                <p>FTO-AL10195-01</p>
+                <div class="mt-4">
+                    <div class="timestamp-badge">
                         Fecha y hora de creación: <span id="fechaHoraActual" class="font-bold"></span>
-                    </p>
+                    </div>
                 </div>
             </div>
 
             <!-- 1. Información General -->
-            <section>
-                <h3 class="section-header">1. Información General del Trabajo</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <section class="form-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <span class="section-icon">1</span>
+                        Información General del Trabajo
+                    </h3>
+                </div>
+                
+                <div class="form-grid form-grid-3">
                     <div>
-                        <label for="empresa" class="form-label">Empresa</label>
+                        <label for="empresa" class="form-label required-field">Empresa</label>
                         <input type="text" id="empresa" name="empresa" class="form-input" value="SICE AGENCIA CHILE S.A" readonly>
                     </div>
-                    <div class="md:col-span-2 lg:col-span-2">
-                        <label for="obra_area" class="form-label">OBRA/Área</label>
+                    <div class="md:col-span-2">
+                        <label for="obra_area" class="form-label required-field">OBRA/Área</label>
                         <input type="text" id="obra_area" name="obra_area" class="form-input" value="Suministro de Puertas Bidireccionales de Control en 7 Estaciones de la Red de Metro." readonly>
                     </div>
-                    <div class="md:col-span-2 lg:col-span-3">
-                        <label for="lugar" class="form-label">Lugar Específico</label>
-                        <select id="lugar" name="lugar" class="form-input" required>
+                </div>
+
+                <div class="form-grid form-grid-2" style="margin-top: 1.5rem;">
+                    <div class="md:col-span-2">
+                        <label for="lugar" class="form-label required-field">Lugar Específico</label>
+                        <select id="lugar" name="lugar" class="form-select" required>
                             <option value="">Seleccione una estación...</option>
                             <option value="Estacion Universidad de Chile">Estación Universidad de Chile</option>
                             <option value="Estacion San Pablo">Estación San Pablo</option>
@@ -124,21 +548,28 @@
                             <option value="Estacion La Granja">Estación La Granja</option>
                         </select>
                     </div>
-                    <div class="md:col-span-2 lg:col-span-3">
-                        <label for="trabajo" class="form-label">Trabajo a Realizar</label>
-                        <textarea id="trabajo" name="trabajo" rows="5" class="form-input" placeholder="Describa detalladamente el trabajo que se va a realizar..."></textarea>
-                    </div>
+                </div>
+
+                <div style="margin-top: 1.5rem;">
+                    <label for="trabajo" class="form-label required-field">Trabajo a Realizar</label>
+                    <textarea id="trabajo" name="trabajo" class="form-textarea" placeholder="Describa detalladamente el trabajo que se va a realizar..."></textarea>
                 </div>
             </section>
 
             <!-- 2. Documento de Respaldo -->
-            <section>
-                <h3 class="section-header">2. Documento de Respaldo</h3>
-                <div id="documentos-container" class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600" id="documento-inicial">
+            <section class="form-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <span class="section-icon">2</span>
+                        Documento de Respaldo
+                    </h3>
+                </div>
+                
+                <div id="documentos-container">
+                    <div class="form-grid form-grid-2" id="documento-inicial">
                         <div>
                             <label for="tipoDocumento" class="form-label">Tipo de Documento</label>
-                            <select id="tipoDocumento" name="tipoDocumento" class="form-input">
+                            <select id="tipoDocumento" name="tipoDocumento" class="form-select">
                                 <option value="">Seleccione tipo de documento...</option>
                                 <option value="procedimiento">Procedimiento</option>
                                 <option value="instructivo">Instructivo</option>
@@ -151,155 +582,180 @@
                             <input type="text" id="nombreCodigo" name="nombreCodigo" class="form-input" placeholder="Ingrese nombre o código del documento">
                         </div>
                     </div>
-                    <div id="documentos-adicionales" class="space-y-3">
+                    <div id="documentos-adicionales" style="margin-top: 1rem;">
                         <!-- Documentos adicionales se agregarán aquí -->
                     </div>
                 </div>
-                <button type="button" id="add-documento-button" class="mt-4 w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                <button type="button" id="add-documento-button" class="btn btn-secondary" style="margin-top: 1rem;">
                     + Agregar Otro Documento de Respaldo
                 </button>
             </section>
 
             <!-- 3. Elementos de Apoyo -->
-            <section>
-                <h3 class="section-header">3. Elementos de Apoyo para el Control de los Riesgos</h3>
-                <div id="epp-container" class="space-y-4">
+            <section class="form-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <span class="section-icon">3</span>
+                        Elementos de Apoyo para el Control de los Riesgos
+                    </h3>
+                </div>
+                
+                <div id="epp-container">
                     <!-- EPP predeterminados -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="checkbox-group">
                         <div class="checkbox-item">
                             <input id="casco" name="epp_predeterminado" type="checkbox" value="Casco">
-                            <label for="casco" class="text-sm font-medium text-gray-900 dark:text-gray-300">Casco</label>
+                            <label for="casco">Casco</label>
                         </div>
                         <div class="checkbox-item">
                             <input id="linterna_casco" name="epp_predeterminado" type="checkbox" value="Linterna Adosable al Casco">
-                            <label for="linterna_casco" class="text-sm font-medium text-gray-900 dark:text-gray-300">Linterna Adosable al Casco</label>
+                            <label for="linterna_casco">Linterna Adosable al Casco</label>
                         </div>
                         <div class="checkbox-item">
                             <input id="lentes" name="epp_predeterminado" type="checkbox" value="Lentes de seguridad">
-                            <label for="lentes" class="text-sm font-medium text-gray-900 dark:text-gray-300">Lentes de seguridad</label>
+                            <label for="lentes">Lentes de seguridad</label>
                         </div>
                         <div class="checkbox-item">
                             <input id="zapatos" name="epp_predeterminado" type="checkbox" value="Zapatos de seguridad">
-                            <label for="zapatos" class="text-sm font-medium text-gray-900 dark:text-gray-300">Zapatos de seguridad</label>
+                            <label for="zapatos">Zapatos de seguridad</label>
                         </div>
                         <div class="checkbox-item">
                             <input id="guantes" name="epp_predeterminado" type="checkbox" value="Guantes">
-                            <label for="guantes" class="text-sm font-medium text-gray-900 dark:text-gray-300">Guantes</label>
+                            <label for="guantes">Guantes</label>
                         </div>
                         <div class="checkbox-item">
                             <input id="guantes_hyflex" name="epp_predeterminado" type="checkbox" value="Guantes Hyflex">
-                            <label for="guantes_hyflex" class="text-sm font-medium text-gray-900 dark:text-gray-300">Guantes Hyflex</label>
+                            <label for="guantes_hyflex">Guantes Hyflex</label>
                         </div>
                         <div class="checkbox-item">
                             <input id="guantes_cabritilla" name="epp_predeterminado" type="checkbox" value="Guantes Cabritilla">
-                            <label for="guantes_cabritilla" class="text-sm font-medium text-gray-900 dark:text-gray-300">Guantes Cabritilla</label>
+                            <label for="guantes_cabritilla">Guantes Cabritilla</label>
                         </div>
                         <div class="checkbox-item">
                             <input id="protector_auditivo" name="epp_predeterminado" type="checkbox" value="Protector auditivo">
-                            <label for="protector_auditivo" class="text-sm font-medium text-gray-900 dark:text-gray-300">Protector auditivo</label>
+                            <label for="protector_auditivo">Protector auditivo</label>
                         </div>
                         <div class="checkbox-item">
                             <input id="protector_respiratorio" name="epp_predeterminado" type="checkbox" value="Protector respiratorio">
-                            <label for="protector_respiratorio" class="text-sm font-medium text-gray-900 dark:text-gray-300">Protector respiratorio</label>
+                            <label for="protector_respiratorio">Protector respiratorio</label>
                         </div>
                         <div class="checkbox-item">
                             <input id="arnes" name="epp_predeterminado" type="checkbox" value="Arnés de seguridad">
-                            <label for="arnes" class="text-sm font-medium text-gray-900 dark:text-gray-300">Arnés de seguridad</label>
+                            <label for="arnes">Arnés de seguridad</label>
                         </div>
                         <div class="checkbox-item">
                             <input id="cono" name="epp_predeterminado" type="checkbox" value="Cono">
-                            <label for="cono" class="text-sm font-medium text-gray-900 dark:text-gray-300">Cono</label>
+                            <label for="cono">Cono</label>
                         </div>
                         <div class="checkbox-item">
                             <input id="taladro_inalambrico" name="epp_predeterminado" type="checkbox" value="Taladro Inalámbrico">
-                            <label for="taladro_inalambrico" class="text-sm font-medium text-gray-900 dark:text-gray-300">Taladro Inalámbrico</label>
+                            <label for="taladro_inalambrico">Taladro Inalámbrico</label>
                         </div>
                     </div>
                     
                     <!-- EPP adicionales -->
-                    <div id="epp-adicionales" class="space-y-3">
-                        <h4 class="text-md font-semibold text-gray-800 dark:text-gray-200 mt-6 mb-3">Elementos Adicionales</h4>
+                    <div id="epp-adicionales" style="margin-top: 1.5rem;">
+                        <h4 style="font-weight: 600; margin-bottom: 1rem; color: var(--neutral-700);">Elementos Adicionales</h4>
                     </div>
                 </div>
-                <button type="button" id="add-epp-button" class="mt-4 w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+                <button type="button" id="add-epp-button" class="btn btn-success" style="margin-top: 1rem;">
                     + Agregar Elemento Adicional
                 </button>
             </section>
 
             <!-- 4. Secuencia del Trabajo -->
-            <section>
-                <h3 class="section-header">4. Secuencia de las Etapas del Trabajo</h3>
-                <div id="etapas-container" class="space-y-6">
+            <section class="form-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <span class="section-icon">4</span>
+                        Secuencia de las Etapas del Trabajo
+                    </h3>
+                </div>
+                <div id="etapas-container">
                     <!-- Las etapas se generarán dinámicamente -->
                 </div>
-                <button type="button" id="add-etapa-button" class="mt-6 w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors">
+                <button type="button" id="add-etapa-button" class="btn btn-secondary" style="margin-top: 1.5rem;">
                     + Agregar Otra Etapa
                 </button>
             </section>
 
             <!-- 5. Personal Participante -->
-            <section>
-                <h3 class="section-header">5. Personal que Participa en la Actividad</h3>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-lg">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
-                            <tr>
-                                <th scope="col" class="px-3 py-3 sm:px-6 sm:py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider border-r border-gray-200 dark:border-gray-600">Nombre Completo</th>
-                                <th scope="col" class="px-3 py-3 sm:px-6 sm:py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider border-r border-gray-200 dark:border-gray-600">RUT</th>
-                                <th scope="col" class="px-3 py-3 sm:px-6 sm:py-4 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider border-r border-gray-200 dark:border-gray-600">Firma</th>
-                                <th scope="col" class="relative px-3 py-3 sm:px-6 sm:py-4">
-                                    <span class="sr-only">Eliminar</span>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody id="personal-table-body" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                            <!-- Filas de personal se agregarán aquí -->
-                        </tbody>
-                    </table>
+            <section class="form-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <span class="section-icon">5</span>
+                        Personal que Participa en la Actividad
+                    </h3>
                 </div>
-                <button type="button" id="add-personal-button" class="mt-4 w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                <div class="table-container">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nombre Completo</th>
+                                    <th>RUT</th>
+                                    <th style="text-align: center;">Firma</th>
+                                    <th style="width: 50px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="personal-table-body">
+                                <!-- Filas de personal se agregarán aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <button type="button" id="add-personal-button" class="btn btn-primary" style="margin-top: 1rem;">
                     + Añadir Persona
                 </button>
             </section>
 
             <!-- 6. Firmas -->
-            <section>
-                <h3 class="section-header">6. Firmas de Autorización</h3>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-                    <div class="text-center space-y-4">
-                        <label class="form-label text-center text-lg">Supervisor a Cargo</label>
-                        <div class="signature-pad-container">
+            <section class="form-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <span class="section-icon">6</span>
+                        Firmas de Autorización
+                    </h3>
+                </div>
+                <div class="form-grid form-grid-2">
+                    <div style="text-align: center;">
+                        <label class="form-label">Supervisor a Cargo</label>
+                        <div class="signature-container">
                             <canvas id="signature-supervisor"></canvas>
-                            <button type="button" onclick="clearSignature('signature-supervisor')" class="text-xs bg-red-500 hover:bg-red-600 text-white py-1 px-2 rounded">Limpiar</button>
+                            <button type="button" onclick="clearSignature('signature-supervisor')" class="btn btn-danger" style="position: absolute; top: 8px; right: 8px; padding: 0.25rem 0.5rem; font-size: 0.75rem;">Limpiar</button>
                         </div>
-                        <p class="font-bold text-gray-900 dark:text-white text-lg">Guillermo Osorio</p>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">Supervisor</p>
+                        <p style="font-weight: 600; margin-top: 1rem;">Guillermo Osorio</p>
+                        <p style="font-size: 0.875rem; color: var(--neutral-500);">Supervisor</p>
                     </div>
 
-                    <div class="text-center space-y-4">
-                        <label class="form-label text-center text-lg">Prevencionista de Riesgos (APR)</label>
-                        <div class="signature-pad-container">
+                    <div style="text-align: center;">
+                        <label class="form-label">Prevencionista de Riesgos (APR)</label>
+                        <div class="signature-container">
                             <canvas id="signature-apr"></canvas>
-                            <button type="button" onclick="clearSignature('signature-apr')" class="text-xs bg-red-500 hover:bg-red-600 text-white py-1 px-2 rounded">Limpiar</button>
+                            <button type="button" onclick="clearSignature('signature-apr')" class="btn btn-danger" style="position: absolute; top: 8px; right: 8px; padding: 0.25rem 0.5rem; font-size: 0.75rem;">Limpiar</button>
                         </div>
-                        <select id="prevencionista" name="prevencionista" class="form-input max-w-xs mx-auto" required>
+                        <select id="prevencionista" name="prevencionista" class="form-select" style="max-width: 300px; margin: 1rem auto;" required>
                             <option value="">Seleccione prevencionista...</option>
                             <option value="Luis Sepúlveda">Luis Sepúlveda</option>
                             <option value="Valeria Huichipan">Valeria Huichipan</option>
                         </select>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">Prevención de Riesgos</p>
+                        <p style="font-size: 0.875rem; color: var(--neutral-500);">Prevención de Riesgos</p>
                     </div>
                 </div>
             </section>
 
             <!-- Botones de Acción -->
-            <div class="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-8 border-t border-gray-200 dark:border-gray-700">
-                <button type="button" class="w-full sm:w-auto bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-8 rounded-lg transition duration-300 text-lg order-2 sm:order-1">
-                    Cancelar
-                </button>
-                <button type="submit" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300 text-lg shadow-lg order-1 sm:order-2">
-                    Guardar y Enviar
-                </button>
+            <div class="form-section">
+                <div style="display: flex; flex-direction: column; gap: 1rem; padding-top: 2rem; border-top: 1px solid var(--neutral-200);">
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <button type="button" class="btn btn-secondary">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            Guardar y Enviar
+                        </button>
+                    </div>
+                </div>
             </div>
         </form>
     </main>
@@ -393,7 +849,7 @@
                 e.preventDefault();
                 const pos = e.type.includes('touch') ? getTouchPos(e) : getMousePos(e);
                 ctx.lineTo(pos.x, pos.y);
-                ctx.strokeStyle = '#1f2937';
+                ctx.strokeStyle = '#1e40af';
                 ctx.lineWidth = 2;
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
@@ -426,11 +882,17 @@
         document.getElementById('add-documento-button').addEventListener('click', function() {
             documentoCount++;
             const docDiv = document.createElement('div');
-            docDiv.className = 'grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 relative';
+            docDiv.className = 'form-grid form-grid-2';
+            docDiv.style.marginTop = '1rem';
+            docDiv.style.padding = '1rem';
+            docDiv.style.border = '1px solid var(--neutral-200)';
+            docDiv.style.borderRadius = '8px';
+            docDiv.style.background = 'var(--neutral-50)';
+            docDiv.style.position = 'relative';
             docDiv.innerHTML = `
                 <div>
                     <label class="form-label">Tipo de Documento</label>
-                    <select name="tipoDocumento_adicional_${documentoCount}" class="form-input">
+                    <select name="tipoDocumento_adicional_${documentoCount}" class="form-select">
                         <option value="">Seleccione tipo de documento...</option>
                         <option value="procedimiento">Procedimiento</option>
                         <option value="instructivo">Instructivo</option>
@@ -442,7 +904,7 @@
                     <label class="form-label">Nombre o Código del Documento</label>
                     <input type="text" name="nombreCodigo_adicional_${documentoCount}" class="form-input" placeholder="Ingrese nombre o código del documento">
                 </div>
-                <button type="button" class="absolute top-2 right-2 text-red-600 hover:text-red-800 font-bold text-xl remove-documento-btn">&times;</button>
+                <button type="button" class="btn btn-danger remove-documento-btn" style="position: absolute; top: 8px; right: 8px; padding: 0.25rem 0.5rem; font-size: 0.75rem;">&times;</button>
             `;
             document.getElementById('documentos-adicionales').appendChild(docDiv);
         });
@@ -458,14 +920,22 @@
         document.getElementById('add-epp-button').addEventListener('click', function() {
             eppCount++;
             const eppDiv = document.createElement('div');
-            eppDiv.className = 'flex items-center space-x-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg';
+            eppDiv.className = 'form-grid form-grid-2';
+            eppDiv.style.marginTop = '1rem';
+            eppDiv.style.padding = '1rem';
+            eppDiv.style.border = '1px solid var(--neutral-200)';
+            eppDiv.style.borderRadius = '8px';
+            eppDiv.style.background = 'var(--neutral-50)';
+            eppDiv.style.position = 'relative';
             eppDiv.innerHTML = `
-                <input type="text" placeholder="Nombre del Elemento" name="epp_adicional_${eppCount}" class="form-input flex-1" required>
-                <div class="flex items-center">
-                    <input type="checkbox" id="epp_adicional_check_${eppCount}" name="epp_adicional_check_${eppCount}" class="h-5 w-5 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-500 mr-2">
-                    <label for="epp_adicional_check_${eppCount}" class="text-sm font-medium text-gray-900 dark:text-gray-300">Usar</label>
+                <div>
+                    <input type="text" placeholder="Nombre del Elemento" name="epp_adicional_${eppCount}" class="form-input" required>
                 </div>
-                <button type="button" class="text-red-600 hover:text-red-800 font-bold text-lg remove-epp-btn">&times;</button>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" id="epp_adicional_check_${eppCount}" name="epp_adicional_check_${eppCount}" style="width: 1rem; height: 1rem; accent-color: var(--primary-color);">
+                    <label for="epp_adicional_check_${eppCount}" class="form-label" style="margin: 0;">Usar</label>
+                </div>
+                <button type="button" class="btn btn-danger remove-epp-btn" style="position: absolute; top: 8px; right: 8px; padding: 0.25rem 0.5rem; font-size: 0.75rem;">&times;</button>
             `;
             document.getElementById('epp-adicionales').appendChild(eppDiv);
         });
@@ -481,22 +951,21 @@
         function addPersonalRow() {
             personalCount++;
             const row = document.createElement('tr');
-            row.className = 'border-b border-gray-200 dark:border-gray-600';
             row.innerHTML = `
-                <td class="px-2 py-3 sm:px-6 sm:py-4 border-r border-gray-200 dark:border-gray-600">
-                    <input type="text" placeholder="Nombre y Apellido" name="personal_nombre_${personalCount}" class="form-input text-xs sm:text-sm w-full" required>
+                <td>
+                    <input type="text" placeholder="Nombre y Apellido" name="personal_nombre_${personalCount}" class="form-input" required>
                 </td>
-                <td class="px-2 py-3 sm:px-6 sm:py-4 border-r border-gray-200 dark:border-gray-600">
-                    <input type="text" placeholder="12.345.678-9" name="personal_rut_${personalCount}" class="form-input text-xs sm:text-sm w-full" required>
+                <td>
+                    <input type="text" placeholder="12.345.678-9" name="personal_rut_${personalCount}" class="form-input" required>
                 </td>
-                <td class="px-2 py-3 sm:px-6 sm:py-4 border-r border-gray-200 dark:border-gray-600">
-                    <div class="signature-pad-container" style="height: 60px; min-height: 60px;">
+                <td style="text-align: center;">
+                    <div class="signature-container" style="height: 80px; margin: 0 auto; max-width: 200px;">
                         <canvas id="firma-personal-${personalCount}"></canvas>
-                        <button type="button" onclick="clearSignature('firma-personal-${personalCount}')" class="text-xs bg-red-500 hover:bg-red-600 text-white py-1 px-1 sm:px-2 rounded" style="top: 2px; right: 2px;">Limpiar</button>
+                        <button type="button" onclick="clearSignature('firma-personal-${personalCount}')" class="btn btn-danger" style="position: absolute; top: 4px; right: 4px; padding: 0.125rem 0.25rem; font-size: 0.625rem;">×</button>
                     </div>
                 </td>
-                <td class="px-2 py-3 sm:px-6 sm:py-4 text-center">
-                    <button type="button" class="text-red-600 hover:text-red-900 dark:hover:text-red-400 remove-personal-button font-bold text-lg w-6 h-6 flex items-center justify-center">&times;</button>
+                <td style="text-align: center;">
+                    <button type="button" class="btn btn-danger remove-personal-button" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">&times;</button>
                 </td>
             `;
             document.getElementById('personal-table-body').appendChild(row);
@@ -518,31 +987,37 @@
         function addEtapaRow() {
             etapaCount++;
             const etapaDiv = document.createElement('div');
-            etapaDiv.className = 'bg-gray-50 dark:bg-gray-700 p-4 sm:p-6 rounded-lg border-2 border-gray-200 dark:border-gray-600';
+            etapaDiv.style.marginBottom = '2rem';
+            etapaDiv.style.padding = '1.5rem';
+            etapaDiv.style.border = '1px solid var(--neutral-200)';
+            etapaDiv.style.borderRadius = '12px';
+            etapaDiv.style.background = 'white';
+            etapaDiv.style.boxShadow = 'var(--shadow-md)';
+            etapaDiv.style.position = 'relative';
             etapaDiv.innerHTML = `
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-2 sm:space-y-0">
-                    <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Etapa ${etapaCount}</h4>
-                    <button type="button" class="text-red-600 hover:text-red-800 font-bold text-xl remove-etapa-btn self-end sm:self-auto">&times;</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h4 style="font-size: 1.125rem; font-weight: 600; color: var(--primary-color); margin: 0;">Etapa ${etapaCount}</h4>
+                    <button type="button" class="btn btn-danger remove-etapa-btn" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">&times;</button>
                 </div>
-                <div class="space-y-4">
+                <div style="display: grid; gap: 1.5rem;">
                     <div>
-                        <label class="form-label">Descripción de la Etapa</label>
-                        <textarea name="etapa_descripcion_${etapaCount}" rows="3" class="form-input" placeholder="Describa detalladamente esta etapa del trabajo..." required></textarea>
+                        <label class="form-label required-field">Descripción de la Etapa</label>
+                        <textarea name="etapa_descripcion_${etapaCount}" class="form-textarea" placeholder="Describa detalladamente esta etapa del trabajo..." required></textarea>
                     </div>
                     <div>
                         <label class="form-label">Riesgos Potenciales (Seleccione todos los que apliquen)</label>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-60 overflow-y-auto border border-gray-300 dark:border-gray-500 rounded-lg p-3 sm:p-4 bg-white dark:bg-gray-800">
+                        <div class="checkbox-group" style="max-height: 200px;">
                             ${riesgosPotenciales.map((riesgo, index) => `
-                                <div class="danger-item">
+                                <div class="checkbox-item">
                                     <input type="checkbox" id="riesgo_${etapaCount}_${index}" name="etapa_riesgos_${etapaCount}" value="${riesgo}">
-                                    <label for="riesgo_${etapaCount}_${index}" class="text-xs sm:text-sm text-gray-900 dark:text-gray-300">${riesgo}</label>
+                                    <label for="riesgo_${etapaCount}_${index}">${riesgo}</label>
                                 </div>
                             `).join('')}
                         </div>
                     </div>
                     <div>
-                        <label class="form-label">Medidas de Control</label>
-                        <textarea name="etapa_medidas_${etapaCount}" rows="4" class="form-input" placeholder="Describa las medidas de control para mitigar los riesgos identificados..." required></textarea>
+                        <label class="form-label required-field">Medidas de Control</label>
+                        <textarea name="etapa_medidas_${etapaCount}" class="form-textarea" placeholder="Describa las medidas de control para mitigar los riesgos identificados..." required></textarea>
                     </div>
                 </div>
             `;
@@ -569,9 +1044,37 @@
         // --- Envío del formulario ---
         document.getElementById('astForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            alert('Formulario AST enviado correctamente!');
-            // Aquí iría la lógica de envío real
+            
+            // Agregar clase de loading al botón
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Enviando...';
+            submitBtn.disabled = true;
+            
+            // Simular envío
+            setTimeout(() => {
+                alert('Formulario AST enviado correctamente!');
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                // Aquí iría la lógica de envío real
+            }, 2000);
         });
+
+        // --- Responsive para botones en mobile ---
+        function adjustButtonsForMobile() {
+            const isMobile = window.innerWidth < 768;
+            const buttonContainer = document.querySelector('.form-section:last-child > div:last-child > div');
+            
+            if (isMobile) {
+                buttonContainer.style.flexDirection = 'column';
+            } else {
+                buttonContainer.style.flexDirection = 'row';
+                buttonContainer.style.justifyContent = 'flex-end';
+            }
+        }
+
+        window.addEventListener('resize', adjustButtonsForMobile);
+        window.addEventListener('load', adjustButtonsForMobile);
     </script>
 </body>
 </html>
