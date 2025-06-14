@@ -478,41 +478,284 @@
             }
         });
 
-        // --- Lógica para añadir personal con firma ---
-        let personalCount = 0;
-        function addPersonalRow() {
-            personalCount++;
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>
-                    <input type="text" placeholder="Nombre y Apellido" name="personal_nombre_${personalCount}" class="form-input" required>
-                </td>
-                <td>
-                    <input type="text" placeholder="12.345.678-9" name="personal_rut_${personalCount}" class="form-input" required>
-                </td>
-                <td style="text-align: center;">
-                    <div class="signature-container" style="height: 80px; margin: 0 auto; max-width: 200px;">
-                        <canvas id="firma-personal-${personalCount}"></canvas>
-                        <button type="button" onclick="clearSignature('firma-personal-${personalCount}')" class="btn btn-danger" style="position: absolute; top: 4px; right: 4px; padding: 0.125rem 0.25rem; font-size: 0.625rem;">×</button>
-                    </div>
-                </td>
-                <td style="text-align: center;">
-                    <button type="button" class="btn btn-danger remove-personal-button" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">&times;</button>
-                </td>
-            `;
-            document.getElementById('personal-table-body').appendChild(row);
+
+// ====================================================================
+// JAVASCRIPT PARA MANEJO DE PERSONAL MEJORADO
+// ====================================================================
+
+let personalCount = 0;
+const useCardLayout = true; // Cambiar a false para usar tabla
+
+// Función para crear una nueva tarjeta de personal
+function createPersonalCard() {
+    personalCount++;
+    const cardDiv = document.createElement('div');
+    cardDiv.className = 'personal-card personal-card-enter';
+    cardDiv.setAttribute('data-personal-id', personalCount);
+    
+    cardDiv.innerHTML = `
+        <div class="personal-card-header">
+            <h4 class="personal-card-title">Persona ${personalCount}</h4>
+            <button type="button" class="personal-remove-btn" onclick="removePersonalCard(${personalCount})">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="personal-card-content">
+            <div class="personal-field">
+                <label for="personal_nombre_${personalCount}">Nombre Completo *</label>
+                <input 
+                    type="text" 
+                    id="personal_nombre_${personalCount}"
+                    name="personal_nombre_${personalCount}" 
+                    placeholder="Nombre y Apellido"
+                    required
+                >
+            </div>
             
-            // Configurar canvas de firma para este personal
-            setTimeout(() => setupSignaturePad(`firma-personal-${personalCount}`), 100);
+            <div class="personal-field">
+                <label for="personal_rut_${personalCount}">RUT *</label>
+                <input 
+                    type="text" 
+                    id="personal_rut_${personalCount}"
+                    name="personal_rut_${personalCount}" 
+                    placeholder="12.345.678-9"
+                    required
+                >
+            </div>
+            
+            <div class="personal-signature-area">
+                <label class="personal-signature-label">Firma Digital</label>
+                <div class="personal-signature-container" id="signature-container-${personalCount}">
+                    <canvas 
+                        id="firma-personal-${personalCount}" 
+                        class="personal-signature-canvas"
+                    ></canvas>
+                    <div class="personal-signature-placeholder" id="placeholder-${personalCount}">
+                        Haga clic aquí para firmar
+                    </div>
+                    <button 
+                        type="button" 
+                        class="personal-signature-clear" 
+                        onclick="clearPersonalSignature(${personalCount})"
+                        style="display: none;"
+                        id="clear-btn-${personalCount}"
+                    >
+                        Limpiar
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    return cardDiv;
+}
+
+// Función para crear fila de tabla (versión alternativa)
+function createPersonalRow() {
+    personalCount++;
+    const row = document.createElement('tr');
+    row.setAttribute('data-personal-id', personalCount);
+    
+    row.innerHTML = `
+        <td>
+            <input 
+                type="text" 
+                placeholder="Nombre y Apellido" 
+                name="personal_nombre_${personalCount}" 
+                class="form-input" 
+                required
+            >
+        </td>
+        <td>
+            <input 
+                type="text" 
+                placeholder="12.345.678-9" 
+                name="personal_rut_${personalCount}" 
+                class="form-input" 
+                required
+            >
+        </td>
+        <td>
+            <div class="table-signature-container">
+                <canvas id="firma-personal-${personalCount}" class="personal-signature-canvas"></canvas>
+                <button 
+                    type="button" 
+                    onclick="clearPersonalSignature(${personalCount})" 
+                    class="personal-signature-clear"
+                    style="display: none;"
+                    id="clear-btn-${personalCount}"
+                >
+                    ×
+                </button>
+            </div>
+        </td>
+        <td style="text-align: center;">
+            <button 
+                type="button" 
+                class="btn btn-danger remove-personal-button" 
+                onclick="removePersonalRow(${personalCount})"
+                style="padding: 0.5rem;"
+            >
+                ×
+            </button>
+        </td>
+    `;
+    
+    return row;
+}
+
+// Función para añadir personal
+function addPersonal() {
+    if (useCardLayout) {
+        const container = document.getElementById('personal-cards-container');
+        const card = createPersonalCard();
+        container.appendChild(card);
+    } else {
+        const tbody = document.getElementById('personal-table-body');
+        const row = createPersonalRow();
+        tbody.appendChild(row);
+    }
+    
+    // Configurar canvas de firma después de un breve delay
+    setTimeout(() => {
+        setupPersonalSignaturePad(`firma-personal-${personalCount}`);
+    }, 100);
+}
+
+// Función para remover tarjeta de personal
+function removePersonalCard(personalId) {
+    const card = document.querySelector(`[data-personal-id="${personalId}"]`);
+    if (card) {
+        card.classList.add('personal-card-remove');
+        setTimeout(() => {
+            card.remove();
+        }, 300);
+    }
+}
+
+// Función para remover fila de personal
+function removePersonalRow(personalId) {
+    const row = document.querySelector(`[data-personal-id="${personalId}"]`);
+    if (row) {
+        row.remove();
+    }
+}
+
+// Función para configurar canvas de firma personal
+function setupPersonalSignaturePad(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const personalId = canvasId.split('-')[2];
+    const container = document.getElementById(`signature-container-${personalId}`);
+    const placeholder = document.getElementById(`placeholder-${personalId}`);
+    const clearBtn = document.getElementById(`clear-btn-${personalId}`);
+    
+    let drawing = false;
+    let hasSignature = false;
+
+    function resizeCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+    }
+    
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function getEventPos(evt) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = evt.clientX || (evt.touches && evt.touches[0].clientX);
+        const clientY = evt.clientY || (evt.touches && evt.touches[0].clientY);
+        return {
+            x: clientX - rect.left,
+            y: clientY - rect.top
+        };
+    }
+
+    function startDrawing(e) {
+        drawing = true;
+        const pos = getEventPos(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+        
+        if (!hasSignature) {
+            hasSignature = true;
+            placeholder.style.display = 'none';
+            clearBtn.style.display = 'block';
+            container.classList.add('has-signature');
         }
+    }
 
-        document.getElementById('personal-table-body').addEventListener('click', function(e) {
-            if (e.target.classList.contains('remove-personal-button')) {
-                e.target.closest('tr').remove();
-            }
-        });
+    function draw(e) {
+        if (!drawing) return;
+        e.preventDefault();
+        const pos = getEventPos(e);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.strokeStyle = '#1e40af';
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+    }
 
-        document.getElementById('add-personal-button').addEventListener('click', addPersonalRow);
+    function stopDrawing() {
+        drawing = false;
+        ctx.closePath();
+    }
+
+    // Event listeners para mouse
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseleave', stopDrawing);
+    
+    // Event listeners para touch
+    canvas.addEventListener('touchstart', startDrawing);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', stopDrawing);
+}
+
+// Función para limpiar firma personal
+function clearPersonalSignature(personalId) {
+    const canvas = document.getElementById(`firma-personal-${personalId}`);
+    const container = document.getElementById(`signature-container-${personalId}`);
+    const placeholder = document.getElementById(`placeholder-${personalId}`);
+    const clearBtn = document.getElementById(`clear-btn-${personalId}`);
+    
+    if (canvas && container) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        container.classList.remove('has-signature');
+        if (placeholder) placeholder.style.display = 'block';
+        if (clearBtn) clearBtn.style.display = 'none';
+    }
+}
+
+// Event listener para el botón de añadir personal
+document.addEventListener('DOMContentLoaded', function() {
+    const addPersonalBtn = document.getElementById('add-personal-button');
+    if (addPersonalBtn) {
+        addPersonalBtn.addEventListener('click', addPersonal);
+    }
+    
+    // Mostrar el layout correcto
+    if (useCardLayout) {
+        document.getElementById('personal-cards-container').classList.remove('hidden');
+        document.getElementById('personal-table-version').classList.add('hidden');
+    } else {
+        document.getElementById('personal-cards-container').classList.add('hidden');
+        document.getElementById('personal-table-version').classList.remove('hidden');
+    }
+    
+    // Agregar una persona inicial
+    addPersonal();
+});
 
         // --- Lógica para etapas de trabajo ---
         let etapaCount = 0;
