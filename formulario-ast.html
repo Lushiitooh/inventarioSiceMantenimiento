@@ -199,34 +199,47 @@
             </section>
 
             <!-- 5. Personal Participante -->
-            <section class="form-section">
-                <div class="section-header">
-                    <h3 class="section-title">
-                        <span class="section-icon">5</span>
-                        Personal que Participa en la Actividad
-                    </h3>
-                </div>
-                <div class="table-container">
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Nombre Completo</th>
-                                    <th>RUT</th>
-                                    <th style="text-align: center;">Firma</th>
-                                    <th style="width: 50px;"></th>
-                                </tr>
-                            </thead>
-                            <tbody id="personal-table-body">
-                                <!-- Filas de personal se agregarán aquí -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <button type="button" id="add-personal-button" class="btn btn-primary" style="margin-top: 1rem;">
-                    + Añadir Persona
-                </button>
-            </section>
+           <section class="form-section">
+    <div class="section-header">
+        <h3 class="section-title">
+            <span class="section-icon">5</span>
+            Personal que Participa en la Actividad
+        </h3>
+    </div>
+    
+    <!-- Contenedor de personal con cards en lugar de tabla -->
+    <div id="personal-cards-container" class="space-y-4">
+        <!-- Las tarjetas de personal se generarán aquí dinámicamente -->
+    </div>
+    
+    <!-- Versión alternativa con tabla mejorada (comentada por defecto) -->
+    <div id="personal-table-version" class="hidden">
+        <div class="table-container-personal">
+            <div class="table-responsive">
+                <table class="personal-table">
+                    <thead>
+                        <tr>
+                            <th class="personal-name-col">Nombre Completo</th>
+                            <th class="personal-rut-col">RUT</th>
+                            <th class="personal-signature-col">Firma</th>
+                            <th class="personal-actions-col"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="personal-table-body">
+                        <!-- Filas de personal se agregarán aquí -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <button type="button" id="add-personal-button" class="btn btn-primary mt-4">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        Añadir Persona
+    </button>
+</section>
 
             <!-- 6. Firmas -->
             <section class="form-section">
