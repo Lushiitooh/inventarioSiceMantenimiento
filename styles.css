@@ -1317,3 +1317,371 @@ body {
         transform: none;
     }
 }
+/* Contenedor principal de personal */
+.personal-cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Tarjeta individual de personal */
+.personal-card {
+    background: white;
+    border: 2px solid var(--neutral-200);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-normal);
+    position: relative;
+}
+
+.dark .personal-card {
+    background: var(--neutral-100);
+    border-color: var(--neutral-300);
+}
+
+.personal-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+/* Header de la tarjeta de personal */
+.personal-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+.dark .personal-card-header {
+    border-color: var(--neutral-300);
+}
+
+.personal-card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin: 0;
+}
+
+.personal-remove-btn {
+    padding: 0.5rem;
+    border-radius: 50%;
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.personal-remove-btn:hover {
+    background: #dc2626;
+    transform: scale(1.1);
+}
+
+/* Grid de contenido de la tarjeta */
+.personal-card-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+@media (max-width: 768px) {
+    .personal-card-content {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+/* Campos de entrada en la tarjeta */
+.personal-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.personal-field label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--neutral-700);
+    margin-bottom: 0.5rem;
+}
+
+.dark .personal-field label {
+    color: var(--neutral-600);
+}
+
+.personal-field input {
+    padding: 0.875rem;
+    border: 1.5px solid var(--neutral-300);
+    border-radius: var(--radius-md);
+    background: white;
+    color: var(--neutral-700);
+    font-size: 0.875rem;
+    transition: all var(--transition-normal);
+}
+
+.dark .personal-field input {
+    background: var(--neutral-50);
+    border-color: var(--neutral-400);
+    color: var(--neutral-800);
+}
+
+.personal-field input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Área de firma mejorada */
+.personal-signature-area {
+    grid-column: 1 / -1;
+    margin-top: 1rem;
+}
+
+.personal-signature-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--neutral-700);
+    margin-bottom: 0.75rem;
+    display: block;
+}
+
+.dark .personal-signature-label {
+    color: var(--neutral-600);
+}
+
+.personal-signature-container {
+    border: 2px dashed var(--neutral-300);
+    border-radius: var(--radius-lg);
+    position: relative;
+    height: 180px;
+    background: var(--neutral-50);
+    transition: all var(--transition-normal);
+    overflow: hidden;
+}
+
+.dark .personal-signature-container {
+    background: var(--neutral-200);
+    border-color: var(--neutral-400);
+}
+
+.personal-signature-container:hover {
+    border-color: var(--primary-color);
+    border-style: solid;
+}
+
+.personal-signature-container.has-signature {
+    border-style: solid;
+    border-color: var(--success-color);
+    background: rgba(5, 150, 105, 0.05);
+}
+
+.personal-signature-canvas {
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+    border-radius: var(--radius-md);
+}
+
+.personal-signature-placeholder {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--neutral-400);
+    font-size: 0.875rem;
+    pointer-events: none;
+    text-align: center;
+}
+
+.personal-signature-clear {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 0.375rem 0.75rem;
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    z-index: 10;
+}
+
+.personal-signature-clear:hover {
+    background: #dc2626;
+}
+
+/* Responsive para móviles */
+@media (max-width: 640px) {
+    .personal-card {
+        padding: 1rem;
+    }
+    
+    .personal-signature-container {
+        height: 150px;
+    }
+    
+    .personal-card-header {
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+    }
+    
+    .personal-card-content {
+        gap: 1rem;
+    }
+}
+
+/* ====================================================================
+   VERSIÓN TABLA MEJORADA (ALTERNATIVA)
+   ==================================================================== */
+
+.table-container-personal {
+    background: white;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--neutral-200);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+.dark .table-container-personal {
+    background: var(--neutral-100);
+    border-color: var(--neutral-300);
+}
+
+.personal-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.personal-table th {
+    background: var(--neutral-50);
+    padding: 1.25rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--neutral-700);
+    font-size: 0.875rem;
+    border-bottom: 2px solid var(--neutral-200);
+}
+
+.dark .personal-table th {
+    background: var(--neutral-200);
+    color: var(--neutral-600);
+    border-color: var(--neutral-300);
+}
+
+.personal-table td {
+    padding: 1.5rem 1rem;
+    border-bottom: 1px solid var(--neutral-200);
+    vertical-align: top;
+}
+
+.dark .personal-table td {
+    border-color: var(--neutral-300);
+}
+
+/* Columnas específicas de la tabla */
+.personal-name-col {
+    width: 30%;
+}
+
+.personal-rut-col {
+    width: 25%;
+}
+
+.personal-signature-col {
+    width: 35%;
+}
+
+.personal-actions-col {
+    width: 10%;
+    text-align: center;
+}
+
+/* Firma en tabla */
+.table-signature-container {
+    height: 120px;
+    border: 2px dashed var(--neutral-300);
+    border-radius: var(--radius-md);
+    position: relative;
+    background: var(--neutral-50);
+}
+
+.dark .table-signature-container {
+    background: var(--neutral-200);
+    border-color: var(--neutral-400);
+}
+
+/* Responsive para tabla */
+@media (max-width: 768px) {
+    .personal-table th,
+    .personal-table td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    .table-signature-container {
+        height: 100px;
+    }
+}
+
+/* ====================================================================
+   ANIMACIONES Y TRANSICIONES
+   ==================================================================== */
+
+.personal-card-enter {
+    animation: slideInUp 0.4s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.personal-card-remove {
+    animation: slideOutUp 0.3s ease-in forwards;
+}
+
+@keyframes slideOutUp {
+    to {
+        opacity: 0;
+        transform: translateY(-30px);
+        margin-bottom: -100px;
+    }
+}
+
+/* ====================================================================
+   UTILIDADES ESPECÍFICAS
+   ==================================================================== */
+
+.space-y-4 > * + * {
+    margin-top: 1rem;
+}
+
+.w-4 {
+    width: 1rem;
+}
+
+.h-4 {
+    height: 1rem;
+}
+
+.mt-4 {
+    margin-top: 1rem;
+}
