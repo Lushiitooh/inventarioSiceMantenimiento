@@ -8,41 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .signature-pad-container {
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem;
-            position: relative;
-            height: 120px;
-            background-color: #f9fafb;
-        }
-        .signature-pad-container canvas {
-            width: 100%;
-            height: 100%;
-            border-radius: 0.375rem;
-        }
-        .signature-pad-container button {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            z-index: 10;
-        }
-        @media (max-width: 640px) {
-            .signature-pad-container {
-                height: 100px;
-            }
-        }
-        .table-cell-sm {
-            width: 8%; /* Para Estado y Color */
-        }
-        .table-cell-md {
-            width: 30%; /* Para Herramienta */
-        }
-        .table-cell-lg {
-            width: 40%; /* Para Observaciones */
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen">
 
