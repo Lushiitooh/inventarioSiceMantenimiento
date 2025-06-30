@@ -424,25 +424,9 @@ body {
    ESTILOS ESPECÍFICOS PARA CHECKLIST DE HERRAMIENTAS
    ========================================================================== */
 
-body.dark {
-    --neutral-50: #1f2937;
-    --neutral-100: #111827;
-    --neutral-200: #374151;
-    --neutral-300: #4b5563;
-    --neutral-500: #9ca3af;
-    --neutral-700: #d1d5db;
-    --neutral-900: #f9fafb;
-    background-color: #111827;
+#herramientasTableBody tr:nth-child(odd) {
+    background-color: var(--neutral-50);
 }
-
-.dark .bg-white { background-color: #1f2937; }
-.dark .bg-gray-50 { background-color: #374151; }
-.dark .bg-gray-100 { background-color: #1f2937; }
-.dark .text-gray-900 { color: #f9fafb; }
-.dark .text-gray-700 { color: #d1d5db; }
-.dark .text-gray-600 { color: #9ca3af; }
-.dark .border-gray-200 { border-color: #374151; }
-.dark .border-gray-300 { border-color: #4b5563; }
 
 .signature-pad-container {
     position: relative;
@@ -450,9 +434,6 @@ body.dark {
     border-radius: var(--border-radius-md);
     height: 120px;
     background-color: #f9fafb;
-}
-.dark .signature-pad-container {
-    background-color: #374151;
 }
 
 .signature-pad-container canvas {
@@ -466,21 +447,90 @@ body.dark {
     right: 5px;
 }
 
-#herramientasTableBody tr:nth-child(odd) {
-    background-color: var(--neutral-50);
-}
-.dark #herramientasTableBody tr:nth-child(odd) {
-    background-color: #374151;
+/* ==========================================================================
+   MODO OSCURO (DARK MODE)
+   ========================================================================== */
+
+body.dark {
+    --neutral-50: #1f2937;
+    --neutral-100: #111827;
+    --neutral-200: #374151;
+    --neutral-300: #4b5563;
+    --neutral-500: #9ca3af;
+    --neutral-700: #d1d5db;
+    --neutral-900: #f9fafb;
+    background-color: #111827;
+    color-scheme: dark; /* Mejora la apariencia de elementos nativos como scrollbars */
 }
 
-/* --- Responsividad de la Tabla de Herramientas (Móvil) --- */
+/* --- Fondos y Colores de Texto Generales --- */
+.dark .bg-white { background-color: #1f2937; }
+.dark .bg-gray-50 { background-color: #374151; }
+.dark .bg-gray-100 { background-color: #1f2937; }
+.dark .text-gray-900 { color: #f9fafb; }
+.dark .text-gray-700 { color: #d1d5db; }
+.dark .text-gray-600 { color: #9ca3af; }
+.dark .border-gray-200 { border-color: #374151; }
+.dark .border-gray-300 { border-color: #4b5563; }
+.dark .form-container { background-color: #111827; }
+
+/* --- Estilos para Campos de Formulario en Modo Oscuro --- */
+.dark .form-input,
+.dark .form-select,
+.dark .form-textarea,
+.dark .personal-field input,
+.dark #herramientasTableBody td input[type="text"] {
+    background-color: #374151; /* gray-700 */
+    border-color: #4b5563; /* gray-600 */
+    color: #f9fafb; /* gray-50 */
+}
+
+.dark .form-input::placeholder,
+.dark .form-textarea::placeholder {
+    color: #9ca3af; /* gray-400 */
+}
+
+.dark .form-input[readonly] {
+    background-color: #1f2937; /* gray-800 */
+}
+
+/* --- Estilos para Firmas en Modo Oscuro --- */
+.dark .signature-container,
+.dark .signature-pad-container {
+    background-color: #374151;
+    border-color: #4b5563;
+}
+
+.dark .personal-signature-container {
+    background-color: #374151;
+    border-color: #4b5563;
+}
+
+/* --- Estilos para Tabla de Herramientas en Modo Oscuro --- */
+.dark #herramientasTableBody tr:nth-child(odd) {
+    background-color: #1f2937; /* Un poco más oscuro que el fondo de la tabla */
+}
+.dark #herramientasTableBody tr {
+    border-color: #4b5563;
+}
+.dark #herramientasTableBody td:not(:last-child) {
+    border-bottom-color: #374151;
+}
+.dark #herramientasTableBody td::before {
+    color: #f9fafb;
+}
+
+
+/* ==========================================================================
+   RESPONSIVIDAD (VISTA MÓVIL)
+   ========================================================================== */
+
 @media screen and (max-width: 768px) {
-    /* Ocultar la cabecera de la tabla en móvil */
+    /* --- Responsividad de la Tabla de Herramientas --- */
     .overflow-x-auto thead {
         display: none;
     }
 
-    /* Convertir cada fila en una 'tarjeta' */
     #herramientasTableBody tr {
         display: block;
         margin-bottom: 1.5rem;
@@ -489,27 +539,18 @@ body.dark {
         padding: 1rem;
         box-shadow: var(--shadow-sm);
     }
-    .dark #herramientasTableBody tr {
-        border-color: var(--neutral-300);
-    }
 
-    /* Cada celda se convierte en un bloque dentro de la tarjeta */
     #herramientasTableBody td {
         display: block;
         border: none;
         padding: 0.75rem 0.5rem;
-        text-align: left; /* Alinear el contenido a la izquierda */
+        text-align: left;
     }
     
-    /* Añadir un borde para separar las celdas dentro de la tarjeta */
     #herramientasTableBody td:not(:last-child) {
         border-bottom: 1px solid var(--neutral-100);
     }
-    .dark #herramientasTableBody td:not(:last-child) {
-        border-bottom: 1px solid var(--neutral-200);
-    }
 
-    /* Usar el pseudo-elemento ::before para mostrar la etiqueta de la columna */
     #herramientasTableBody td::before {
         content: attr(data-label);
         display: block;
@@ -519,20 +560,27 @@ body.dark {
         font-size: 0.8rem;
         text-transform: uppercase;
     }
-    .dark #herramientasTableBody td::before {
-        color: var(--neutral-50);
-    }
 
-    /* Estilos específicos para el contenido de las celdas */
     #herramientasTableBody td .flex {
-        justify-content: flex-start; /* Alinear radios/checkboxes a la izquierda */
+        justify-content: flex-start;
     }
     
     #herramientasTableBody td .flex label {
-        margin-right: 1.5rem; /* Añadir espacio entre los radio buttons */
+        margin-right: 1.5rem;
     }
 
     #herramientasTableBody td input[type="text"] {
-        width: 100%; /* El input de observaciones ocupa todo el ancho */
+        width: 100%;
+    }
+
+    /* --- Responsividad para Modo Oscuro --- */
+    .dark #herramientasTableBody tr {
+        border-color: var(--neutral-300);
+    }
+    .dark #herramientasTableBody td:not(:last-child) {
+        border-bottom: 1px solid var(--neutral-200);
+    }
+    .dark #herramientasTableBody td::before {
+        color: var(--neutral-50);
     }
 }
