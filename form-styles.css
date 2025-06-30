@@ -473,48 +473,66 @@ body.dark {
     background-color: #374151;
 }
 
-/* --- Responsividad de la Tabla --- */
+/* --- Responsividad de la Tabla de Herramientas (Móvil) --- */
 @media screen and (max-width: 768px) {
-    .table-cell-lg, .table-cell-md {
-        /* Ocultar columnas menos importantes en mobile */
+    /* Ocultar la cabecera de la tabla en móvil */
+    .overflow-x-auto thead {
+        display: none;
     }
 
-    #herramientasTableBody, #herramientasTableBody tr, #herramientasTableBody td {
-        display: block;
-    }
-
-    #herramientasTableBody thead {
-        display: none; /* Ocultar cabecera de tabla tradicional */
-    }
-
+    /* Convertir cada fila en una 'tarjeta' */
     #herramientasTableBody tr {
-        margin-bottom: 1rem;
+        display: block;
+        margin-bottom: 1.5rem;
         border: 1px solid var(--neutral-200);
-        border-radius: var(--border-radius-md);
+        border-radius: var(--border-radius-lg);
         padding: 1rem;
+        box-shadow: var(--shadow-sm);
     }
     .dark #herramientasTableBody tr {
         border-color: var(--neutral-300);
     }
 
+    /* Cada celda se convierte en un bloque dentro de la tarjeta */
     #herramientasTableBody td {
+        display: block;
         border: none;
-        padding: 0.5rem 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        text-align: right;
+        padding: 0.75rem 0.5rem;
+        text-align: left; /* Alinear el contenido a la izquierda */
+    }
+    
+    /* Añadir un borde para separar las celdas dentro de la tarjeta */
+    #herramientasTableBody td:not(:last-child) {
+        border-bottom: 1px solid var(--neutral-100);
+    }
+    .dark #herramientasTableBody td:not(:last-child) {
+        border-bottom: 1px solid var(--neutral-200);
     }
 
+    /* Usar el pseudo-elemento ::before para mostrar la etiqueta de la columna */
     #herramientasTableBody td::before {
         content: attr(data-label);
+        display: block;
         font-weight: 600;
-        text-align: left;
-        margin-right: 1rem;
+        margin-bottom: 0.5rem;
         color: var(--neutral-900);
+        font-size: 0.8rem;
+        text-transform: uppercase;
     }
-     .dark #herramientasTableBody td::before {
+    .dark #herramientasTableBody td::before {
         color: var(--neutral-50);
-     }
-}
+    }
 
+    /* Estilos específicos para el contenido de las celdas */
+    #herramientasTableBody td .flex {
+        justify-content: flex-start; /* Alinear radios/checkboxes a la izquierda */
+    }
+    
+    #herramientasTableBody td .flex label {
+        margin-right: 1.5rem; /* Añadir espacio entre los radio buttons */
+    }
+
+    #herramientasTableBody td input[type="text"] {
+        width: 100%; /* El input de observaciones ocupa todo el ancho */
+    }
+}
