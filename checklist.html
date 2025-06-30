@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+    <!-- RECUERDA AÑADIR LA NUEVA HOJA DE ESTILOS -->
     <link rel="stylesheet" href="form-styles.css">
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen">
@@ -195,24 +197,27 @@
             herramientas.forEach((herramienta, index) => {
                 const tr = document.createElement('tr');
                 tr.className = 'border border-gray-200 dark:border-gray-700';
+                // ***** INICIO DE LA MODIFICACIÓN *****
+                // Se añaden los atributos data-label para la vista móvil
                 tr.innerHTML = `
-                    <td class="p-2 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600">1.${index + 1}</td>
-                    <td class="p-2 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600">${herramienta}</td>
-                    <td class="p-2 text-center border border-gray-300 dark:border-gray-600">
+                    <td data-label="Ítem" class="p-2 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600">1.${index + 1}</td>
+                    <td data-label="Herramienta" class="p-2 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600">${herramienta}</td>
+                    <td data-label="Estado (B/M/N/A)" class="p-2 text-center border border-gray-300 dark:border-gray-600">
                         <div class="flex justify-center items-center space-x-2 sm:space-x-4 text-xs sm:text-sm">
                             <label class="flex items-center cursor-pointer"><input type="radio" name="estado_${index}" value="Bueno" required class="mr-1"> B</label>
                             <label class="flex items-center cursor-pointer"><input type="radio" name="estado_${index}" value="Malo" class="mr-1"> M</label>
                             <label class="flex items-center cursor-pointer"><input type="radio" name="estado_${index}" value="N/A" class="mr-1"> N/A</label>
                         </div>
                     </td>
-                    <td class="p-2 text-center border border-gray-300 dark:border-gray-600">
+                    <td data-label="Color Mes (Sí/No)" class="p-2 text-center border border-gray-300 dark:border-gray-600">
                         <div class="flex justify-center items-center space-x-2 sm:space-x-4 text-xs sm:text-sm">
                             <label class="flex items-center cursor-pointer"><input type="radio" name="color_${index}" value="Si" required class="mr-1"> Sí</label>
                             <label class="flex items-center cursor-pointer"><input type="radio" name="color_${index}" value="No" class="mr-1"> No</label>
                         </div>
                     </td>
-                    <td class="p-2 border border-gray-300 dark:border-gray-600"><input type="text" name="obs_${index}" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"></td>
+                    <td data-label="Observaciones" class="p-2 border border-gray-300 dark:border-gray-600"><input type="text" name="obs_${index}" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"></td>
                 `;
+                // ***** FIN DE LA MODIFICACIÓN *****
                 tbody.appendChild(tr);
             });
 
