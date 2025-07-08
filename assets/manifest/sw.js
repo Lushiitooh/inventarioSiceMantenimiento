@@ -3,14 +3,14 @@ const CACHE_NAME = 'inventario-epp-cache-v1';
 
 // Lista de archivos que queremos cachear (el "app shell")
 const urlsToCache = [
-  '.', // Representa el directorio raíz, usualmente tu index.html
-  'index.html',
-  'certificados.html', 
-  'styles.css',
-  'app.js',
-  'certificados.js',
-  'firebase-config.js',
-  'manifest.json',
+  '../', 
+  '../index.html',
+  '../pages/certificados.html', 
+  '../assets/css/styles.css',
+  '../assets/js/app.js',
+  '../assets/js/certificados.js',
+  '../assets/js/firebase-config.js',
+  './manifest.json',
   'https://cdn.tailwindcss.com', // Cachear Tailwind CSS
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' // Cachear la fuente
 ];
