@@ -22,7 +22,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // ------------------------------------------------------------------------------------
-// El resto del código permanece casi igual, usando las variables importadas
+// El resto del código con las modificaciones mejoradas
 // ------------------------------------------------------------------------------------
 
 let currentLoggedInUser = null;
@@ -68,7 +68,10 @@ const messageContainer = document.getElementById('messageContainer');
 
 // --- Autenticación y Setup de Firestore ---
 function setupFirebase() {
-    // La línea "enableIndexedDbPersistence(db)" se movió a firebase-config.js, por lo que se elimina de aquí.
+    // Actualizar estado inicial
+    if (window.updateAuthStatus) {
+        window.updateAuthStatus('loading', 'Inicializando conexión...');
+    }
 
     if (ADMIN_UID && ADMIN_UID !== "PEGAR_AQUI_EL_UID_DEL_ADMINISTRADOR") {
         eppInventoryCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_inventory`);
@@ -77,6 +80,9 @@ function setupFirebase() {
         errorMessage.textContent = "Error Crítico de Configuración: La constante ADMIN_UID no ha sido establecida en firebase-config.js. Por favor, edita el archivo y define tu User ID de Firebase. La aplicación no funcionará correctamente.";
         errorMessage.classList.remove('hidden');
         loadingIndicator.classList.add('hidden');
+        if (window.updateAuthStatus) {
+            window.updateAuthStatus('error', 'Error de configuración');
+        }
         return; 
     }
 
@@ -87,8 +93,12 @@ function setupFirebase() {
 
         if (user) {
             userIdDisplay.textContent = `Logueado como: ${user.email}`;
+            if (window.updateAuthStatus) {
+                window.updateAuthStatus('connected', 'Conectado');
+            }
             authStatus.textContent = "Autenticado.";
-            authStatus.classList.remove('text-red-500'); authStatus.classList.add('text-green-500');
+            authStatus.classList.remove('text-red-500'); 
+            authStatus.classList.add('text-green-500');
             loginSection.classList.add('hidden');
             logoutButton.classList.remove('hidden');
             
@@ -103,8 +113,12 @@ function setupFirebase() {
             }
         } else {
             userIdDisplay.textContent = "Visitante";
+            if (window.updateAuthStatus) {
+                window.updateAuthStatus('error', 'No autenticado');
+            }
             authStatus.textContent = "No autenticado.";
-            authStatus.classList.add('text-red-500'); authStatus.classList.remove('text-green-500');
+            authStatus.classList.add('text-red-500'); 
+            authStatus.classList.remove('text-green-500');
             loginSection.classList.remove('hidden');
             logoutButton.classList.add('hidden');
             addEppFormSection.classList.add('hidden');
@@ -161,12 +175,23 @@ function loadInventory() {
              errorMessage.classList.remove('hidden');
         }
         const isAdminForColspan = currentLoggedInUser && currentLoggedInUser.uid === ADMIN_UID;
-        eppTableBody.innerHTML = `<tr><td colspan="${isAdminForColspan ? 7 : 5}" class="text-center py-4 px-6 text-gray-500">Inventario no disponible (configuración pendiente o error de conexión).</td></tr>`;
+        
+        // Usar la nueva función de estado vacío si está disponible
+        if (window.showEmptyState) {
+            window.showEmptyState(eppTableBody, "Inventario no disponible (configuración pendiente o error de conexión).");
+        } else {
+            eppTableBody.innerHTML = `<tr><td colspan="${isAdminForColspan ? 7 : 5}" class="text-center py-4 px-6 text-gray-500">Inventario no disponible (configuración pendiente o error de conexión).</td></tr>`;
+        }
+        
         loadingIndicator.classList.add('hidden');
         return;
     }
 
     loadingIndicator.classList.remove('hidden');
+    if (window.updateAuthStatus) {
+        window.updateAuthStatus('loading', 'Cargando inventario...');
+    }
+    
     const q = query(eppInventoryCollectionRef); 
 
     onSnapshot(q, (snapshot) => {
@@ -180,6 +205,10 @@ function loadInventory() {
         displayFilteredInventory(isAdmin);
 
         loadingIndicator.classList.add('hidden');
+        if (window.updateAuthStatus) {
+            window.updateAuthStatus('connected', `${allEppItems.length} elementos cargados`);
+        }
+        
         if(!errorMessage.classList.contains('hidden') && !errorMessage.textContent.startsWith("Error Crítico de Configuración:")) {
             errorMessage.classList.add('hidden');
         }
@@ -188,6 +217,9 @@ function loadInventory() {
         errorMessage.textContent = `Error al cargar inventario EPP: ${error.message}.`;
         errorMessage.classList.remove('hidden');
         loadingIndicator.classList.add('hidden');
+        if (window.updateAuthStatus) {
+            window.updateAuthStatus('error', 'Error de conexión');
+        }
     });
 }
 
@@ -207,8 +239,15 @@ function displayFilteredInventory(isAdminView) {
 
     const colCount = isAdminView ? 7 : 5; 
     if (filteredItems.length === 0) {
-        const message = searchTerm ? "No hay EPP que coincidan con la búsqueda." : "No hay EPP registrados.";
-        eppTableBody.innerHTML = `<tr><td colspan="${colCount}" class="text-center py-4 px-6 text-gray-500">${message}</td></tr>`;
+        const message = searchTerm ? "No hay EPP que coincidan con la búsqueda." : "No hay EPP registrados en el sistema.";
+        
+        // Usar la nueva función de estado vacío si está disponible
+        if (window.showEmptyState) {
+            window.showEmptyState(eppTableBody, message);
+        } else {
+            // Fallback al estado vacío original
+            eppTableBody.innerHTML = `<tr><td colspan="${colCount}" class="text-center py-4 px-6 text-gray-500">${message}</td></tr>`;
+        }
     } else {
         filteredItems.forEach(item => {
             renderEppItem(item, isAdminView);
@@ -226,6 +265,14 @@ function displayFilteredInventory(isAdminView) {
 }
 
 function renderEppItem(item, isAdminView) {
+    // Usar la nueva función de renderizado mejorado si está disponible
+    if (window.renderEppItemImproved) {
+        const tr = window.renderEppItemImproved(item, isAdminView);
+        eppTableBody.appendChild(tr);
+        return;
+    }
+    
+    // Fallback al renderizado original si no está disponible la función mejorada
     const tr = document.createElement('tr');
     tr.className = `border-b dark:border-gray-700 ${
         item.quantity <= item.minStock ? 'bg-red-100 dark:bg-red-800/50' :
@@ -460,7 +507,6 @@ loansTableBody.addEventListener('click', async (e) => {
         }
     }
 });
-
 
 // --- Utilidades (Mensajes, Confirmación) ---
 function showTemporaryMessage(message, type = 'info') {
