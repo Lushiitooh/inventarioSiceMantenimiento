@@ -1,13 +1,6 @@
-// assets/js/router.js (VERSIÓN FINAL PARA GITHUB PAGES)
+// assets/js/router.js (VERSIÓN FINAL CON EJECUCIÓN DE SCRIPTS)
 
-/**
- * @description
- * Esta es la parte más importante para que funcione en GitHub Pages.
- * Define el nombre de tu repositorio. El router lo añadirá al principio
- * de cada ruta que intente cargar.
- */
 const basePath = '/inventarioSiceMantenimiento';
-
 const pageInitializers = {};
 
 window.registerPageInitializer = (path, initFunction) => {
@@ -18,25 +11,38 @@ window.registerPageInitializer = (path, initFunction) => {
 
 /**
  * @description
- * Función que carga el contenido de las páginas.
- * @param {string} path - La ruta de la página DENTRO del proyecto (ej. "/pages/certificados.html").
+ * Esta función busca y ejecuta los scripts de un fragmento de HTML.
+ * @param {HTMLElement} contentWrapper - El elemento HTML que contiene el nuevo contenido.
  */
+function executeScripts(contentWrapper) {
+    // Convertimos la colección de scripts en un array para poder iterarlo.
+    const scripts = Array.from(contentWrapper.querySelectorAll("script"));
+    scripts.forEach(oldScript => {
+        const newScript = document.createElement("script");
+
+        // Copiamos los atributos (como type="module", src, etc.)
+        Array.from(oldScript.attributes).forEach(attr => {
+            newScript.setAttribute(attr.name, attr.value);
+        });
+
+        // Copiamos el contenido si es un script inline.
+        newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+        
+        // Añadimos el nuevo script al final del body para que se ejecute.
+        document.body.appendChild(newScript);
+    });
+}
+
 async function loadContent(path) {
     const appContent = document.getElementById('app-content');
-    if (!appContent) {
-        console.error("CRÍTICO: El contenedor #app-content no se encontró.");
-        return;
-    }
+    if (!appContent) return;
 
-    // CONSTRUIMOS LA RUTA COMPLETA PARA EL FETCH
     const fetchPath = `${basePath}${path}`;
     
     try {
         console.log(`Iniciando carga de: ${fetchPath}`);
-        const response = await fetch(fetchPath); // Usamos la ruta completa
-        if (!response.ok) {
-            throw new Error(`Error HTTP ${response.status} al intentar cargar ${fetchPath}`);
-        }
+        const response = await fetch(fetchPath);
+        if (!response.ok) throw new Error(`Error HTTP ${response.status}`);
         
         const text = await response.text();
         const parser = new DOMParser();
@@ -47,36 +53,32 @@ async function loadContent(path) {
         if (newPageContentWrapper) {
             appContent.innerHTML = '';
             appContent.appendChild(newPageContentWrapper);
+            
+            // ¡NUEVO! Ejecutamos los scripts encontrados en el nuevo contenido.
+            executeScripts(newPageContentWrapper);
+            
             console.log(`Contenido de ${path} cargado.`);
-
+            
             const normalizedPath = path.substring(path.lastIndexOf('/'));
             if (pageInitializers[normalizedPath]) {
-                console.log(`Ejecutando inicializador para ${normalizedPath}...`);
                 pageInitializers[normalizedPath]();
-            } else {
-                console.warn(`ADVERTENCIA: No se encontró inicializador para: ${normalizedPath}`);
             }
         } else {
-            throw new Error("No se encontró el contenedor '.max-w-7xl' en el archivo de destino.");
+            throw new Error("No se encontró el contenedor '.max-w-7xl'");
         }
     } catch (error) {
         console.error("Error en loadContent:", error);
-        appContent.innerHTML = `<div class="p-8 text-center text-red-500"><h3>Error de Carga</h3><p>No se pudo mostrar el contenido de la página. Revisa la consola para más detalles.</p><p>Ruta intentada: ${fetchPath}</p></div>`;
     }
 }
 
+// --- Event Listeners (sin cambios) ---
 document.addEventListener('click', e => {
     const link = e.target.closest('a');
-    
     if (link && link.href && link.target !== '_blank') {
         e.preventDefault();
         const targetUrl = new URL(link.href);
-        
-        // Extraemos la ruta sin el basePath para mantener la lógica interna limpia
         let cleanPath = targetUrl.pathname.replace(basePath, '');
-        if (!cleanPath.startsWith('/')) {
-            cleanPath = `/${cleanPath}`;
-        }
+        if (!cleanPath.startsWith('/')) cleanPath = `/${cleanPath}`;
 
         if (window.location.pathname.replace(basePath, '') !== cleanPath) {
             window.history.pushState({ path: cleanPath }, '', targetUrl.href);
@@ -91,4 +93,4 @@ window.addEventListener('popstate', e => {
     }
 });
 
-console.log("🚀 Router SPA v4 (GitHub Pages Ready)");
+console.log("🚀 Router SPA v5 (con ejecución de scripts)");
