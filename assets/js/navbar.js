@@ -1,6 +1,7 @@
-// assets/js/navbar.js (Corregido con rutas dinámicas)
+// assets/js/navbar.js (Versión corregida y simplificada)
 
 document.addEventListener('DOMContentLoaded', function () {
+    console.log("🧭 Inicializando navbar");
 
     const pageConfig = {
         'index.html': 'home',
@@ -10,18 +11,18 @@ document.addEventListener('DOMContentLoaded', function () {
         'formulario-ast.html': 'formulario-ast'
     };
 
-    // Función para obtener la ruta correcta a la navbar.
+    // Función para obtener la ruta correcta a la navbar
     function getNavbarUrl() {
         const path = window.location.pathname;
-        // Si la ruta incluye '/pages/', estamos en una subcarpeta.
+        // Si la ruta incluye '/pages/', estamos en una subcarpeta
         return path.includes('/pages/') ? '../components/navbar.html' : './components/navbar.html';
     }
     
-    // Función para obtener la ruta correcta para los enlaces de navegación.
+    // Función para obtener la ruta correcta para los enlaces de navegación
     function getLinkPath(href) {
         const isInSubfolder = window.location.pathname.includes('/pages/');
         if (href.startsWith('./pages')) {
-             return isInSubfolder ? href.replace('./pages/', './') : href;
+            return isInSubfolder ? href.replace('./pages/', './') : href;
         }
         if (href === './index.html') {
             return isInSubfolder ? '../index.html' : './index.html';
@@ -31,7 +32,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function initializeNavbar() {
         const navbarPlaceholder = document.getElementById('navbar-placeholder');
-        if (!navbarPlaceholder) return;
+        if (!navbarPlaceholder) {
+            console.warn("No se encontró el placeholder del navbar");
+            return;
+        }
 
         try {
             const response = await fetch(getNavbarUrl());
@@ -40,14 +44,18 @@ document.addEventListener('DOMContentLoaded', function () {
             const html = await response.text();
             navbarPlaceholder.innerHTML = html;
             
-            // Una vez cargado el HTML, inicializamos sus funciones.
+            // Una vez cargado el HTML, inicializamos sus funciones
             initializeMobileMenu();
             adjustNavLinks();
             setActiveNavLink();
 
         } catch (error) {
             console.error('Error al cargar la navbar:', error);
-            navbarPlaceholder.innerHTML = `<div class="bg-red-100 text-red-700 p-4 text-center">Error al cargar el menú.</div>`;
+            navbarPlaceholder.innerHTML = `
+                <div class="bg-red-100 text-red-700 p-4 text-center">
+                    Error al cargar el menú de navegación
+                </div>
+            `;
         }
     }
 
@@ -62,7 +70,51 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     function initializeMobileMenu() {
-        // Tu código existente para el menú móvil (sin cambios)
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+        const closeMobileMenu = document.getElementById('close-mobile-menu');
+
+        if (!mobileMenuButton || !mobileMenu || !mobileMenuOverlay) {
+            console.warn("Elementos del menú móvil no encontrados");
+            return;
+        }
+
+        // Abrir menú móvil
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.remove('-translate-x-full');
+            mobileMenuOverlay.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        });
+
+        // Cerrar menú móvil
+        function closeMobileMenuHandler() {
+            mobileMenu.classList.add('-translate-x-full');
+            mobileMenuOverlay.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        if (closeMobileMenu) {
+            closeMobileMenu.addEventListener('click', closeMobileMenuHandler);
+        }
+
+        // Cerrar al hacer clic en el overlay
+        mobileMenuOverlay.addEventListener('click', closeMobileMenuHandler);
+
+        // Cerrar al hacer clic en un enlace del menú móvil
+        const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+        mobileNavLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                setTimeout(closeMobileMenuHandler, 100);
+            });
+        });
+
+        // Cerrar con la tecla Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !mobileMenu.classList.contains('-translate-x-full')) {
+                closeMobileMenuHandler();
+            }
+        });
     }
 
     function setActiveNavLink() {
@@ -70,18 +122,33 @@ document.addEventListener('DOMContentLoaded', function () {
         const filename = path.substring(path.lastIndexOf('/') + 1) || 'index.html';
         const currentPageKey = pageConfig[filename];
 
+        // Remover clases activas de todos los enlaces
         document.querySelectorAll('[data-page]').forEach(link => {
-            link.classList.remove('bg-blue-50', 'text-blue-600'); // Quita la clase activa
-            if (link.dataset.page === currentPageKey) {
-                link.classList.add('bg-blue-50', 'text-blue-600'); // Añade la clase activa
-            }
+            link.classList.remove('bg-blue-50', 'text-blue-600', 'dark:bg-blue-900/20', 'dark:text-blue-400');
         });
+
+        // Añadir clases activas al enlace actual
+        if (currentPageKey) {
+            document.querySelectorAll(`[data-page="${currentPageKey}"]`).forEach(link => {
+                link.classList.add('bg-blue-50', 'text-blue-600', 'dark:bg-blue-900/20', 'dark:text-blue-400');
+            });
+        }
     }
 
-    // API global para que el router pueda refrescar el estado activo
+    // API global para que otras partes de la aplicación puedan actualizar el navbar
     window.NavbarAPI = {
-        refresh: setActiveNavLink
+        refresh: setActiveNavLink,
+        closeMobileMenu: () => {
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+            if (mobileMenu && mobileMenuOverlay) {
+                mobileMenu.classList.add('-translate-x-full');
+                mobileMenuOverlay.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+        }
     };
 
+    // Inicializar la navbar
     initializeNavbar();
 });
