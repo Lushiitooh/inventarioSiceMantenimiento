@@ -1,18 +1,25 @@
+// assets/manifest/sw.js (Corregido)
+
 // Nombre del caché para nuestra aplicación
-const CACHE_NAME = 'inventario-epp-cache-v1';
+const CACHE_NAME = 'inventario-epp-cache-v2'; // Se incrementa la versión para forzar actualización
 
 // Lista de archivos que queremos cachear (el "app shell")
 const urlsToCache = [
-  '../', 
-  '../index.html',
-  '../pages/certificados.html', 
-  '../assets/css/styles.css',
-  '../assets/js/app.js',
-  '../assets/js/certificados.js',
-  '../assets/js/firebase-config.js',
-  './manifest.json',
-  'https://cdn.tailwindcss.com', // Cachear Tailwind CSS
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' // Cachear la fuente
+  '/',
+  '/index.html',
+  '/pages/inventario-luis.html',
+  '/pages/certificados.html',
+  '/pages/checklist.html',
+  '/pages/formulario-ast.html',
+  '/assets/css/styles.css',
+  '/assets/js/app.js',
+  '/assets/js/certificados.js',
+  '/assets/js/navbar.js',
+  '/assets/js/router.js',
+  '/assets/js/firebase-config.js',
+  '/assets/manifest/manifest.json',
+  'https://cdn.tailwindcss.com',
+  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
 ];
 
 // Evento 'install': se dispara cuando el service worker se instala.
@@ -23,7 +30,12 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Service Worker: Abriendo caché y cacheando archivos principales');
-        return cache.addAll(urlsToCache);
+        // Usar { cache: 'reload' } para asegurar que obtenemos los archivos frescos de la red durante la instalación.
+        const stack = [];
+        urlsToCache.forEach(url => stack.push(
+            fetch(url, { cache: 'reload' }).then(res => cache.put(url, res))
+        ));
+        return Promise.all(stack);
       })
       .catch(err => {
         console.error('Service Worker: Fallo al cachear archivos', err);
@@ -31,27 +43,35 @@ self.addEventListener('install', event => {
   );
 });
 
-// Evento 'fetch': se dispara cada vez que la aplicación hace una petición de red (ej. pedir una imagen, un script, etc.).
-// Aquí interceptamos la petición y servimos desde el caché si es posible.
+// Evento 'fetch': se dispara cada vez que la aplicación hace una petición de red.
 self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Si la respuesta se encuentra en el caché, la retornamos
-        if (response) {
-          console.log('Service Worker: Sirviendo desde caché:', event.request.url);
-          return response;
-        }
-        
-        // Si no está en el caché, hacemos la petición de red
-        console.log('Service Worker: Petición de red para:', event.request.url);
-        return fetch(event.request);
-      })
-  );
+    // Estrategia: Cache First (buena para el App Shell)
+    event.respondWith(
+        caches.match(event.request)
+            .then(response => {
+                // Si la respuesta se encuentra en el caché, la retornamos.
+                if (response) {
+                    return response;
+                }
+                // Si no está en el caché, hacemos la petición de red.
+                return fetch(event.request).then(
+                    (response) => {
+                        // Opcional: Si quieres cachear nuevas peticiones dinámicamente
+                        // if(!response || response.status !== 200 || response.type !== 'basic') {
+                        //   return response;
+                        // }
+                        // const responseToCache = response.clone();
+                        // caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
+                        return response;
+                    }
+                );
+            })
+    );
 });
 
+
 // Evento 'activate': se dispara cuando el service worker se activa.
-// Aquí podemos limpiar cachés antiguos si es necesario.
+// Aquí limpiamos cachés antiguos.
 self.addEventListener('activate', event => {
   console.log('Service Worker: Activado');
   const cacheWhitelist = [CACHE_NAME];
