@@ -1,9 +1,9 @@
 // assets/manifest/sw.js (Corregido)
 
-// Nombre del caché para nuestra aplicación
-const CACHE_NAME = 'inventario-epp-cache-v2'; // Se incrementa la versión para forzar actualización
+// Se incrementa la versión para forzar la actualización del caché en los navegadores de los usuarios.
+const CACHE_NAME = 'inventario-epp-cache-v2';
 
-// Lista de archivos que queremos cachear (el "app shell")
+// Lista de archivos a cachear usando rutas absolutas desde la raíz del sitio.
 const urlsToCache = [
   '/',
   '/index.html',
@@ -18,60 +18,29 @@ const urlsToCache = [
   '/assets/js/router.js',
   '/assets/js/firebase-config.js',
   '/assets/manifest/manifest.json',
+  '/components/navbar.html',
   'https://cdn.tailwindcss.com',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
+  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
+  'https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js'
 ];
 
-// Evento 'install': se dispara cuando el service worker se instala.
-// Aquí es donde cacheamos nuestros archivos.
+// Evento 'install': Se dispara al instalar el service worker. Cachea los archivos principales.
 self.addEventListener('install', event => {
   console.log('Service Worker: Instalando...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Service Worker: Abriendo caché y cacheando archivos principales');
-        // Usar { cache: 'reload' } para asegurar que obtenemos los archivos frescos de la red durante la instalación.
-        const stack = [];
-        urlsToCache.forEach(url => stack.push(
-            fetch(url, { cache: 'reload' }).then(res => cache.put(url, res))
-        ));
-        return Promise.all(stack);
+        console.log('Service Worker: Abriendo caché y guardando el app shell.');
+        return cache.addAll(urlsToCache);
       })
       .catch(err => {
-        console.error('Service Worker: Fallo al cachear archivos', err);
+        console.error('Service Worker: Fallo al cachear archivos durante la instalación.', err);
       })
   );
+  self.skipWaiting();
 });
 
-// Evento 'fetch': se dispara cada vez que la aplicación hace una petición de red.
-self.addEventListener('fetch', event => {
-    // Estrategia: Cache First (buena para el App Shell)
-    event.respondWith(
-        caches.match(event.request)
-            .then(response => {
-                // Si la respuesta se encuentra en el caché, la retornamos.
-                if (response) {
-                    return response;
-                }
-                // Si no está en el caché, hacemos la petición de red.
-                return fetch(event.request).then(
-                    (response) => {
-                        // Opcional: Si quieres cachear nuevas peticiones dinámicamente
-                        // if(!response || response.status !== 200 || response.type !== 'basic') {
-                        //   return response;
-                        // }
-                        // const responseToCache = response.clone();
-                        // caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
-                        return response;
-                    }
-                );
-            })
-    );
-});
-
-
-// Evento 'activate': se dispara cuando el service worker se activa.
-// Aquí limpiamos cachés antiguos.
+// Evento 'activate': Se activa el service worker y se limpian los cachés antiguos.
 self.addEventListener('activate', event => {
   console.log('Service Worker: Activado');
   const cacheWhitelist = [CACHE_NAME];
@@ -86,5 +55,32 @@ self.addEventListener('activate', event => {
         })
       );
     })
+  );
+  return self.clients.claim();
+});
+
+// Evento 'fetch': Intercepta las peticiones de red. Sirve desde el caché si es posible (estrategia Cache First).
+self.addEventListener('fetch', event => {
+  // Ignoramos las peticiones a Firebase y Pipedream para que siempre vayan a la red.
+  if (event.request.url.includes('firestore.googleapis.com') || event.request.url.includes('pipedream.net')) {
+    return;
+  }
+
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        // Si encontramos una respuesta en el caché, la devolvemos.
+        if (response) {
+          return response;
+        }
+        
+        // Si no, hacemos la petición a la red.
+        return fetch(event.request).then(
+          (networkResponse) => {
+            // Opcional: Si quieres, puedes cachear nuevas peticiones aquí.
+            return networkResponse;
+          }
+        );
+      })
   );
 });

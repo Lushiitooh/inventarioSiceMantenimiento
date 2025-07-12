@@ -1,77 +1,125 @@
-// assets/js/certificados.js (MODIFICADO)
+// assets/js/certificados.js (Refactorizado con delegación de eventos y limpieza completa)
+
 import { db, auth, ADMIN_UID, appIdForPath } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { collection, addDoc, onSnapshot, query, doc, deleteDoc, Timestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 function initializeCertificadosPage() {
-    console.log("Inicializando la página de Certificados...");
+    console.log("⚙️ Activando la lógica de la página de Certificados (v. Completa)");
 
-    // --- CONFIGURACIÓN DE CLOUDINARY ---
+    const appContent = document.getElementById('app-content');
+    if (!appContent) return;
+
+    // Referencias para poder cancelar las suscripciones a Firebase.
+    let unsubscribeCerts = null;
+    let unsubscribeAuth = null;
+    let allCerts = [];
+    let confirmCallback = null;
+
+    // --- MANEJADORES DE EVENTOS CENTRALIZADOS ---
+
+    const handleSubmit = (e) => {
+        if (e.target.id === 'addCertForm') {
+            e.preventDefault();
+            handleAddCert(e.target);
+        }
+    };
+
+    const handleClick = (e) => {
+        const button = e.target.closest('button');
+        if (button && button.classList.contains('delete-cert-btn')) {
+            handleDeleteCert(button);
+        } else if (button && button.id === 'confirmButton') {
+            if (confirmCallback) confirmCallback();
+            hideConfirmationModal();
+        } else if (button && button.id === 'cancelButton') {
+            hideConfirmationModal();
+        }
+    };
+
+    const handleInput = (e) => {
+        if (e.target.id === 'searchCertInput') {
+            displayFilteredCerts();
+        }
+    };
+
+    // --- FUNCIÓN DE LIMPIEZA ---
+    const cleanup = () => {
+        console.log("🧹 Limpiando listeners y suscripciones de la página de Certificados.");
+        appContent.removeEventListener('submit', handleSubmit);
+        appContent.removeEventListener('click', handleClick);
+        appContent.removeEventListener('input', handleInput);
+
+        if (unsubscribeCerts) unsubscribeCerts();
+        if (unsubscribeAuth) unsubscribeAuth();
+    };
+
+    // --- REGISTRO DE LISTENERS Y LIMPIEZA ---
+    appContent.addEventListener('submit', handleSubmit);
+    appContent.addEventListener('click', handleClick);
+    appContent.addEventListener('input', handleInput);
+    window.registerPageCleanup(cleanup);
+
+    // --- LÓGICA DE LA APLICACIÓN ---
+
     const CLOUDINARY_CLOUD_NAME = "dep5jbtjh";
     const CLOUDINARY_UPLOAD_PRESET = "inv_epp_unsigned";
 
-    // --- Variables y Elementos del DOM ---
-    let allCerts = [];
-    let currentLoggedInUser = null;
-    const certsCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_certificates`);
-
-    const authStatus = document.getElementById('authStatus');
-    const addCertFormSection = document.getElementById('addCertFormSection');
-    const addCertForm = document.getElementById('addCertForm');
-    const certEppNameInput = document.getElementById('certEppName');
-    const certVigenciaInput = document.getElementById('certVigencia');
-    const certFileInput = document.getElementById('certFile');
-    const uploadButton = document.getElementById('uploadButton');
-    const uploadProgress = document.getElementById('uploadProgress');
-    const messageContainer = document.getElementById('messageContainer');
-
-    const searchCertInput = document.getElementById('searchCertInput');
-    const certsTableBody = document.getElementById('certsTableBody');
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    const mainContent = document.getElementById('mainContent');
-
-    // --- Lógica Principal ---
-
-    onAuthStateChanged(auth, (user) => {
-        currentLoggedInUser = user;
-        const isAdmin = user && user.uid === ADMIN_UID;
-        authStatus.textContent = user ? `Autenticado como: ${user.email}` : "No autenticado (vista pública)";
-        addCertFormSection.classList.toggle('hidden', !isAdmin);
-        document.querySelectorAll('.admin-col').forEach(col => {
-            col.style.display = isAdmin ? '' : 'none';
-        });
-        loadCertificates();
-        mainContent.classList.remove('hidden');
-        loadingIndicator.classList.add('hidden');
-    });
-
-    function loadCertificates() {
-        onSnapshot(query(certsCollectionRef), (snapshot) => {
-            allCerts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            allCerts.sort((a, b) => a.eppName.localeCompare(b.eppName));
-            displayFilteredCerts();
-        }, (error) => {
-            console.error("Error al cargar certificados:", error);
-            certsTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-red-500">Error al cargar datos.</td></tr>`;
+    function setupAuth() {
+        unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+            const isAdmin = user && user.uid === ADMIN_UID;
+            updateUIVisibility(user, isAdmin);
+            loadCertificates();
         });
     }
 
-    // ==================================================================
-    // PASO 2: REVERTIR EL CAMBIO EN ESTA FUNCIÓN
-    // La lógica para modificar la URL de descarga se elimina.
-    // ==================================================================
+    function updateUIVisibility(user, isAdmin) {
+        const authStatus = document.getElementById('authStatus');
+        const addCertFormSection = document.getElementById('addCertFormSection');
+        const mainContent = document.getElementById('mainContent');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+
+        if (authStatus) authStatus.textContent = user ? `Autenticado como: ${user.email}` : "No autenticado (vista pública)";
+        if (addCertFormSection) addCertFormSection.classList.toggle('hidden', !isAdmin);
+        
+        document.querySelectorAll('.admin-col').forEach(col => {
+            col.style.display = isAdmin ? '' : 'none';
+        });
+
+        if (mainContent) mainContent.classList.remove('hidden');
+        if (loadingIndicator) loadingIndicator.classList.add('hidden');
+    }
+
+    function loadCertificates() {
+        const certsCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_certificates`);
+        const certsTableBody = document.getElementById('certsTableBody');
+
+        unsubscribeCerts = onSnapshot(query(certsCollectionRef), (snapshot) => {
+            allCerts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            allCerts.sort((a, b) => (a.eppName || "").localeCompare(b.eppName || ""));
+            displayFilteredCerts();
+        }, (error) => {
+            console.error("Error al cargar certificados:", error);
+            if (certsTableBody) certsTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-red-500">Error al cargar datos.</td></tr>`;
+        });
+    }
+
     function displayFilteredCerts() {
-        const searchTerm = searchCertInput.value.toLowerCase().trim();
+        const searchCertInput = document.getElementById('searchCertInput');
+        const certsTableBody = document.getElementById('certsTableBody');
+        if (!certsTableBody) return;
+
+        const searchTerm = searchCertInput ? searchCertInput.value.toLowerCase().trim() : "";
         const filteredCerts = searchTerm
             ? allCerts.filter(cert => cert.eppName.toLowerCase().includes(searchTerm))
             : allCerts;
 
         certsTableBody.innerHTML = '';
-        const isAdminView = currentLoggedInUser && currentLoggedInUser.uid === ADMIN_UID;
+        const isAdminView = auth.currentUser && auth.currentUser.uid === ADMIN_UID;
         const colCount = isAdminView ? 5 : 4;
 
         if (filteredCerts.length === 0) {
-            certsTableBody.innerHTML = `<tr><td colspan="${colCount}" class="text-center py-4">No hay certificados que coincidan.</td></tr>`;
+            certsTableBody.innerHTML = `<tr><td colspan="${colCount}" class="text-center py-4">No se encontraron certificados que coincidan.</td></tr>`;
             return;
         }
 
@@ -92,7 +140,6 @@ function initializeCertificadosPage() {
                 <button data-id="${cert.id}" class="delete-cert-btn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Eliminar</button>
             </td>` : '';
 
-            // Se vuelve a la forma simple: usamos la URL directamente de la base de datos.
             tr.innerHTML = `
             <td class="py-4 px-6 font-medium">${cert.eppName}</td>
             <td class="py-4 px-6 text-center">${vigenciaDate.toLocaleDateString()}</td>
@@ -101,29 +148,24 @@ function initializeCertificadosPage() {
                 <a href="${cert.downloadURL}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">Descargar</a>
             </td>
             ${adminCol}
-        `;
+            `;
             certsTableBody.appendChild(tr);
         });
     }
 
-    // ==================================================================
-    // PASO 1: CORREGIR LA SUBIDA EN ESTA FUNCIÓN
-    // Se cambia "auto" por "raw" en la URL de subida.
-    // ==================================================================
-    addCertForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const eppName = certEppNameInput.value.trim();
-        const vigencia = certVigenciaInput.value;
-        const file = certFileInput.files[0];
+    async function handleAddCert(form) {
+        const eppName = form.querySelector('#certEppName').value.trim();
+        const vigencia = form.querySelector('#certVigencia').value;
+        const file = form.querySelector('#certFile').files[0];
+        const uploadButton = form.querySelector('#uploadButton');
+        const uploadProgress = form.querySelector('#uploadProgress');
 
         if (!eppName || !vigencia || !file) {
             showTemporaryMessage("Por favor, completa todos los campos.", "warning");
             return;
         }
 
-        // CAMBIO CLAVE: Usamos "/raw/upload" para forzar que el archivo se trate como un documento.
         const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/raw/upload`;
-
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
@@ -135,11 +177,12 @@ function initializeCertificadosPage() {
         try {
             const response = await fetch(url, { method: 'POST', body: formData });
             if (!response.ok) {
-                throw new Error(`Error en la subida: ${response.statusText}`);
+                throw new Error(`Error en la subida a Cloudinary: ${response.statusText}`);
             }
 
             const data = await response.json();
             const downloadURL = data.secure_url;
+            const certsCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_certificates`);
 
             await addDoc(certsCollectionRef, {
                 eppName,
@@ -151,7 +194,7 @@ function initializeCertificadosPage() {
             });
 
             showTemporaryMessage("¡Certificado subido con éxito!", "success");
-            addCertForm.reset();
+            form.reset();
 
         } catch (error) {
             console.error("Error en el proceso de subida:", error);
@@ -161,43 +204,65 @@ function initializeCertificadosPage() {
             uploadButton.disabled = false;
             uploadButton.textContent = "Subir Certificado";
         }
-    });
+    }
 
-    certsTableBody.addEventListener('click', async (e) => {
-        if (e.target.classList.contains('delete-cert-btn')) {
-            const certId = e.target.dataset.id;
+    function handleDeleteCert(button) {
+        const certId = button.dataset.id;
+        const certDoc = allCerts.find(c => c.id === certId);
+        const certsCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_certificates`);
 
-            if (confirm("¿Estás seguro? Se eliminará la entrada del listado, pero el archivo permanecerá en Cloudinary.")) {
-                try {
-                    await deleteDoc(doc(certsCollectionRef, certId));
-                    showTemporaryMessage("Entrada del certificado eliminada.", "success");
-                } catch (error) {
-                    console.error("Error al eliminar entrada:", error);
-                    showTemporaryMessage(`Error al eliminar: ${error.message}`, "error");
-                }
+        showConfirmationModal(`¿Estás seguro de que quieres eliminar la entrada para "${certDoc.eppName}"? El archivo permanecerá en Cloudinary.`, async () => {
+            try {
+                await deleteDoc(doc(certsCollectionRef, certId));
+                showTemporaryMessage("Entrada del certificado eliminada.", "success");
+            } catch (error) {
+                console.error("Error al eliminar la entrada:", error);
+                showTemporaryMessage(`Error al eliminar: ${error.message}`, "error");
             }
-        }
-    });
-
-    searchCertInput.addEventListener('input', displayFilteredCerts);
-
+        });
+    }
+    
     function showTemporaryMessage(message, type = 'info') {
+        const messageContainer = document.getElementById('messageContainer');
         if (!messageContainer) return;
         messageContainer.textContent = message;
-        messageContainer.className = `p-3 mb-4 text-sm rounded-lg ${type === 'success' ? 'bg-green-100 text-green-700 dark:bg-green-700 dark:text-green-100' :
-                type === 'error' ? 'bg-red-100 text-red-700 dark:bg-red-700 dark:text-red-100' :
-                    type === 'warning' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-700 dark:text-yellow-100' :
-                        'bg-blue-100 text-blue-700 dark:bg-blue-700 dark:text-blue-100'
-            }`;
+        const baseClasses = 'p-3 mb-4 text-sm rounded-lg';
+        const typeClasses = {
+            success: 'bg-green-100 text-green-700 dark:bg-green-700 dark:text-green-100',
+            error: 'bg-red-100 text-red-700 dark:bg-red-700 dark:text-red-100',
+            warning: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-700 dark:text-yellow-100',
+            info: 'bg-blue-100 text-blue-700 dark:bg-blue-700 dark:text-blue-100'
+        };
+        messageContainer.className = `${baseClasses} ${typeClasses[type] || typeClasses['info']}`;
         messageContainer.classList.remove('hidden');
         setTimeout(() => {
             messageContainer.classList.add('hidden');
         }, 4000);
     }
+    
+    function showConfirmationModal(message, callback) {
+        // Esta función asume que el HTML del modal ya existe en la página.
+        const modal = document.getElementById('confirmationModal');
+        const modalMessage = document.getElementById('confirmationMessage');
+        if (!modal || !modalMessage) { // Como fallback, si el modal no está, usa el confirm nativo.
+            if(confirm(message)) {
+                callback();
+            }
+            return;
+        }
+        modalMessage.textContent = message;
+        confirmCallback = callback;
+        modal.classList.remove('hidden');
+    }
 
+    function hideConfirmationModal() {
+        const modal = document.getElementById('confirmationModal');
+        if (modal) modal.classList.add('hidden');
+    }
 
-} // <-- Esta es la llave que cierra la función initializeCertificadosPage
+    // --- INICIO DE LA EJECUCIÓN ---
+    setupAuth();
+}
 
-// Registra esta página en el router.
-window.registerPageInitializer('/certificados.html', initializeCertificadosPage);
-
+// Llama a la función principal para inicializar la lógica de la página.
+initializeCertificadosPage();
