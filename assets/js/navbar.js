@@ -1,10 +1,10 @@
 // navbar.js - Sistema de navegación modular UNIVERSAL
-document.addEventListener('DOMContentLoaded', function() {
-    
+document.addEventListener('DOMContentLoaded', function () {
+
     // --- Configuración de páginas ---
     const pageConfig = {
         'index.html': 'inventario',
-        'certificados.html': 'certificados', 
+        'certificados.html': 'certificados',
         'checklist.html': 'checklist',
         'formulario-ast.html': 'formulario-ast'
     };
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Función principal para inicializar la navbar ---
     function initializeNavbar() {
         const navbarPlaceholder = document.getElementById('navbar-placeholder');
-        
+
         if (!navbarPlaceholder) {
             console.warn('No se encontró el elemento #navbar-placeholder. La navbar no se cargará.');
             return;
@@ -49,26 +49,26 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadNavbarHTML() {
         try {
             let navbarUrl;
-            
+
             // Si es uso externo, cargar desde jsDelivr CDN
             if (isExternalUsage()) {
                 const cacheBreaker = getCacheBreaker();
                 navbarUrl = `https://cdn.jsdelivr.net/gh/Lushiitooh/inventarioSiceMantenimiento@main/navbar.html?cb=${cacheBreaker}`;
             } else {
                 const isInSubfolder = window.location.pathname.includes('/pages/');
-				navbarUrl = './components/navbar.html';
+                navbarUrl = './components/navbar.html';
             }
-            
+
             const response = await fetch(navbarUrl);
-            
+
             if (!response.ok) {
                 throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
             }
-            
+
             const html = await response.text();
             const navbarPlaceholder = document.getElementById('navbar-placeholder');
             navbarPlaceholder.innerHTML = html;
-            
+
         } catch (error) {
             console.error('Error al cargar navbar.html:', error);
             throw error;
@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const closeMobileMenuButton = document.getElementById('close-mobile-menu');
         const mobileMenu = document.getElementById('mobile-menu');
         const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
-        
+
         if (!mobileMenuButton || !closeMobileMenuButton || !mobileMenu || !mobileMenuOverlay) {
             console.error('Faltan elementos del menú móvil en navbar.html');
             return;
@@ -128,12 +128,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         navLinks.forEach(link => {
             const linkPage = link.getAttribute('data-page');
-            
+
             link.classList.remove(
-                'text-blue-600', 'dark:text-blue-400', 
+                'text-blue-600', 'dark:text-blue-400',
                 'bg-blue-50', 'dark:bg-blue-900/20'
             );
-            
+
             link.classList.add(
                 'text-gray-600', 'dark:text-gray-300',
                 'hover:text-blue-600', 'dark:hover:text-blue-400',
@@ -168,9 +168,9 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
 
-    window.addNavbarPage = function(filename, pageKey, displayName, icon = '📄') {
+    window.addNavbarPage = function (filename, pageKey, displayName, icon = '📄') {
         pageConfig[filename] = pageKey;
-        
+
         if (document.getElementById('mobile-menu')) {
             addNavLinkToExistingNavbar(filename, pageKey, displayName, icon);
         }
@@ -205,14 +205,14 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 window.NavbarAPI = {
-    refresh: function() {
+    refresh: function () {
         const setActiveNavLink = () => {
             console.log('Navbar refreshed');
         };
         setActiveNavLink();
     },
-    
-    addPage: function(filename, pageKey, displayName, icon) {
+
+    addPage: function (filename, pageKey, displayName, icon) {
         if (window.addNavbarPage) {
             window.addNavbarPage(filename, pageKey, displayName, icon);
         }
