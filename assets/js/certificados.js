@@ -67,6 +67,7 @@ function initializeCertificadosPage() {
 
     function setupAuth() {
         unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+            console.log("🔐 Estado de auth cambiado:", user ? "autenticado" : "no autenticado");
             const isAdmin = user && user.uid === ADMIN_UID;
             updateUIVisibility(user, isAdmin);
             loadCertificates();
@@ -81,13 +82,24 @@ function initializeCertificadosPage() {
 
         if (authStatus) authStatus.textContent = user ? `Autenticado como: ${user.email}` : "No autenticado (vista pública)";
         if (addCertFormSection) addCertFormSection.classList.toggle('hidden', !isAdmin);
-        
+
         document.querySelectorAll('.admin-col').forEach(col => {
             col.style.display = isAdmin ? '' : 'none';
         });
 
-        if (mainContent) mainContent.classList.remove('hidden');
-        if (loadingIndicator) loadingIndicator.classList.add('hidden');
+        if (mainContent) {
+            mainContent.classList.remove('hidden');
+            console.log("✅ Contenido principal mostrado");
+        } else {
+            console.error("❌ No se encontró mainContent");
+        }
+
+        if (loadingIndicator) {
+            loadingIndicator.classList.add('hidden');
+            console.log("⏳ Indicador de carga ocultado");
+        } else {
+            console.error("❌ No se encontró loadingIndicator");
+        }
     }
 
     function loadCertificates() {
@@ -221,7 +233,7 @@ function initializeCertificadosPage() {
             }
         });
     }
-    
+
     function showTemporaryMessage(message, type = 'info') {
         const messageContainer = document.getElementById('messageContainer');
         if (!messageContainer) return;
@@ -239,13 +251,13 @@ function initializeCertificadosPage() {
             messageContainer.classList.add('hidden');
         }, 4000);
     }
-    
+
     function showConfirmationModal(message, callback) {
         // Esta función asume que el HTML del modal ya existe en la página.
         const modal = document.getElementById('confirmationModal');
         const modalMessage = document.getElementById('confirmationMessage');
         if (!modal || !modalMessage) { // Como fallback, si el modal no está, usa el confirm nativo.
-            if(confirm(message)) {
+            if (confirm(message)) {
                 callback();
             }
             return;
