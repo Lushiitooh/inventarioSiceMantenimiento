@@ -435,14 +435,6 @@ function initializeInventoryPage() {
  * Le dice: "Soy la página de inventario, mi ruta es '/index.html'. Cuando
  * necesites mostrarme, ejecuta 'initializeInventoryPage'".
  */
-window.registerPageInitializer('/index.html', initializeInventoryPage);
 
-/**
- * @description
- * Esto es crucial. Cuando el usuario carga por primera vez el sitio,
- * el router aún no ha hecho nada. Esta línea se asegura de que la lógica
- * del inventario se ejecute desde el principio.
- */
-if (window.location.pathname === '/' || window.location.pathname.endsWith('/') || window.location.pathname.endsWith('/index.html')) {
-    initializeInventoryPage();
-}
+// CAMBIO: Ahora registramos la lógica del inventario con su nueva página.
+window.registerPageInitializer('/inventario-luis.html', initializeInventoryPage);
