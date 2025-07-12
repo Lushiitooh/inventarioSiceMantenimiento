@@ -40,3 +40,8 @@ const storage = getStorage(app); // Añadimos la inicialización de Storage
 
 // Exportar las instancias para usarlas en otros archivos
 export { app, db, auth, storage };
+// Verificar que Firebase se inicializó correctamente
+console.log("🔥 Firebase inicializado correctamente");
+console.log("📊 Base de datos:", db.app.name);
+console.log("🔐 Auth:", auth.app.name);
+console.log("💾 Storage:", storage.app.name);

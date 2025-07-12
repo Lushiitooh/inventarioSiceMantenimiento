@@ -1,5 +1,8 @@
-        import { db } from './firebase-config.js'; 
-        import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+       import { db } from './firebase-config.js'; 
+import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+function initializeChecklistPage() {
+    console.log("✅ Inicializando página de checklist");
 
         document.addEventListener('DOMContentLoaded', function () {
             // --- Lógica del Formulario (Actualizada) ---
@@ -242,3 +245,7 @@
                 }
             });
         });
+
+}
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', initializeChecklistPage);

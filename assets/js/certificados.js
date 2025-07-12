@@ -264,5 +264,5 @@ function initializeCertificadosPage() {
     setupAuth();
 }
 
-// Llama a la función principal para inicializar la lógica de la página.
-initializeCertificadosPage();
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', initializeCertificadosPage);

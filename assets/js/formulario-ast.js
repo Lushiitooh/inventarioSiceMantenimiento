@@ -509,13 +509,17 @@
 
         document.getElementById('add-etapa-button').addEventListener('click', addEtapaRow);
 
-        // --- Inicialización ---
-        document.addEventListener('DOMContentLoaded', function() {
-            setCurrentDateTime();
-            setupSignaturePad('signature-supervisor');
-            setupSignaturePad('signature-apr');
-            addEtapaRow(); // Agregar una etapa inicial
-        });
+       // --- Función principal de inicialización ---
+function initializeFormularioAst() {
+    console.log("📋 Inicializando formulario AST");
+    setCurrentDateTime();
+    setupSignaturePad('signature-supervisor');
+    setupSignaturePad('signature-apr');
+    addEtapaRow(); // Agregar una etapa inicial
+}
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', initializeFormularioAst);
 
         // --- Función auxiliar para verificar si un canvas está vacío ---
         function isCanvasEmpty(canvas) {

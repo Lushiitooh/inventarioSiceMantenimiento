@@ -290,8 +290,41 @@
             </div>
         </form>
     </main>
-<!-- Scripts -->
-    <script src="../assets/js/navbar.js"></script>
-    <script type="module" src="../assets/js/formulario-ast.js"></script>
+<script src="../assets/js/navbar.js"></script>
+<script type="module" src="../assets/js/formulario-ast.js"></script>
+<script>
+// Función de inicialización específica para AST
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("📋 Página de formulario AST cargada");
+    
+    // Función global para remover personal (requerida por formulario-ast.js)
+    window.removePersonalCard = function(personalId) {
+        const card = document.querySelector(`[data-personal-id="${personalId}"]`);
+        if (card) {
+            card.classList.add('personal-card-remove');
+            setTimeout(() => {
+                card.remove();
+            }, 300);
+        }
+    };
+    
+    // Función global para limpiar firma personal (requerida por formulario-ast.js)
+    window.clearPersonalSignature = function(personalId) {
+        const canvas = document.getElementById(`firma-personal-${personalId}`);
+        const container = document.getElementById(`signature-container-${personalId}`);
+        const placeholder = document.getElementById(`placeholder-${personalId}`);
+        const clearBtn = document.getElementById(`clear-btn-${personalId}`);
+        
+        if (canvas && container) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            container.classList.remove('has-signature');
+            if (placeholder) placeholder.style.display = 'block';
+            if (clearBtn) clearBtn.style.display = 'none';
+        }
+    };
+});
+</script>
 </body>
 </html>
