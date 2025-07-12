@@ -337,10 +337,10 @@
     <script type="module" src="../assets/js/router.js"></script>
     <script type="module" src="../assets/js/app.js"></script>
     <script>
-        // Service Worker
+        // Service Worker - RUTA CORREGIDA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('assets/manifest/sw.js')
+                navigator.serviceWorker.register('../assets/manifest/sw.js')
                     .then(registration => {
                         console.log('Service Worker registrado con éxito:', registration);
                     })
@@ -473,7 +473,6 @@
             `;
         };
     </script>
-    <script type="module" src="../assets/js/app.js"></script>
 </body>
 
 </html>
