@@ -264,5 +264,15 @@ function initializeCertificadosPage() {
     setupAuth();
 }
 
-// Inicializar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', initializeCertificadosPage);
+// Verificar que la página esté completamente cargada
+function waitForPageLoad() {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeCertificadosPage);
+    } else {
+        // DOM ya está listo
+        initializeCertificadosPage();
+    }
+}
+
+// Ejecutar inmediatamente
+waitForPageLoad();
