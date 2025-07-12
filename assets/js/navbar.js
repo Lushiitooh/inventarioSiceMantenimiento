@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 navbarUrl = `https://cdn.jsdelivr.net/gh/Lushiitooh/inventarioSiceMantenimiento@main/navbar.html?cb=${cacheBreaker}`;
             } else {
                 const isInSubfolder = window.location.pathname.includes('/pages/');
-				navbarUrl = isInSubfolder ? '../components/navbar.html' : './components/navbar.html';
+				navbarUrl = './components/navbar.html';
             }
             
             const response = await fetch(navbarUrl);

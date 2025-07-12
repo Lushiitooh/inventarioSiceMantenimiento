@@ -1040,6 +1040,7 @@ body {
         background: #f8f9fa !important;
         color: #000 !important;
         -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
     }
     
     .btn,
