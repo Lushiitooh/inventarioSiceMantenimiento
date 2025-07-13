@@ -66,10 +66,21 @@ function initializeCertificadosPage() {
     const CLOUDINARY_UPLOAD_PRESET = "inv_epp_unsigned";
 
     function setupAuth() {
+        console.log("🔐 Configurando autenticación...");
+
+        // Mostrar contenido inmediatamente, independientemente del estado de auth
+        updateUIVisibility(null, false);
+
+        // Luego configurar el listener de auth
         unsubscribeAuth = onAuthStateChanged(auth, (user) => {
             console.log("🔐 Estado de auth cambiado:", user ? "autenticado" : "no autenticado");
             const isAdmin = user && user.uid === ADMIN_UID;
             updateUIVisibility(user, isAdmin);
+            loadCertificates();
+        }, (error) => {
+            console.error("❌ Error en auth:", error);
+            // Mostrar contenido aunque haya error de auth
+            updateUIVisibility(null, false);
             loadCertificates();
         });
     }
@@ -88,18 +99,18 @@ function initializeCertificadosPage() {
         });
 
         if (mainContent) {
-            mainContent.classList.remove('hidden');
-            console.log("✅ Contenido principal mostrado");
-        } else {
-            console.error("❌ No se encontró mainContent");
-        }
+    mainContent.classList.remove('hidden');
+    mainContent.style.display = 'block'; // Forzar
+    console.log("✅ Contenido principal forzado a visible");
+} else {
+    console.error("❌ No se encontró mainContent");
+}
 
-        if (loadingIndicator) {
-            loadingIndicator.classList.add('hidden');
-            console.log("⏳ Indicador de carga ocultado");
-        } else {
-            console.error("❌ No se encontró loadingIndicator");
-        }
+if (loadingIndicator) {
+    loadingIndicator.classList.add('hidden');
+    loadingIndicator.style.display = 'none'; // Forzar
+    console.log("⏳ Indicador de carga ocultado");
+}
     }
 
     function loadCertificates() {
@@ -107,12 +118,32 @@ function initializeCertificadosPage() {
         const certsTableBody = document.getElementById('certsTableBody');
 
         unsubscribeCerts = onSnapshot(query(certsCollectionRef), (snapshot) => {
+            console.log("📋 Intentando cargar certificados...");
+            if (!navigator.onLine) {
+                console.warn("⚠️ Sin conexión a internet");
+                if (certsTableBody) {
+                    certsTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-yellow-600">⚠️ Sin conexión a Internet. Los certificados se cargarán cuando se restablezca la conexión.</td></tr>`;
+                }
+                return;
+            }
             allCerts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             allCerts.sort((a, b) => (a.eppName || "").localeCompare(b.eppName || ""));
             displayFilteredCerts();
         }, (error) => {
-            console.error("Error al cargar certificados:", error);
-            if (certsTableBody) certsTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-red-500">Error al cargar datos.</td></tr>`;
+            console.error("❌ Error al cargar certificados:", error);
+            if (certsTableBody) {
+                certsTableBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center py-8">
+                    <div class="text-yellow-600 mb-2">⚠️ No se pudieron cargar los certificados</div>
+                    <div class="text-sm text-gray-500">Verifica tu conexión a internet</div>
+                    <button onclick="location.reload()" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                        Reintentar
+                    </button>
+                </td>
+            </tr>
+        `;
+            }
         });
     }
 
