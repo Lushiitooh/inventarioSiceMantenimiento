@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/styles.css">
-	<link rel="manifest" href="../assets/manifest/manifest.json">
+    <link rel="manifest" href="../assets/manifest/manifest.json">
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen">
 
@@ -25,7 +25,7 @@
         <div id="messageContainer" class="hidden p-3 mb-4 text-sm rounded-lg" role="alert"></div>
         <div id="errorMessage" class="hidden p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800" role="alert"></div>
         
-        <div id="mainContent" class="hidden space-y-6">
+        <div id="mainContent" class="space-y-6">
             <section id="addCertFormSection" class="hidden bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-md">
                 <h2 class="text-lg sm:text-xl font-semibold mb-4 text-gray-700 dark:text-gray-200">Subir Nuevo Certificado</h2>
                 <form id="addCertForm">
@@ -67,13 +67,19 @@
                             </tr>
                         </thead>
                         <tbody id="certsTableBody">
+                            <tr>
+                                <td colspan="5" class="text-center py-8">
+                                    <div class="text-blue-600 mb-2">🔧 Inicializando Firebase...</div>
+                                    <div class="text-sm text-gray-500">Por favor espere</div>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
             </section>
         </div>
 
-        <div id="loadingIndicator" class="flex justify-center items-center mt-10">
+        <div id="loadingIndicator" class="hidden flex justify-center items-center mt-10">
             <svg class="animate-spin -ml-1 mr-3 h-8 w-8 sm:h-10 sm:w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -81,24 +87,87 @@
             <span class="text-base sm:text-lg">Cargando datos...</span>
         </div>
     </div>
+
+    <!-- Modal de confirmación -->
     <div id="confirmationModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full p-6">
-        <h3 id="confirmationTitle" class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Confirmar Acción</h3>
-        <p id="confirmationMessage" class="text-gray-600 dark:text-gray-300 mb-6">¿Estás seguro?</p>
-        <div class="flex justify-end space-x-3">
-            <button id="cancelButton" class="px-4 py-2 bg-gray-200 rounded-lg">Cancelar</button>
-            <button id="confirmButton" class="px-4 py-2 text-white bg-red-600 rounded-lg">Confirmar</button>
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full p-6">
+            <h3 id="confirmationTitle" class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Confirmar Acción</h3>
+            <p id="confirmationMessage" class="text-gray-600 dark:text-gray-300 mb-6">¿Estás seguro?</p>
+            <div class="flex justify-end space-x-3">
+                <button id="cancelButton" class="px-4 py-2 bg-gray-200 rounded-lg">Cancelar</button>
+                <button id="confirmButton" class="px-4 py-2 text-white bg-red-600 rounded-lg">Confirmar</button>
+            </div>
         </div>
     </div>
-</div>
+
     <!-- Scripts -->
+    <!-- 1. Navbar primero -->
     <script src="../assets/js/navbar.js"></script>
-<script type="module" src="../assets/js/certificados.js"></script>
-<script>
-// Función de inicialización específica para certificados
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("📋 Página de certificados cargada");
-});
-</script>
+    
+    <!-- 2. Firebase directo ANTES de certificados -->
+    <script type="module">
+        console.log("🔥 Iniciando carga de Firebase...");
+        
+        // Importar Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc, Timestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyA0UYwg8kjPibnc7bvMwHvZWT01K1uLr2M",
+            authDomain: "inventario-epp.firebaseapp.com",
+            projectId: "inventario-epp",
+            storageBucket: "inventario-epp.appspot.com",
+            messagingSenderId: "255309951395",
+            appId: "1:255309951395:web:f57cdb7b13c16a53636a16",
+            measurementId: "G-T0DKE1NFB3"
+        };
+
+        // Constantes
+        const ADMIN_UID = "hmaz0EfU1FeSBTqYfneDAhqbuLk2";
+        const appIdForPath = 'mi-inventario-epp-github';
+
+        try {
+            // Inicializar Firebase
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const db = getFirestore(app);
+
+            // Hacer disponibles globalmente
+            window.firebaseReady = true;
+            window.auth = auth;
+            window.db = db;
+            window.ADMIN_UID = ADMIN_UID;
+            window.appIdForPath = appIdForPath;
+            window.collection = collection;
+            window.addDoc = addDoc;
+            window.onSnapshot = onSnapshot;
+            window.query = query;
+            window.doc = doc;
+            window.deleteDoc = deleteDoc;
+            window.Timestamp = Timestamp;
+            window.onAuthStateChanged = onAuthStateChanged;
+
+            console.log("🔥 Firebase cargado exitosamente");
+            
+            // Disparar evento personalizado
+            window.dispatchEvent(new CustomEvent('firebaseReady'));
+            
+        } catch (error) {
+            console.error("❌ Error cargando Firebase:", error);
+            window.firebaseError = error;
+        }
+    </script>
+    
+    <!-- 3. Certificados después -->
+    <script type="module" src="../assets/js/certificados.js"></script>
+    
+    <script>
+        // Función de inicialización específica para certificados
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("📋 Página de certificados cargada");
+        });
+    </script>
 </body>
 </html>
