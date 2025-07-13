@@ -10,6 +10,71 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="manifest" href="../assets/manifest/manifest.json">
     <link rel="stylesheet" href="../assets/css/styles.css">
+    
+    <!-- Estilos para las firmas -->
+    <style>
+        .signature-pad-container {
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 8px;
+            background: white;
+            margin: 8px 0;
+        }
+        
+        .signature-pad-container canvas {
+            width: 100%;
+            height: 120px;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            background: #f9fafb;
+        }
+        
+        .dark .signature-pad-container {
+            border-color: #4b5563;
+            background: #374151;
+        }
+        
+        .dark .signature-pad-container canvas {
+            border-color: #6b7280;
+            background: #4b5563;
+        }
+        
+        @media (max-width: 640px) {
+            table thead {
+                display: none;
+            }
+            
+            table, tbody, tr, td {
+                display: block;
+                width: 100%;
+            }
+            
+            tr {
+                border: 1px solid #e5e7eb;
+                margin-bottom: 10px;
+                padding: 10px;
+                border-radius: 8px;
+                background: white;
+            }
+            
+            .dark tr {
+                border-color: #4b5563;
+                background: #374151;
+            }
+            
+            td {
+                border: none !important;
+                padding: 5px 0;
+                text-align: left !important;
+            }
+            
+            td:before {
+                content: attr(data-label) ": ";
+                font-weight: bold;
+                margin-right: 10px;
+            }
+        }
+    </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen">
 
@@ -76,10 +141,10 @@
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
                                     <th class="p-2 text-left text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600">Ítem</th>
-                                    <th class="p-2 text-left text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 table-cell-md">Herramienta</th>
-                                    <th class="p-2 text-center text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 table-cell-sm">Estado<br>(B/M/N/A)</th>
-                                    <th class="p-2 text-center text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 table-cell-sm">Color Mes<br>(Sí/No)</th>
-                                    <th class="p-2 text-left text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 table-cell-lg">Observaciones</th>
+                                    <th class="p-2 text-left text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600">Herramienta</th>
+                                    <th class="p-2 text-center text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600">Estado<br>(B/M/N/A)</th>
+                                    <th class="p-2 text-center text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600">Color Mes<br>(Sí/No)</th>
+                                    <th class="p-2 text-left text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600">Observaciones</th>
                                 </tr>
                             </thead>
                             <tbody id="herramientasTableBody" class="bg-white dark:bg-gray-800">
@@ -108,39 +173,42 @@
 
                 <!-- SECCIÓN DE FIRMAS -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <!-- FIRMA 1: Realizó -->
                     <div class="text-center space-y-3">
                         <div class="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg">
                             <h4 class="font-semibold text-gray-900 dark:text-white">Realizó</h4>
                         </div>
                         <div class="signature-pad-container">
                             <canvas id="firmaRealizoPad"></canvas>
-                            <button type="button" class="clear-btn px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600" data-target="firmaRealizoPad">Limpiar</button>
+                            <button type="button" class="clear-btn px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600 mt-2" data-target="firmaRealizoPad">Limpiar</button>
                         </div>
                         <p id="nombreRealizo" class="font-semibold text-gray-900 dark:text-white">Nombre del Trabajador</p>
                         <p class="text-sm text-gray-600 dark:text-gray-400">Técnico Montajista</p>
                         <input type="date" id="fechaRealizo" name="fechaRealizo" class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" readonly>
                     </div>
 
+                    <!-- FIRMA 2: Revisó -->
                     <div class="text-center space-y-3">
                         <div class="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg">
                             <h4 class="font-semibold text-gray-900 dark:text-white">Revisó</h4>
                         </div>
                         <div class="signature-pad-container">
                             <canvas id="firmaRevisoPad"></canvas>
-                            <button type="button" class="clear-btn px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600" data-target="firmaRevisoPad">Limpiar</button>
+                            <button type="button" class="clear-btn px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600 mt-2" data-target="firmaRevisoPad">Limpiar</button>
                         </div>
                         <p class="font-semibold text-gray-900 dark:text-white">Guillermo Osorio</p>
                         <p class="text-sm text-gray-600 dark:text-gray-400">Supervisor</p>
                         <input type="date" id="fechaReviso" name="fechaReviso" class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" readonly>
                     </div>
 
+                    <!-- FIRMA 3: Prevención de Riesgos -->
                     <div class="text-center space-y-3">
                         <div class="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg">
                             <h4 class="font-semibold text-gray-900 dark:text-white">V°B° Prevención de Riesgos</h4>
                         </div>
                         <div class="signature-pad-container">
                             <canvas id="firmaPrevencionPad"></canvas>
-                            <button type="button" class="clear-btn px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600" data-target="firmaPrevencionPad">Limpiar</button>
+                            <button type="button" class="clear-btn px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600 mt-2" data-target="firmaPrevencionPad">Limpiar</button>
                         </div>
                         <select id="prevencionista" name="prevencionista" class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required>
                             <option value="">Seleccione...</option>
@@ -152,6 +220,7 @@
                     </div>
                 </div>
 
+                <!-- BOTÓN DE ENVÍO -->
                 <div class="pt-6">
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg text-lg transition-colors duration-200">
                         Guardar y Enviar
@@ -165,7 +234,7 @@
     <!-- 1. Navbar -->
     <script src="../assets/js/navbar.js"></script>
     
-    <!-- 2. Signature Pad -->
+    <!-- 2. Signature Pad - CARGADO PRIMERO -->
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     
     <!-- 3. Firebase (si se necesita para el futuro) -->
@@ -195,11 +264,20 @@
         }
     </script>
     
-    <!-- 4. Checklist script -->
+    <!-- 4. Checklist script - CARGADO AL FINAL -->
     <script type="module" src="../assets/js/checklist.js"></script>
     
     <script>
         console.log("✅ Página de checklist cargada");
+        
+        // Verificar que SignaturePad se haya cargado
+        window.addEventListener('load', () => {
+            if (typeof SignaturePad !== 'undefined') {
+                console.log("✅ SignaturePad cargado correctamente");
+            } else {
+                console.error("❌ SignaturePad no se cargó");
+            }
+        });
     </script>
 </body>
 </html>
