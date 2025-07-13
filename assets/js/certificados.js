@@ -65,136 +65,261 @@ function initializeCertificadosPage() {
     const CLOUDINARY_CLOUD_NAME = "dep5jbtjh";
     const CLOUDINARY_UPLOAD_PRESET = "inv_epp_unsigned";
 
-    function setupAuth() {
-        console.log("🔐 Configurando autenticación...");
+    // Configuración de autenticación simplificada para certificados
+function setupAuth() {
+    console.log("🔐 Configurando autenticación para certificados...");
 
-        // Mostrar contenido inmediatamente, independientemente del estado de auth
+    // Mostrar contenido inmediatamente para vista pública
+    updateUIVisibility(null, false);
+    
+    // Cargar certificados inmediatamente
+    loadCertificates();
+
+    // Configurar listener de autenticación sin bloquear la carga
+    unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+        console.log("🔐 Estado de auth:", user ? "autenticado" : "no autenticado");
+        const isAdmin = user && user.uid === ADMIN_UID;
+        updateUIVisibility(user, isAdmin);
+        
+        // Solo recargar certificados si es necesario
+        if (allCerts.length === 0) {
+            loadCertificates();
+        }
+    }, (error) => {
+        console.error("❌ Error en autenticación:", error);
+        // Continuar mostrando contenido público aunque falle la auth
         updateUIVisibility(null, false);
-
-        // Luego configurar el listener de auth
-        unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-            console.log("🔐 Estado de auth cambiado:", user ? "autenticado" : "no autenticado");
-            const isAdmin = user && user.uid === ADMIN_UID;
-            updateUIVisibility(user, isAdmin);
+        if (allCerts.length === 0) {
             loadCertificates();
-        }, (error) => {
-            console.error("❌ Error en auth:", error);
-            // Mostrar contenido aunque haya error de auth
-            updateUIVisibility(null, false);
-            loadCertificates();
-        });
-    }
+        }
+    });
+}
 
     function updateUIVisibility(user, isAdmin) {
-        const authStatus = document.getElementById('authStatus');
-        const addCertFormSection = document.getElementById('addCertFormSection');
-        const mainContent = document.getElementById('mainContent');
-        const loadingIndicator = document.getElementById('loadingIndicator');
+    const authStatus = document.getElementById('authStatus');
+    const addCertFormSection = document.getElementById('addCertFormSection');
+    const mainContent = document.getElementById('mainContent');
+    const loadingIndicator = document.getElementById('loadingIndicator');
 
-        if (authStatus) authStatus.textContent = user ? `Autenticado como: ${user.email}` : "No autenticado (vista pública)";
-        if (addCertFormSection) addCertFormSection.classList.toggle('hidden', !isAdmin);
-
-        document.querySelectorAll('.admin-col').forEach(col => {
-            col.style.display = isAdmin ? '' : 'none';
-        });
-
-        if (mainContent) {
-    mainContent.classList.remove('hidden');
-    mainContent.style.display = 'block'; // Forzar
-    console.log("✅ Contenido principal forzado a visible");
-} else {
-    console.error("❌ No se encontró mainContent");
-}
-
-if (loadingIndicator) {
-    loadingIndicator.classList.add('hidden');
-    loadingIndicator.style.display = 'none'; // Forzar
-    console.log("⏳ Indicador de carga ocultado");
-}
+    // Actualizar estado de autenticación
+    if (authStatus) {
+        authStatus.textContent = user ? `Autenticado como: ${user.email}` : "Vista pública - Solo lectura";
     }
 
-    function loadCertificates() {
-        const certsCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_certificates`);
-        const certsTableBody = document.getElementById('certsTableBody');
+    // Mostrar/ocultar formulario de administrador
+    if (addCertFormSection) {
+        addCertFormSection.classList.toggle('hidden', !isAdmin);
+    }
 
-        unsubscribeCerts = onSnapshot(query(certsCollectionRef), (snapshot) => {
-            console.log("📋 Intentando cargar certificados...");
+    // Mostrar/ocultar columnas de administrador
+    document.querySelectorAll('.admin-col').forEach(col => {
+        col.style.display = isAdmin ? '' : 'none';
+    });
+
+    // SIEMPRE mostrar el contenido principal
+    if (mainContent) {
+        mainContent.classList.remove('hidden');
+        mainContent.style.display = 'block';
+        console.log("✅ Contenido principal mostrado");
+    }
+
+    // SIEMPRE ocultar el indicador de carga
+    if (loadingIndicator) {
+        loadingIndicator.classList.add('hidden');
+        loadingIndicator.style.display = 'none';
+        console.log("⏳ Indicador de carga ocultado");
+    }
+}
+
+    function loadCertificates() {
+    const certsCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_certificates`);
+    const certsTableBody = document.getElementById('certsTableBody');
+
+    if (!certsTableBody) {
+        console.error("❌ No se encontró certsTableBody");
+        return;
+    }
+
+    // Mostrar estado de carga inicial
+    certsTableBody.innerHTML = `
+        <tr>
+            <td colspan="5" class="text-center py-8">
+                <div class="flex items-center justify-center">
+                    <svg class="animate-spin h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Cargando certificados...
+                </div>
+            </td>
+        </tr>
+    `;
+
+    console.log("📋 Iniciando carga de certificados...");
+
+    unsubscribeCerts = onSnapshot(
+        query(certsCollectionRef), 
+        (snapshot) => {
+            console.log(`📋 Certificados recibidos: ${snapshot.size} documentos`);
+            
+            // Verificar conexión
             if (!navigator.onLine) {
                 console.warn("⚠️ Sin conexión a internet");
-                if (certsTableBody) {
-                    certsTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-yellow-600">⚠️ Sin conexión a Internet. Los certificados se cargarán cuando se restablezca la conexión.</td></tr>`;
-                }
+                certsTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center py-8 text-yellow-600">
+                            <div class="mb-2">⚠️ Sin conexión a Internet</div>
+                            <div class="text-sm text-gray-500">Los certificados se cargarán cuando se restablezca la conexión.</div>
+                            <button onclick="location.reload()" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                                Reintentar
+                            </button>
+                        </td>
+                    </tr>
+                `;
                 return;
             }
-            allCerts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // Procesar certificados
+            allCerts = snapshot.docs.map(doc => ({ 
+                id: doc.id, 
+                ...doc.data() 
+            }));
+            
+            // Ordenar por nombre
             allCerts.sort((a, b) => (a.eppName || "").localeCompare(b.eppName || ""));
+            
+            console.log(`📋 Certificados procesados: ${allCerts.length}`);
             displayFilteredCerts();
-        }, (error) => {
+        }, 
+        (error) => {
             console.error("❌ Error al cargar certificados:", error);
-            if (certsTableBody) {
-                certsTableBody.innerHTML = `
+            certsTableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center py-8">
+                        <div class="text-red-600 mb-2">❌ Error al cargar certificados</div>
+                        <div class="text-sm text-gray-500 mb-2">
+                            ${error.message || 'Error desconocido'}
+                        </div>
+                        <button onclick="location.reload()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                            Reintentar
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }
+    );
+}
+
+    // Función mejorada para mostrar certificados filtrados
+function displayFilteredCerts() {
+    const searchCertInput = document.getElementById('searchCertInput');
+    const certsTableBody = document.getElementById('certsTableBody');
+    
+    if (!certsTableBody) {
+        console.error("❌ No se encontró certsTableBody");
+        return;
+    }
+
+    const searchTerm = searchCertInput ? searchCertInput.value.toLowerCase().trim() : "";
+    const filteredCerts = searchTerm
+        ? allCerts.filter(cert => (cert.eppName || '').toLowerCase().includes(searchTerm))
+        : [...allCerts];
+
+    const isAdminView = auth.currentUser && auth.currentUser.uid === ADMIN_UID;
+    const colCount = isAdminView ? 5 : 4;
+
+    // Limpiar tabla
+    certsTableBody.innerHTML = '';
+
+    if (filteredCerts.length === 0) {
+        const message = searchTerm 
+            ? "No se encontraron certificados que coincidan con la búsqueda." 
+            : "No hay certificados registrados en el sistema.";
+            
+        certsTableBody.innerHTML = `
             <tr>
-                <td colspan="5" class="text-center py-8">
-                    <div class="text-yellow-600 mb-2">⚠️ No se pudieron cargar los certificados</div>
-                    <div class="text-sm text-gray-500">Verifica tu conexión a internet</div>
-                    <button onclick="location.reload()" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                        Reintentar
-                    </button>
+                <td colspan="${colCount}" class="text-center py-8">
+                    <div class="text-gray-500 dark:text-gray-400">
+                        <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        ${message}
+                    </div>
+                    ${!searchTerm && isAdminView ? '<div class="text-sm text-gray-400 mt-2">Utilice el formulario de arriba para agregar el primer certificado.</div>' : ''}
                 </td>
             </tr>
         `;
-            }
-        });
+        return;
     }
 
-    function displayFilteredCerts() {
-        const searchCertInput = document.getElementById('searchCertInput');
-        const certsTableBody = document.getElementById('certsTableBody');
-        if (!certsTableBody) return;
+    // Mostrar certificados
+    filteredCerts.forEach(cert => {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors';
 
-        const searchTerm = searchCertInput ? searchCertInput.value.toLowerCase().trim() : "";
-        const filteredCerts = searchTerm
-            ? allCerts.filter(cert => cert.eppName.toLowerCase().includes(searchTerm))
-            : allCerts;
-
-        certsTableBody.innerHTML = '';
-        const isAdminView = auth.currentUser && auth.currentUser.uid === ADMIN_UID;
-        const colCount = isAdminView ? 5 : 4;
-
-        if (filteredCerts.length === 0) {
-            certsTableBody.innerHTML = `<tr><td colspan="${colCount}" class="text-center py-4">No se encontraron certificados que coincidan.</td></tr>`;
-            return;
+        // Procesar fecha de vigencia de forma segura
+        let vigenciaDate, vigenciaText, estadoHtml;
+        
+        try {
+            if (cert.vigencia && cert.vigencia.toDate) {
+                vigenciaDate = cert.vigencia.toDate();
+                vigenciaText = vigenciaDate.toLocaleDateString('es-CL');
+                
+                const hoy = new Date();
+                hoy.setHours(0, 0, 0, 0);
+                
+                if (vigenciaDate < hoy) {
+                    estadoHtml = '<span class="cert-vencido">● Vencido</span>';
+                } else if (vigenciaDate <= new Date(hoy.getTime() + 30 * 24 * 60 * 60 * 1000)) {
+                    estadoHtml = '<span class="cert-por-vencer">● Por Vencer</span>';
+                } else {
+                    estadoHtml = '<span class="cert-vigente">● Vigente</span>';
+                }
+            } else {
+                vigenciaText = 'Fecha inválida';
+                estadoHtml = '<span class="text-gray-500">● Sin fecha</span>';
+            }
+        } catch (error) {
+            console.error("Error procesando fecha:", error);
+            vigenciaText = 'Error en fecha';
+            estadoHtml = '<span class="text-red-500">● Error</span>';
         }
 
-        filteredCerts.forEach(cert => {
-            const tr = document.createElement('tr');
-            tr.className = 'border-b dark:border-gray-700';
-
-            const vigenciaDate = cert.vigencia.toDate();
-            const hoy = new Date();
-            hoy.setHours(0, 0, 0, 0);
-
-            const estado = vigenciaDate < hoy
-                ? '<span class="font-semibold text-red-500">Vencido</span>'
-                : '<span class="font-semibold text-green-500">Vigente</span>';
-
-            const adminCol = isAdminView ? `
+        // Columna de acciones de administrador
+        const adminCol = isAdminView ? `
             <td class="py-4 px-6 text-center">
-                <button data-id="${cert.id}" class="delete-cert-btn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Eliminar</button>
-            </td>` : '';
+                <button data-id="${cert.id}" class="delete-cert-btn bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                    Eliminar
+                </button>
+            </td>
+        ` : '';
 
-            tr.innerHTML = `
-            <td class="py-4 px-6 font-medium">${cert.eppName}</td>
-            <td class="py-4 px-6 text-center">${vigenciaDate.toLocaleDateString()}</td>
-            <td class="py-4 px-6 text-center">${estado}</td>
+        tr.innerHTML = `
+            <td class="py-4 px-6 font-medium text-gray-900 dark:text-white">
+                ${cert.eppName || 'Sin nombre'}
+            </td>
+            <td class="py-4 px-6 text-center text-gray-700 dark:text-gray-300">
+                ${vigenciaText}
+            </td>
             <td class="py-4 px-6 text-center">
-                <a href="${cert.downloadURL}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">Descargar</a>
+                ${estadoHtml}
+            </td>
+            <td class="py-4 px-6 text-center">
+                <a href="${cert.downloadURL || '#'}" 
+                   target="_blank" 
+                   rel="noopener noreferrer" 
+                   class="text-blue-500 hover:text-blue-700 hover:underline transition-colors">
+                    📄 Ver/Descargar
+                </a>
             </td>
             ${adminCol}
-            `;
-            certsTableBody.appendChild(tr);
-        });
-    }
+        `;
+        
+        certsTableBody.appendChild(tr);
+    });
+
+    console.log(`📋 Mostrados ${filteredCerts.length} certificados de ${allCerts.length} totales`);
+}
 
     async function handleAddCert(form) {
         const eppName = form.querySelector('#certEppName').value.trim();
