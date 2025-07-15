@@ -7,6 +7,7 @@ const urlsToCache = [
   '/',
   '/index.html',
   '/pages/inventario-luis.html',
+  '/pages/inventario-alex.html',
   '/pages/certificados.html',
   '/pages/checklist.html',
   '/pages/formulario-ast.html',
