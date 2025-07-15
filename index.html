@@ -4,30 +4,61 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0284c7"/>
+    
+    <!-- Base para rutas relativas -->
+    <base href="/inventarioSiceMantenimiento/">
+    
     <!-- PWA Meta tags mejorados para iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Control EPP">
     
-    <!-- Icons para PWA (iOS y Android) -->
-    <link rel="apple-touch-icon" href="https://placehold.co/180x180/0284c7/FFFFFF?text=EPP">
-    <link rel="apple-touch-icon" sizes="152x152" href="https://placehold.co/152x152/0284c7/FFFFFF?text=EPP">
-    <link rel="apple-touch-icon" sizes="180x180" href="https://placehold.co/180x180/0284c7/FFFFFF?text=EPP">
-    <link rel="apple-touch-icon" sizes="167x167" href="https://placehold.co/167x167/0284c7/FFFFFF?text=EPP">
+    <!-- Icons para PWA (rutas absolutas) -->
+    <link rel="apple-touch-icon" href="/inventarioSiceMantenimiento/assets/icons/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/inventarioSiceMantenimiento/assets/icons/apple-touch-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/inventarioSiceMantenimiento/assets/icons/apple-touch-icon-180x180.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="/inventarioSiceMantenimiento/assets/icons/apple-touch-icon-167x167.png">
     
-    <!-- Splash screens para iOS -->
+    <!-- Fallback icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/inventarioSiceMantenimiento/assets/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/inventarioSiceMantenimiento/assets/icons/favicon-16x16.png">
+    
+    <!-- Splash screens para iOS (opcionales) -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-startup-image" href="https://placehold.co/1125x2436/0284c7/FFFFFF?text=Control%20EPP" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)">
-    <link rel="apple-touch-startup-image" href="https://placehold.co/1242x2688/0284c7/FFFFFF?text=Control%20EPP" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)">
-    <link rel="apple-touch-startup-image" href="https://placehold.co/828x1792/0284c7/FFFFFF?text=Control%20EPP" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)">
-
-    <title>Bienvenido - Sistema de Control EPP</title>
     
+    <title>Control de Inventario EPP - Sistema de Gestión</title>
+    
+    <!-- CSS con rutas relativas (gracias al base) -->
     <link rel="stylesheet" href="assets/css/styles.css">
     <link rel="manifest" href="assets/manifest/manifest.json">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Script para manejo de rutas PWA -->
+    <script>
+        // Detectar si estamos en modo PWA y ajustar rutas si es necesario
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+            console.log('🚀 Ejecutándose como PWA instalada');
+            
+            // Asegurar que estamos en la ruta correcta
+            if (window.location.pathname === '/' || window.location.pathname === '/inventarioSiceMantenimiento') {
+                window.location.href = '/inventarioSiceMantenimiento/';
+            }
+        }
+        
+        // Function para logging de rutas
+        function logRouteInfo() {
+            console.log('📍 Info de rutas:');
+            console.log('- Location:', window.location.href);
+            console.log('- Pathname:', window.location.pathname);
+            console.log('- Base URL:', document.querySelector('base')?.href || 'No base tag');
+            console.log('- PWA Mode:', window.matchMedia('(display-mode: standalone)').matches);
+        }
+        
+        // Log al cargar
+        document.addEventListener('DOMContentLoaded', logRouteInfo);
+    </script>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen">
 
@@ -46,11 +77,11 @@
                     Bienvenido al portal de control para Equipos de Protección Personal. Utilice la navegación para acceder a las herramientas disponibles.
                 </p>
                 
-                <!-- Cards de navegación -->
+                <!-- Cards de navegación con rutas relativas -->
                 <div class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
                     
                     <!-- Inventario Luis -->
-                    <a href="./pages/inventario-luis.html" 
+                    <a href="pages/inventario-luis.html" 
                        class="group bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-200 dark:border-gray-700">
                         <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
                             <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -60,8 +91,9 @@
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Inventario Luis</h3>
                         <p class="text-sm text-gray-600 dark:text-gray-400">Gestión de EPP y préstamos</p>
                     </a>
+                    
                     <!-- Inventario Alex Lorca -->
-                    <a href="./pages/inventario-alex.html" 
+                    <a href="pages/inventario-alex.html" 
                        class="group bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-200 dark:border-gray-700">
                         <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
                             <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,7 +105,7 @@
                     </a>
 
                     <!-- Certificados -->
-                    <a href="./pages/certificados.html" 
+                    <a href="pages/certificados.html" 
                        class="group bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-200 dark:border-gray-700">
                         <div class="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-green-200 dark:group-hover:bg-green-800 transition-colors">
                             <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,7 +117,7 @@
                     </a>
 
                     <!-- Checklist -->
-                    <a href="./pages/checklist.html" 
+                    <a href="pages/checklist.html" 
                        class="group bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-200 dark:border-gray-700">
                         <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-800 transition-colors">
                             <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,7 +129,7 @@
                     </a>
 
                     <!-- AST -->
-                    <a href="./pages/formulario-ast.html" 
+                    <a href="pages/formulario-ast.html" 
                        class="group bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-200 dark:border-gray-700">
                         <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-200 dark:group-hover:bg-purple-800 transition-colors">
                             <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,7 +143,7 @@
 
                 <!-- Botón principal alternativo -->
                 <div class="mt-8">
-                    <a href="./pages/inventario-luis.html" 
+                    <a href="pages/inventario-luis.html" 
                        class="inline-block bg-blue-600 text-white font-semibold px-8 py-3 rounded-lg shadow-md hover:bg-blue-700 transition-all duration-300 transform hover:scale-105">
                         Ir al Inventario Principal
                     </a>
@@ -120,24 +152,27 @@
         </div>
     </main>
 
-    <!-- Scripts -->
+    <!-- Scripts con rutas relativas -->
     <script src="assets/js/navbar.js"></script>
     <script src="assets/js/router.js"></script>
-
-    <!-- PWA Install Handler - NUEVO -->
+    
+    <!-- PWA Install Handler -->
     <script src="assets/js/pwa-install.js"></script>
     
-    <!-- Service Worker -->
+    <!-- Service Worker con ruta corregida -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./assets/manifest/sw.js')
-                    .then(registration => {
-                        console.log('Service Worker registrado con éxito:', registration);
-                    })
-                    .catch(error => {
-                        console.log('Error en el registro del Service Worker:', error);
-                    });
+                // Ruta absoluta para el service worker
+                navigator.serviceWorker.register('/inventarioSiceMantenimiento/assets/manifest/sw.js', {
+                    scope: '/inventarioSiceMantenimiento/'
+                })
+                .then(registration => {
+                    console.log('✅ Service Worker registrado:', registration.scope);
+                })
+                .catch(error => {
+                    console.error('❌ Error registrando Service Worker:', error);
+                });
             });
         }
     </script>
