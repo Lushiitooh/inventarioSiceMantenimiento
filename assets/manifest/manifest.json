@@ -2,8 +2,8 @@
   "name": "Control de Inventario EPP",
   "short_name": "Control EPP",
   "description": "Sistema completo para gestionar inventario y préstamos de Equipos de Protección Personal",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/inventarioSiceMantenimiento/",
+  "scope": "/inventarioSiceMantenimiento/",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#ffffff",
@@ -14,61 +14,61 @@
   
   "icons": [
     {
-      "src": "https://placehold.co/72x72/0284c7/FFFFFF?text=EPP",
+      "src": "/inventarioSiceMantenimiento/assets/icons/icon-72x72.png",
       "sizes": "72x72",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://placehold.co/96x96/0284c7/FFFFFF?text=EPP",
+      "src": "/inventarioSiceMantenimiento/assets/icons/icon-96x96.png",
       "sizes": "96x96",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://placehold.co/128x128/0284c7/FFFFFF?text=EPP",
+      "src": "/inventarioSiceMantenimiento/assets/icons/icon-128x128.png",
       "sizes": "128x128",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://placehold.co/144x144/0284c7/FFFFFF?text=EPP",
+      "src": "/inventarioSiceMantenimiento/assets/icons/icon-144x144.png",
       "sizes": "144x144",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://placehold.co/152x152/0284c7/FFFFFF?text=EPP",
+      "src": "/inventarioSiceMantenimiento/assets/icons/icon-152x152.png",
       "sizes": "152x152",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://placehold.co/192x192/0284c7/FFFFFF?text=EPP",
+      "src": "/inventarioSiceMantenimiento/assets/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://placehold.co/384x384/0284c7/FFFFFF?text=EPP",
+      "src": "/inventarioSiceMantenimiento/assets/icons/icon-384x384.png",
       "sizes": "384x384",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://placehold.co/512x512/0284c7/FFFFFF?text=EPP",
+      "src": "/inventarioSiceMantenimiento/assets/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://placehold.co/192x192/0284c7/FFFFFF?text=EPP",
+      "src": "/inventarioSiceMantenimiento/assets/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "https://placehold.co/512x512/0284c7/FFFFFF?text=EPP",
+      "src": "/inventarioSiceMantenimiento/assets/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -77,14 +77,14 @@
   
   "screenshots": [
     {
-      "src": "https://placehold.co/1290x2796/0284c7/FFFFFF?text=Control%20EPP%20App",
+      "src": "/inventarioSiceMantenimiento/assets/screenshots/mobile-screenshot.png",
       "sizes": "1290x2796",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Vista principal de la aplicación"
     },
     {
-      "src": "https://placehold.co/2048x1536/0284c7/FFFFFF?text=Control%20EPP%20Dashboard",
+      "src": "/inventarioSiceMantenimiento/assets/screenshots/desktop-screenshot.png",
       "sizes": "2048x1536",
       "type": "image/png",
       "form_factor": "wide",
@@ -97,10 +97,10 @@
       "name": "Inventario",
       "short_name": "Inventario",
       "description": "Acceso directo al inventario de EPP",
-      "url": "./pages/inventario-luis.html",
+      "url": "/inventarioSiceMantenimiento/pages/inventario-luis.html",
       "icons": [
         {
-          "src": "https://placehold.co/192x192/059669/FFFFFF?text=INV",
+          "src": "/inventarioSiceMantenimiento/assets/icons/shortcut-inventory.png",
           "sizes": "192x192"
         }
       ]
@@ -109,10 +109,10 @@
       "name": "Certificados",
       "short_name": "Certificados",
       "description": "Gestión de certificados de calidad",
-      "url": "./pages/certificados.html",
+      "url": "/inventarioSiceMantenimiento/pages/certificados.html",
       "icons": [
         {
-          "src": "https://placehold.co/192x192/d97706/FFFFFF?text=CERT",
+          "src": "/inventarioSiceMantenimiento/assets/icons/shortcut-certificates.png",
           "sizes": "192x192"
         }
       ]
@@ -121,10 +121,10 @@
       "name": "Checklist",
       "short_name": "Checklist",
       "description": "Inspección de herramientas",
-      "url": "./pages/checklist.html",
+      "url": "/inventarioSiceMantenimiento/pages/checklist.html",
       "icons": [
         {
-          "src": "https://placehold.co/192x192/7c3aed/FFFFFF?text=CHECK",
+          "src": "/inventarioSiceMantenimiento/assets/icons/shortcut-checklist.png",
           "sizes": "192x192"
         }
       ]
@@ -140,7 +140,7 @@
   
   "file_handlers": [
     {
-      "action": "./",
+      "action": "/inventarioSiceMantenimiento/",
       "accept": {
         "application/pdf": [".pdf"],
         "text/csv": [".csv"],
@@ -153,7 +153,7 @@
   "protocol_handlers": [
     {
       "protocol": "web+epp",
-      "url": "./?epp=%s"
+      "url": "/inventarioSiceMantenimiento/?epp=%s"
     }
   ]
 }
