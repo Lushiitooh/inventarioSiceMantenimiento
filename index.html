@@ -4,6 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0284c7"/>
+    <!-- PWA Meta tags mejorados para iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Control EPP">
+    
+    <!-- Icons para PWA (iOS y Android) -->
+    <link rel="apple-touch-icon" href="https://placehold.co/180x180/0284c7/FFFFFF?text=EPP">
+    <link rel="apple-touch-icon" sizes="152x152" href="https://placehold.co/152x152/0284c7/FFFFFF?text=EPP">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://placehold.co/180x180/0284c7/FFFFFF?text=EPP">
+    <link rel="apple-touch-icon" sizes="167x167" href="https://placehold.co/167x167/0284c7/FFFFFF?text=EPP">
+    
+    <!-- Splash screens para iOS -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-startup-image" href="https://placehold.co/1125x2436/0284c7/FFFFFF?text=Control%20EPP" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)">
+    <link rel="apple-touch-startup-image" href="https://placehold.co/1242x2688/0284c7/FFFFFF?text=Control%20EPP" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)">
+    <link rel="apple-touch-startup-image" href="https://placehold.co/828x1792/0284c7/FFFFFF?text=Control%20EPP" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)">
+
     <title>Bienvenido - Sistema de Control EPP</title>
     
     <link rel="stylesheet" href="assets/css/styles.css">
@@ -106,6 +123,9 @@
     <!-- Scripts -->
     <script src="assets/js/navbar.js"></script>
     <script src="assets/js/router.js"></script>
+
+    <!-- PWA Install Handler - NUEVO -->
+    <script src="assets/js/pwa-install.js"></script>
     
     <!-- Service Worker -->
     <script>
