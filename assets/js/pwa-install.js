@@ -1,5 +1,5 @@
-// assets/js/pwa-install.js
-// Manejador universal de instalación PWA para Android e iOS
+// assets/js/pwa-install.js - Versión Mejorada
+// Manejador universal de instalación PWA con mejor detección para iOS
 
 class PWAInstaller {
     constructor() {
@@ -7,15 +7,21 @@ class PWAInstaller {
         this.isIOS = this.detectIOS();
         this.isAndroid = this.detectAndroid();
         this.isStandalone = this.detectStandalone();
+        this.isIOSSafari = this.detectIOSSafari();
         this.installButton = null;
         this.modal = null;
+        this.hasShownPrompt = false;
+        
+        // Debug info
+        this.logDeviceInfo();
         
         this.init();
     }
 
-    // Detectar iOS
+    // Detectar iOS con más precisión
     detectIOS() {
-        return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+        return /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
     }
 
     // Detectar Android
@@ -25,41 +31,89 @@ class PWAInstaller {
 
     // Detectar si ya está instalada como PWA
     detectStandalone() {
-        return window.matchMedia('(display-mode: standalone)').matches || 
-               window.navigator.standalone || 
-               document.referrer.includes('android-app://');
+        // Múltiples formas de detectar modo standalone
+        return (
+            window.matchMedia('(display-mode: standalone)').matches ||
+            window.navigator.standalone === true ||
+            document.referrer.includes('android-app://') ||
+            window.location.search.includes('utm_source=web_app_manifest')
+        );
     }
 
-    // Detectar Safari en iOS
+    // Detectar Safari en iOS específicamente
     detectIOSSafari() {
-        return this.isIOS && /Safari/.test(navigator.userAgent) && !/CriOS|FxiOS|OPiOS|mercury/.test(navigator.userAgent);
+        if (!this.isIOS) return false;
+        
+        const userAgent = navigator.userAgent;
+        // Safari nativo en iOS (no Chrome, Firefox, etc.)
+        return /Safari/.test(userAgent) && 
+               !/CriOS|FxiOS|OPiOS|mercury|Edge/.test(userAgent);
+    }
+
+    // Verificar si la instalación es realmente posible
+    canInstall() {
+        // Android con prompt disponible
+        if (this.isAndroid && this.deferredPrompt) {
+            return { possible: true, method: 'native' };
+        }
+        
+        // iOS Safari con capacidades PWA
+        if (this.isIOSSafari && !this.isStandalone) {
+            return { possible: true, method: 'manual' };
+        }
+        
+        // Chrome/Edge en escritorio con prompt
+        if (this.deferredPrompt) {
+            return { possible: true, method: 'native' };
+        }
+        
+        return { possible: false, method: 'none' };
+    }
+
+    logDeviceInfo() {
+        console.log('🔍 PWA Installer - Info del dispositivo:');
+        console.log('- iOS:', this.isIOS);
+        console.log('- Android:', this.isAndroid);
+        console.log('- iOS Safari:', this.isIOSSafari);
+        console.log('- Ya instalada:', this.isStandalone);
+        console.log('- User Agent:', navigator.userAgent);
+        console.log('- Display mode:', window.matchMedia('(display-mode: standalone)').matches);
     }
 
     init() {
-        // Si ya está instalada, no mostrar nada
+        // Si ya está instalada, no hacer nada
         if (this.isStandalone) {
-            console.log('PWA ya está instalada');
+            console.log('✅ PWA ya está instalada');
             return;
         }
 
+        // Verificar si es posible instalar
+        const installCheck = this.canInstall();
+        if (!installCheck.possible) {
+            console.log('❌ Instalación PWA no disponible en este navegador');
+            return;
+        }
+
+        console.log(`✅ Instalación PWA disponible (${installCheck.method})`);
+        
         this.createInstallButton();
         this.setupEventListeners();
         
-        // Mostrar el botón después de un breve delay
+        // Mostrar el botón después de un delay más corto para testing
         setTimeout(() => {
             this.showInstallPrompt();
-        }, 3000);
+        }, 2000);
     }
 
     createInstallButton() {
-        // Crear botón de instalación
         this.installButton = document.createElement('div');
         this.installButton.id = 'pwa-install-button';
         this.installButton.className = 'pwa-install-btn hidden';
         
-        const iconSvg = this.isIOS ? 
+        const buttonText = this.isIOSSafari ? 'Instalar en iPhone' : 'Instalar App';
+        const iconSvg = this.isIOSSafari ? 
             `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
             </svg>` :
             `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -68,14 +122,12 @@ class PWAInstaller {
         this.installButton.innerHTML = `
             <div class="pwa-install-content">
                 ${iconSvg}
-                <span>Instalar App</span>
+                <span>${buttonText}</span>
             </div>
             <button class="pwa-close-btn" aria-label="Cerrar">×</button>
         `;
 
-        // Crear modal para iOS
         this.createIOSModal();
-        
         document.body.appendChild(this.installButton);
     }
 
@@ -88,55 +140,84 @@ class PWAInstaller {
             <div class="ios-modal-overlay"></div>
             <div class="ios-modal-content">
                 <div class="ios-modal-header">
-                    <h3>Instalar Control EPP</h3>
+                    <h3>📱 Instalar Control EPP</h3>
                     <button class="ios-modal-close" aria-label="Cerrar">×</button>
                 </div>
                 <div class="ios-modal-body">
+                    <div class="ios-intro">
+                        <p>Para usar esta app como aplicación nativa en tu iPhone:</p>
+                    </div>
+                    
                     <div class="ios-instruction">
                         <div class="ios-step">
                             <div class="ios-step-number">1</div>
                             <div class="ios-step-content">
-                                <p>Presiona el botón <strong>Compartir</strong></p>
-                                <div class="ios-share-icon">
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                        <path d="M18 8C19.6569 8 21 6.65685 21 5C21 3.34315 19.6569 2 18 2C16.3431 2 15 3.34315 15 5C15 5.18176 15.0124 5.36077 15.0363 5.53598L5.5 10.5C5.5 10.5 5.5 10.5 5.5 10.5C5.18176 10.5 5 10.6818 5 11V13C5 13.3182 5.18176 13.5 5.5 13.5C5.5 13.5 5.5 13.5 5.5 13.5L15.0363 18.464C15.0124 18.6392 15 18.8182 15 19C15 20.6569 16.3431 22 18 22C19.6569 22 21 20.6569 21 19C21 17.3431 19.6569 16 18 16C17.8182 16 17.6392 16.0124 17.464 16.0363L8 11.0711C8.31824 10.7529 8.5 10.3182 8.5 9.84315V9.15685C8.5 8.68176 8.31824 8.24706 8 7.92888L17.464 2.96374C17.6392 2.98765 17.8182 3 18 3Z" fill="currentColor"/>
-                                    </svg>
+                                <p><strong>Presiona el botón "Compartir"</strong> en la barra inferior de Safari</p>
+                                <div class="ios-share-demo">
+                                    <div class="safari-bar">
+                                        <div class="safari-icons">
+                                            <div class="safari-icon inactive">↩️</div>
+                                            <div class="safari-icon inactive">↪️</div>
+                                            <div class="safari-icon active">📤</div>
+                                            <div class="safari-icon inactive">📖</div>
+                                            <div class="safari-icon inactive">⭐</div>
+                                        </div>
+                                    </div>
+                                    <div class="arrow-point">👆 Presiona aquí</div>
                                 </div>
                             </div>
                         </div>
+                        
                         <div class="ios-step">
                             <div class="ios-step-number">2</div>
                             <div class="ios-step-content">
-                                <p>Selecciona <strong>"Añadir a la pantalla de inicio"</strong></p>
-                                <div class="ios-add-icon">
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                        <path d="M12 6V18M6 12H18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                    </svg>
+                                <p><strong>Busca y presiona "Añadir a pantalla de inicio"</strong></p>
+                                <div class="ios-action-demo">
+                                    <div class="ios-option">
+                                        <span class="ios-option-icon">📱</span>
+                                        <span class="ios-option-text">Añadir a pantalla de inicio</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        
                         <div class="ios-step">
                             <div class="ios-step-number">3</div>
                             <div class="ios-step-content">
-                                <p>Confirma presionando <strong>"Añadir"</strong></p>
-                                <p class="ios-step-note">La app aparecerá en tu pantalla de inicio</p>
+                                <p><strong>Confirma presionando "Añadir"</strong></p>
+                                <div class="ios-result">
+                                    <p class="ios-success">✅ ¡Listo! La app aparecerá en tu pantalla de inicio</p>
+                                </div>
                             </div>
                         </div>
+                    </div>
+                    
+                    <div class="ios-footer">
+                        <button class="ios-understand-btn" onclick="window.pwaInstaller.testInstallSuccess()">
+                            Ya entendí las instrucciones
+                        </button>
+                        <p class="ios-note">💡 Una vez instalada, funcionará como cualquier app nativa</p>
                     </div>
                 </div>
             </div>
         `;
         
         document.body.appendChild(this.modal);
+        
+        // Hacer referencia global para testing
+        window.pwaInstaller = this;
     }
 
     setupEventListeners() {
         // Event listener para Android (beforeinstallprompt)
         window.addEventListener('beforeinstallprompt', (e) => {
-            console.log('beforeinstallprompt disparado');
+            console.log('🚀 beforeinstallprompt detectado');
             e.preventDefault();
             this.deferredPrompt = e;
-            this.showInstallPrompt();
+            
+            if (!this.hasShownPrompt) {
+                this.showInstallPrompt();
+            }
         });
 
         // Click en el botón principal
@@ -159,40 +240,63 @@ class PWAInstaller {
             });
         }
 
-        // Detectar cuando la app se instala
+        // Detectar cuando la app se instala exitosamente
         window.addEventListener('appinstalled', () => {
-            console.log('PWA instalada exitosamente');
-            this.hideInstallPrompt();
-            this.deferredPrompt = null;
+            console.log('🎉 PWA instalada exitosamente');
+            this.onInstallSuccess();
+        });
+
+        // Detectar cambios en display-mode (útil para iOS)
+        const mediaQuery = window.matchMedia('(display-mode: standalone)');
+        mediaQuery.addListener((e) => {
+            if (e.matches) {
+                console.log('📱 App ejecutándose en modo standalone');
+                this.onInstallSuccess();
+            }
+        });
+
+        // Detectar visibilidad de la página (para iOS)
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && this.isIOSSafari) {
+                // Verificar si ahora está en modo standalone después de volver a la página
+                setTimeout(() => {
+                    if (this.detectStandalone()) {
+                        this.onInstallSuccess();
+                    }
+                }, 1000);
+            }
         });
     }
 
     handleInstallClick() {
-        if (this.isIOS && this.detectIOSSafari()) {
+        if (this.isIOSSafari) {
             // Mostrar instrucciones para iOS Safari
             this.showIOSModal();
         } else if (this.deferredPrompt) {
-            // Usar prompt nativo de Android
+            // Usar prompt nativo de Android/Chrome
             this.deferredPrompt.prompt();
             this.deferredPrompt.userChoice.then((choiceResult) => {
                 if (choiceResult.outcome === 'accepted') {
-                    console.log('Usuario aceptó instalar la PWA');
+                    console.log('✅ Usuario aceptó instalar la PWA');
+                    this.onInstallSuccess();
                 } else {
-                    console.log('Usuario rechazó instalar la PWA');
+                    console.log('❌ Usuario rechazó instalar la PWA');
                 }
                 this.deferredPrompt = null;
             });
         } else {
-            // Fallback para otros navegadores
             this.showGenericInstructions();
         }
     }
 
     showInstallPrompt() {
-        // Solo mostrar si es un navegador compatible
-        if (this.shouldShowPrompt()) {
+        const installCheck = this.canInstall();
+        if (installCheck.possible && !this.hasShownPrompt) {
             this.installButton.classList.remove('hidden');
             this.installButton.classList.add('show');
+            this.hasShownPrompt = true;
+            
+            console.log(`📋 Mostrando prompt de instalación (${installCheck.method})`);
         }
     }
 
@@ -200,20 +304,73 @@ class PWAInstaller {
         this.installButton.classList.remove('show');
         this.installButton.classList.add('hidden');
         
-        // Guardar preferencia del usuario
+        // Guardar preferencia del usuario por 24 horas
         localStorage.setItem('pwa-install-dismissed', Date.now().toString());
+        console.log('❌ Prompt de instalación ocultado');
     }
 
     showIOSModal() {
         this.modal.classList.remove('hidden');
         this.modal.classList.add('show');
         document.body.style.overflow = 'hidden';
+        console.log('📱 Mostrando modal de instrucciones iOS');
     }
 
     hideIOSModal() {
         this.modal.classList.remove('show');
         this.modal.classList.add('hidden');
         document.body.style.overflow = '';
+        console.log('📱 Ocultando modal de instrucciones iOS');
+    }
+
+    onInstallSuccess() {
+        console.log('🎉 Instalación exitosa detectada');
+        this.hideInstallPrompt();
+        this.hideIOSModal();
+        
+        // Mostrar mensaje de éxito
+        this.showSuccessMessage();
+        
+        // Limpiar referencias
+        this.deferredPrompt = null;
+        
+        // Guardar estado de instalación
+        localStorage.setItem('pwa-installed', 'true');
+    }
+
+    showSuccessMessage() {
+        const successDiv = document.createElement('div');
+        successDiv.className = 'pwa-success-message';
+        successDiv.innerHTML = `
+            <div class="success-content">
+                <span class="success-icon">🎉</span>
+                <span>¡App instalada correctamente!</span>
+            </div>
+        `;
+        
+        document.body.appendChild(successDiv);
+        
+        setTimeout(() => {
+            successDiv.classList.add('show');
+        }, 100);
+        
+        setTimeout(() => {
+            successDiv.remove();
+        }, 4000);
+    }
+
+    // Método para testing - simular instalación exitosa en iOS
+    testInstallSuccess() {
+        this.hideIOSModal();
+        this.showSuccessMessage();
+        this.hideInstallPrompt();
+        
+        console.log('🧪 Simulando instalación exitosa para testing');
+        
+        // En un escenario real, esto se detectaría automáticamente
+        setTimeout(() => {
+            alert('💡 En la vida real, ahora deberías ir a tu pantalla de inicio y encontrar la app "Control EPP" instalada.');
+        }, 2000);
     }
 
     shouldShowPrompt() {
@@ -228,27 +385,36 @@ class PWAInstaller {
             }
         }
 
-        // Mostrar solo en navegadores principales
-        if (this.isIOS && this.detectIOSSafari()) {
-            return true;
-        }
-        
-        if (this.isAndroid && (this.deferredPrompt || /Chrome/.test(navigator.userAgent))) {
-            return true;
+        // No mostrar si ya está instalada
+        if (localStorage.getItem('pwa-installed') === 'true') {
+            return false;
         }
 
-        return false;
+        return this.canInstall().possible;
     }
 
     showGenericInstructions() {
-        alert('Para instalar esta aplicación:\n\n' +
-              '• En Chrome: Menú > Instalar aplicación\n' +
-              '• En Safari: Compartir > Añadir a pantalla de inicio\n' +
-              '• En Firefox: Menú > Instalar');
+        const instructions = {
+            'Chrome': 'Menú (⋮) → "Instalar aplicación"',
+            'Firefox': 'Menú (≡) → "Instalar"',
+            'Edge': 'Menú (⋯) → "Aplicaciones" → "Instalar este sitio como aplicación"',
+            'Safari': 'Compartir (📤) → "Añadir a pantalla de inicio"'
+        };
+        
+        let browserInstructions = 'Busca la opción de "Instalar aplicación" en el menú de tu navegador.';
+        
+        for (const [browser, instruction] of Object.entries(instructions)) {
+            if (navigator.userAgent.includes(browser)) {
+                browserInstructions = instruction;
+                break;
+            }
+        }
+        
+        alert(`Para instalar esta aplicación:\n\n${browserInstructions}`);
     }
 }
 
-// Estilos CSS para el instalador
+// Estilos CSS mejorados
 const PWA_STYLES = `
 <style>
 .pwa-install-btn {
@@ -265,15 +431,24 @@ const PWA_STYLES = `
     display: flex;
     align-items: center;
     justify-content: space-between;
-    min-width: 140px;
+    min-width: 160px;
     transition: all 0.3s ease;
     transform: translateY(100px);
     opacity: 0;
+    border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .pwa-install-btn.show {
     transform: translateY(0);
     opacity: 1;
+    animation: bounce 0.6s ease-out;
+}
+
+@keyframes bounce {
+    0% { transform: translateY(100px); }
+    60% { transform: translateY(-10px); }
+    80% { transform: translateY(5px); }
+    100% { transform: translateY(0); }
 }
 
 .pwa-install-btn.hidden {
@@ -283,14 +458,15 @@ const PWA_STYLES = `
 }
 
 .pwa-install-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
 }
 
 .pwa-install-content {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     font-weight: 600;
     font-size: 14px;
 }
@@ -305,17 +481,18 @@ const PWA_STYLES = `
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    font-size: 14px;
     cursor: pointer;
-    margin-left: 8px;
-    transition: background 0.2s ease;
+    margin-left: 12px;
+    transition: all 0.2s ease;
 }
 
 .pwa-close-btn:hover {
     background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
 }
 
-/* Modal para iOS */
+/* Modal mejorado para iOS */
 .ios-install-modal {
     position: fixed;
     top: 0;
@@ -343,45 +520,57 @@ const PWA_STYLES = `
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
 }
 
 .ios-modal-content {
     background: white;
-    border-radius: 16px;
-    max-width: 400px;
+    border-radius: 20px;
+    max-width: 420px;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
     position: relative;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: slideUpModal 0.4s ease-out;
+}
+
+@keyframes slideUpModal {
+    from {
+        opacity: 0;
+        transform: translateY(50px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .ios-modal-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 20px 24px 16px;
+    padding: 24px 24px 16px;
     border-bottom: 1px solid #e5e7eb;
 }
 
 .ios-modal-header h3 {
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 20px;
+    font-weight: 700;
     color: #111827;
     margin: 0;
 }
 
 .ios-modal-close {
-    background: none;
+    background: #f3f4f6;
     border: none;
-    font-size: 24px;
+    font-size: 20px;
     color: #6b7280;
     cursor: pointer;
-    padding: 0;
-    width: 32px;
-    height: 32px;
+    padding: 8px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -390,17 +579,32 @@ const PWA_STYLES = `
 }
 
 .ios-modal-close:hover {
-    background: #f3f4f6;
+    background: #e5e7eb;
+    color: #374151;
 }
 
 .ios-modal-body {
     padding: 24px;
 }
 
+.ios-intro {
+    background: #f0f9ff;
+    border-left: 4px solid #0ea5e9;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+}
+
+.ios-intro p {
+    margin: 0;
+    color: #0c4a6e;
+    font-weight: 500;
+}
+
 .ios-instruction {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 24px;
 }
 
 .ios-step {
@@ -410,17 +614,18 @@ const PWA_STYLES = `
 }
 
 .ios-step-number {
-    width: 32px;
-    height: 32px;
-    background: #3b82f6;
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
     color: white;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 600;
-    font-size: 14px;
+    font-weight: 700;
+    font-size: 16px;
     flex-shrink: 0;
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
 }
 
 .ios-step-content {
@@ -428,28 +633,178 @@ const PWA_STYLES = `
 }
 
 .ios-step-content p {
-    margin: 0 0 8px 0;
+    margin: 0 0 12px 0;
     color: #374151;
+    line-height: 1.6;
+    font-size: 15px;
+}
+
+/* Demostración visual mejorada */
+.ios-share-demo {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 12px;
+    text-align: center;
+}
+
+.safari-bar {
+    background: #000;
+    border-radius: 20px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+}
+
+.safari-icons {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.safari-icon {
+    font-size: 20px;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.safari-icon.active {
+    background: #007AFF;
+    animation: pulse 2s infinite;
+}
+
+.safari-icon.inactive {
+    opacity: 0.6;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.arrow-point {
+    color: #3b82f6;
+    font-weight: 600;
+    font-size: 14px;
+    animation: pointDown 2s ease-in-out infinite;
+}
+
+@keyframes pointDown {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(4px); }
+}
+
+.ios-action-demo {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 12px;
+}
+
+.ios-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    animation: highlight 3s ease-in-out infinite;
+}
+
+@keyframes highlight {
+    0%, 100% { background: white; }
+    50% { background: #dbeafe; }
+}
+
+.ios-option-icon {
+    font-size: 20px;
+}
+
+.ios-option-text {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.ios-result {
+    background: #f0fdf4;
+    border: 2px solid #bbf7d0;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 12px;
+    text-align: center;
+}
+
+.ios-success {
+    margin: 0;
+    color: #166534;
+    font-weight: 600;
+}
+
+.ios-footer {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+}
+
+.ios-understand-btn {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.ios-understand-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+
+.ios-note {
+    margin: 16px 0 0 0;
+    font-size: 13px;
+    color: #6b7280;
     line-height: 1.5;
 }
 
-.ios-step-note {
-    font-size: 12px;
-    color: #6b7280;
-    margin-top: 4px;
+/* Mensaje de éxito */
+.pwa-success-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+    z-index: 10001;
+    opacity: 0;
+    transition: all 0.4s ease;
 }
 
-.ios-share-icon,
-.ios-add-icon {
-    display: inline-flex;
+.pwa-success-message.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.success-content {
+    display: flex;
     align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    background: #f3f4f6;
-    border-radius: 8px;
-    margin-top: 8px;
-    color: #3b82f6;
+    gap: 12px;
+    font-weight: 600;
+}
+
+.success-icon {
+    font-size: 20px;
 }
 
 /* Responsive */
@@ -468,11 +823,22 @@ const PWA_STYLES = `
     
     .ios-modal-content {
         max-height: 85vh;
+        border-radius: 16px;
     }
     
     .ios-modal-header,
     .ios-modal-body {
         padding: 20px;
+    }
+    
+    .ios-step {
+        gap: 12px;
+    }
+    
+    .ios-step-number {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
     }
 }
 
@@ -480,6 +846,7 @@ const PWA_STYLES = `
 @media (prefers-color-scheme: dark) {
     .ios-modal-content {
         background: #1f2937;
+        color: #f9fafb;
     }
     
     .ios-modal-header {
@@ -491,34 +858,67 @@ const PWA_STYLES = `
     }
     
     .ios-modal-close {
-        color: #9ca3af;
+        background: #374151;
+        color: #d1d5db;
     }
     
     .ios-modal-close:hover {
-        background: #374151;
+        background: #4b5563;
+    }
+    
+    .ios-intro {
+        background: #1e3a8a;
+        border-color: #3b82f6;
+    }
+    
+    .ios-intro p {
+        color: #dbeafe;
     }
     
     .ios-step-content p {
         color: #d1d5db;
     }
     
-    .ios-step-note {
-        color: #9ca3af;
+    .ios-share-demo,
+    .ios-action-demo {
+        background: #374151;
+        border-color: #4b5563;
     }
     
-    .ios-share-icon,
-    .ios-add-icon {
-        background: #374151;
+    .ios-option {
+        background: #4b5563;
+    }
+    
+    .ios-option-text {
+        color: #f3f4f6;
+    }
+    
+    .ios-result {
+        background: #065f46;
+        border-color: #059669;
+    }
+    
+    .ios-success {
+        color: #d1fae5;
+    }
+    
+    .ios-footer {
+        border-color: #374151;
+    }
+    
+    .ios-note {
+        color: #9ca3af;
     }
 }
 </style>
 `;
 
-// Insertar estilos
+// Insertar estilos en el head
 document.head.insertAdjacentHTML('beforeend', PWA_STYLES);
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 Inicializando PWA Installer mejorado...');
     new PWAInstaller();
 });
 
