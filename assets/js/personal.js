@@ -1,4 +1,4 @@
-// assets/js/personal.js - Gestión de Personal
+// assets/js/personal.js - Gestión de Personal con Estados Automáticos
 
 async function waitForFirebase() {
     return new Promise((resolve) => {
@@ -100,6 +100,129 @@ class PersonalManager {
         loadingIndicator?.classList.add('hidden');
     }
 
+    // ✅ NUEVA FUNCIÓN: Calcular automáticamente el estado de un certificado
+    calculateCertificateStatus(realizationDate, expiryDate) {
+        if (!realizationDate || !expiryDate) {
+            return "Sin definir";
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const expiry = new Date(expiryDate);
+        expiry.setHours(0, 0, 0, 0);
+        
+        // Calcular días hasta el vencimiento
+        const diffTime = expiry.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        // Lógica de estados
+        if (diffDays < 0) {
+            return "Vencido";
+        } else if (diffDays <= 30) {
+            return "Por Vencer";
+        } else {
+            return "Vigente";
+        }
+    }
+
+    // ✅ NUEVA FUNCIÓN: Actualizar estado automáticamente cuando cambian las fechas
+    updateCertificateStatus(certKey) {
+        const dateInput = document.getElementById(`${certKey}Date`);
+        const expiryInput = document.getElementById(`${certKey}Expiry`);
+        const statusSelect = document.getElementById(`${certKey}Status`);
+        
+        if (!dateInput || !expiryInput || !statusSelect) return;
+        
+        const dateValue = dateInput.value;
+        const expiryValue = expiryInput.value;
+        
+        if (dateValue && expiryValue) {
+            const calculatedStatus = this.calculateCertificateStatus(dateValue, expiryValue);
+            
+            // Solo actualizar si el select no está en modo manual
+            if (statusSelect.disabled || !['No Aplica', 'Prohibición'].includes(statusSelect.value)) {
+                statusSelect.value = calculatedStatus;
+                this.showStatusIndicator(certKey, calculatedStatus, expiryValue);
+            }
+        }
+    }
+
+    // ✅ NUEVA FUNCIÓN: Mostrar indicador visual del estado
+    showStatusIndicator(certKey, status, expiryDate) {
+        let indicatorContainer = document.getElementById(`${certKey}StatusIndicator`);
+        
+        if (!indicatorContainer) {
+            const expiryInput = document.getElementById(`${certKey}Expiry`);
+            if (expiryInput) {
+                indicatorContainer = document.createElement('div');
+                indicatorContainer.id = `${certKey}StatusIndicator`;
+                indicatorContainer.className = 'mt-2';
+                expiryInput.parentNode.appendChild(indicatorContainer);
+            }
+        }
+        
+        const statusConfig = {
+            'Vigente': { color: 'green', icon: '✓', message: 'Certificado vigente' },
+            'Por Vencer': { color: 'yellow', icon: '⚠', message: 'Próximo a vencer (≤30 días)' },
+            'Vencido': { color: 'red', icon: '✗', message: 'Certificado vencido' },
+            'Sin definir': { color: 'gray', icon: '?', message: 'Estado no definido' }
+        };
+        
+        const config = statusConfig[status] || statusConfig['Sin definir'];
+        
+        // Calcular días restantes si hay fecha de vencimiento
+        let daysMessage = '';
+        if (expiryDate && status !== 'Sin definir') {
+            const today = new Date();
+            const expiry = new Date(expiryDate);
+            const diffTime = expiry.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays < 0) {
+                daysMessage = ` (vencido hace ${Math.abs(diffDays)} días)`;
+            } else if (diffDays <= 30) {
+                daysMessage = ` (${diffDays} días restantes)`;
+            }
+        }
+        
+        indicatorContainer.innerHTML = `
+            <div class="flex items-center text-xs">
+                <span class="w-3 h-3 rounded-full bg-${config.color}-500 mr-2"></span>
+                <span class="text-${config.color}-600 dark:text-${config.color}-400">
+                    ${config.icon} ${config.message}${daysMessage}
+                </span>
+            </div>
+        `;
+    }
+
+    // ✅ NUEVA FUNCIÓN: Alternar entre modo automático y manual
+    toggleManualStatus(certKey) {
+        const statusSelect = document.getElementById(`${certKey}Status`);
+        const button = event.target;
+        
+        if (statusSelect.disabled) {
+            // Cambiar a modo manual
+            statusSelect.disabled = false;
+            statusSelect.title = "Modo manual activado";
+            button.textContent = "Auto";
+            button.title = "Cambiar a modo automático";
+            button.classList.remove('bg-gray-500', 'hover:bg-gray-600');
+            button.classList.add('bg-orange-500', 'hover:bg-orange-600');
+        } else {
+            // Cambiar a modo automático
+            statusSelect.disabled = true;
+            statusSelect.title = "Estado calculado automáticamente";
+            button.textContent = "Manual";
+            button.title = "Cambiar a modo manual";
+            button.classList.remove('bg-orange-500', 'hover:bg-orange-600');
+            button.classList.add('bg-gray-500', 'hover:bg-gray-600');
+            
+            // Recalcular el estado automáticamente
+            this.updateCertificateStatus(certKey);
+        }
+    }
+
     generateCertificationFields() {
         const container = document.getElementById('certificationsContainer');
         if (!container) return;
@@ -110,7 +233,9 @@ class PersonalManager {
                     <h4 class="font-semibold text-gray-700 dark:text-gray-200">${cert.name}</h4>
                     <div class="flex items-center space-x-2">
                         <label class="text-sm">Estado:</label>
-                        <select id="${cert.key}Status" class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-sm">
+                        <select id="${cert.key}Status" 
+                                class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-sm"
+                                ${cert.hasDate && cert.hasVencimiento ? 'disabled title="Estado calculado automáticamente"' : ''}>
                             <option value="">Sin definir</option>
                             <option value="Vigente">Vigente</option>
                             <option value="Vencido">Vencido</option>
@@ -118,6 +243,13 @@ class PersonalManager {
                             <option value="No Aplica">No Aplica</option>
                             <option value="Prohibición">Prohibición</option>
                         </select>
+                        ${cert.hasDate && cert.hasVencimiento ? `
+                            <button type="button" onclick="personalManager.toggleManualStatus('${cert.key}')" 
+                                    class="px-2 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600" 
+                                    title="Cambiar a modo manual">
+                                Manual
+                            </button>
+                        ` : ''}
                     </div>
                 </div>
                 
@@ -125,19 +257,25 @@ class PersonalManager {
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-sm font-medium mb-1">Fecha de Realización</label>
-                            <input type="date" id="${cert.key}Date" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-sm">
+                            <input type="date" id="${cert.key}Date" 
+                                   class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-sm"
+                                   onchange="personalManager.updateCertificateStatus('${cert.key}')">
                         </div>
                         ${cert.hasVencimiento ? `
                             <div>
                                 <label class="block text-sm font-medium mb-1">Fecha de Vencimiento</label>
-                                <input type="date" id="${cert.key}Expiry" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-sm">
+                                <input type="date" id="${cert.key}Expiry" 
+                                       class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-sm"
+                                       onchange="personalManager.updateCertificateStatus('${cert.key}')">
+                                <div id="${cert.key}StatusIndicator" class="mt-2"></div>
                             </div>
                         ` : ''}
                         <div>
                             <label class="block text-sm font-medium mb-1">Documento</label>
                             <div class="flex items-center space-x-2">
                                 <input type="file" id="${cert.key}File" accept=".pdf,.jpg,.jpeg,.png" class="hidden">
-                                <button type="button" onclick="personalManager.selectFile('${cert.key}')" class="px-3 py-2 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">
+                                <button type="button" onclick="personalManager.selectFile('${cert.key}')" 
+                                        class="px-3 py-2 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">
                                     Subir Archivo
                                 </button>
                                 <span id="${cert.key}FileName" class="text-xs text-gray-500"></span>
@@ -154,7 +292,8 @@ class PersonalManager {
                             <label class="block text-sm font-medium mb-1">Documento</label>
                             <div class="flex items-center space-x-2">
                                 <input type="file" id="${cert.key}File" accept=".pdf,.jpg,.jpeg,.png" class="hidden">
-                                <button type="button" onclick="personalManager.selectFile('${cert.key}')" class="px-3 py-2 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">
+                                <button type="button" onclick="personalManager.selectFile('${cert.key}')" 
+                                        class="px-3 py-2 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">
                                     Subir Archivo
                                 </button>
                                 <span id="${cert.key}FileName" class="text-xs text-gray-500"></span>
@@ -213,6 +352,8 @@ class PersonalManager {
                 this.allWorkers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 this.displayWorkers();
                 this.updateStats();
+                this.runAutomaticStatusCheck(); // ✅ NUEVA: Verificar estados automáticamente
+                this.showExpiryNotifications(); // ✅ NUEVA: Mostrar notificaciones de vencimientos
                 console.log(`📋 Cargados ${this.allWorkers.length} trabajadores`);
             }, (error) => {
                 console.error("❌ Error cargando trabajadores:", error);
@@ -222,6 +363,124 @@ class PersonalManager {
             console.error("❌ Error configurando listener:", error);
             this.showMessage(`Error de configuración: ${error.message}`, 'error');
         }
+    }
+
+    // ✅ NUEVA FUNCIÓN: Ejecutar verificación automática de todos los trabajadores
+    async runAutomaticStatusCheck() {
+        console.log("🔄 Ejecutando verificación automática de estados...");
+        
+        const certificationsWithExpiry = this.certifications.filter(cert => cert.hasDate && cert.hasVencimiento);
+
+        for (const worker of this.allWorkers) {
+            for (const cert of certificationsWithExpiry) {
+                if (worker[`${cert.key}Date`] && worker[`${cert.key}Expiry`]) {
+                    const realizationDate = worker[`${cert.key}Date`].toDate();
+                    const expiryDate = worker[`${cert.key}Expiry`].toDate();
+                    
+                    const calculatedStatus = this.calculateCertificateStatus(
+                        realizationDate.toISOString().split('T')[0],
+                        expiryDate.toISOString().split('T')[0]
+                    );
+                    
+                    const currentStatus = worker[`${cert.key}Status`];
+                    
+                    // Solo actualizar si el estado calculado es diferente y no es un estado manual
+                    if (currentStatus !== calculatedStatus && !['No Aplica', 'Prohibición'].includes(currentStatus)) {
+                        await this.updateWorkerCertificateStatus(worker.id, cert.key, calculatedStatus);
+                    }
+                }
+            }
+        }
+        
+        console.log("✅ Verificación automática completada");
+    }
+
+    // ✅ NUEVA FUNCIÓN: Actualizar el estado de un certificado en la base de datos
+    async updateWorkerCertificateStatus(workerId, certKey, newStatus) {
+        try {
+            const workersRef = window.collection(window.db, `artifacts/${window.appIdForPath}/users/${window.ADMIN_UID}/workers`);
+            await window.updateDoc(window.doc(workersRef, workerId), {
+                [`${certKey}Status`]: newStatus,
+                updatedAt: window.Timestamp.now()
+            });
+            console.log(`✅ Estado de ${certKey} actualizado automáticamente a: ${newStatus}`);
+        } catch (error) {
+            console.error(`❌ Error actualizando estado de ${certKey}:`, error);
+        }
+    }
+
+    // ✅ NUEVA FUNCIÓN: Mostrar notificaciones de certificados próximos a vencer
+    showExpiryNotifications() {
+        const notifications = [];
+        const today = new Date();
+        
+        this.allWorkers.forEach(worker => {
+            const certificationsWithExpiry = this.certifications.filter(cert => cert.hasDate && cert.hasVencimiento);
+            
+            certificationsWithExpiry.forEach(cert => {
+                if (worker[`${cert.key}Expiry`]) {
+                    const expiryDate = worker[`${cert.key}Expiry`].toDate();
+                    const diffTime = expiryDate.getTime() - today.getTime();
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    if (diffDays <= 30 && diffDays >= 0) {
+                        notifications.push({
+                            worker: `${worker.nombres} ${worker.apellidos}`,
+                            certification: cert.name,
+                            daysLeft: diffDays,
+                            expiryDate: expiryDate.toLocaleDateString('es-CL')
+                        });
+                    }
+                }
+            });
+        });
+        
+        if (notifications.length > 0) {
+            this.showExpiryAlert(notifications);
+        }
+    }
+
+    // ✅ NUEVA FUNCIÓN: Mostrar alerta de vencimientos
+    showExpiryAlert(notifications) {
+        // Evitar mostrar múltiples alertas
+        if (document.getElementById('expiryAlert')) return;
+        
+        const alertContainer = document.createElement('div');
+        alertContainer.id = 'expiryAlert';
+        alertContainer.className = 'fixed top-4 right-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded shadow-lg max-w-md z-50';
+        alertContainer.innerHTML = `
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium">Certificados próximos a vencer (${notifications.length})</h3>
+                    <div class="mt-2 text-sm">
+                        <ul class="list-disc space-y-1 pl-5">
+                            ${notifications.slice(0, 5).map(notif => 
+                                `<li>${notif.worker} - ${notif.certification} (${notif.daysLeft} días)</li>`
+                            ).join('')}
+                            ${notifications.length > 5 ? `<li>... y ${notifications.length - 5} más</li>` : ''}
+                        </ul>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                            class="mt-2 text-xs bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(alertContainer);
+        
+        // Auto-remover después de 15 segundos
+        setTimeout(() => {
+            if (alertContainer.parentNode) {
+                alertContainer.remove();
+            }
+        }, 15000);
     }
 
     calculateCompliance(worker) {
@@ -515,10 +774,29 @@ class PersonalManager {
         document.getElementById('submitButtonText').textContent = 'Agregar Trabajador';
         document.getElementById('editingWorkerId').value = '';
         
-        // Limpiar nombres de archivos
+        // Limpiar nombres de archivos e indicadores de estado
         this.certifications.forEach(cert => {
             const fileNameSpan = document.getElementById(`${cert.key}FileName`);
             if (fileNameSpan) fileNameSpan.textContent = '';
+            
+            const statusIndicator = document.getElementById(`${cert.key}StatusIndicator`);
+            if (statusIndicator) statusIndicator.innerHTML = '';
+            
+            // Restaurar modo automático para certificaciones con vencimiento
+            if (cert.hasDate && cert.hasVencimiento) {
+                const statusSelect = document.getElementById(`${cert.key}Status`);
+                if (statusSelect) {
+                    statusSelect.disabled = true;
+                    statusSelect.title = "Estado calculado automáticamente";
+                }
+                
+                const manualButton = statusSelect?.parentNode.querySelector('button');
+                if (manualButton) {
+                    manualButton.textContent = "Manual";
+                    manualButton.classList.remove('bg-orange-500', 'hover:bg-orange-600');
+                    manualButton.classList.add('bg-gray-500', 'hover:bg-gray-600');
+                }
+            }
         });
     }
 
@@ -550,7 +828,20 @@ class PersonalManager {
         this.certifications.forEach(cert => {
             if (cert.hasDate) {
                 const statusSelect = document.getElementById(`${cert.key}Status`);
-                if (statusSelect) statusSelect.value = worker[`${cert.key}Status`] || '';
+                if (statusSelect) {
+                    statusSelect.value = worker[`${cert.key}Status`] || '';
+                    
+                    // Si es un estado manual, habilitar el select
+                    if (['No Aplica', 'Prohibición'].includes(worker[`${cert.key}Status`])) {
+                        statusSelect.disabled = false;
+                        const manualButton = statusSelect.parentNode.querySelector('button');
+                        if (manualButton) {
+                            manualButton.textContent = "Auto";
+                            manualButton.classList.remove('bg-gray-500', 'hover:bg-gray-600');
+                            manualButton.classList.add('bg-orange-500', 'hover:bg-orange-600');
+                        }
+                    }
+                }
 
                 const dateInput = document.getElementById(`${cert.key}Date`);
                 if (dateInput && worker[`${cert.key}Date`]) {
@@ -564,6 +855,11 @@ class PersonalManager {
                         const date = worker[`${cert.key}Expiry`].toDate();
                         expiryInput.value = date.toISOString().split('T')[0];
                     }
+                    
+                    // Actualizar indicador de estado después de cargar las fechas
+                    setTimeout(() => {
+                        this.updateCertificateStatus(cert.key);
+                    }, 100);
                 }
             } else {
                 const completedCheckbox = document.getElementById(`${cert.key}Completed`);
