@@ -33,6 +33,7 @@ function updateActiveNavLink() {
         'index.html': 'home',
         'inventario-luis.html': 'inventario-luis',
         'inventario-alex.html': 'inventario-alex',
+        'inventario-javier.html': 'inventario-javier',
         'certificados.html': 'certificados',
         'checklist.html': 'checklist',
         'formulario-ast.html': 'formulario-ast'
