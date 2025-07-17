@@ -1,4 +1,4 @@
-// assets/js/navbar.js (Versión corregida y simplificada)
+// assets/js/navbar.js (Versión completa actualizada con Gestión de Personal)
 
 document.addEventListener('DOMContentLoaded', function () {
     console.log("🧭 Inicializando navbar");
@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
         'inventario-luis.html': 'inventario-luis',
         'inventario-alex.html': 'inventario-alex',
         'inventario-javier.html': 'inventario-javier',
+        'personal.html': 'personal',
         'certificados.html': 'certificados',
         'checklist.html': 'checklist',
         'formulario-ast.html': 'formulario-ast'
@@ -127,12 +128,18 @@ document.addEventListener('DOMContentLoaded', function () {
         // Remover clases activas de todos los enlaces
         document.querySelectorAll('[data-page]').forEach(link => {
             link.classList.remove('bg-blue-50', 'text-blue-600', 'dark:bg-blue-900/20', 'dark:text-blue-400');
+            link.classList.remove('bg-purple-50', 'text-purple-600', 'dark:bg-purple-900/20', 'dark:text-purple-400');
         });
 
         // Añadir clases activas al enlace actual
         if (currentPageKey) {
             document.querySelectorAll(`[data-page="${currentPageKey}"]`).forEach(link => {
-                link.classList.add('bg-blue-50', 'text-blue-600', 'dark:bg-blue-900/20', 'dark:text-blue-400');
+                // Color especial para Gestión de Personal
+                if (currentPageKey === 'personal') {
+                    link.classList.add('bg-purple-50', 'text-purple-600', 'dark:bg-purple-900/20', 'dark:text-purple-400');
+                } else {
+                    link.classList.add('bg-blue-50', 'text-blue-600', 'dark:bg-blue-900/20', 'dark:text-blue-400');
+                }
             });
         }
     }
