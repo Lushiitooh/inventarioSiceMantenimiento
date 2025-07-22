@@ -1,17 +1,16 @@
-// assets/js/navbar.js (Versión completa actualizada con Gestión de Personal)
+// assets/js/navbar.js (Versión actualizada para template unificado)
 
 document.addEventListener('DOMContentLoaded', function () {
-    console.log("🧭 Inicializando navbar");
+    console.log("🧭 Inicializando navbar v2.0 - Template Unificado");
 
+    // CONFIGURACIÓN ACTUALIZADA: Removemos páginas de inventario separadas
     const pageConfig = {
         'index.html': 'home',
-        'inventario-luis.html': 'inventario-luis',
-        'inventario-alex.html': 'inventario-alex',
-        'inventario-javier.html': 'inventario-javier',
         'personal.html': 'personal',
         'certificados.html': 'certificados',
         'checklist.html': 'checklist',
         'formulario-ast.html': 'formulario-ast'
+        // inventario.html se maneja por separado con parámetros
     };
 
     // Función para obtener la ruta correcta a la navbar
@@ -120,10 +119,21 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // FUNCIÓN ACTUALIZADA: Detectar template unificado + instancia específica
     function setActiveNavLink() {
         const path = window.location.pathname;
         const filename = path.substring(path.lastIndexOf('/') + 1) || 'index.html';
-        const currentPageKey = pageConfig[filename];
+        const urlParams = new URLSearchParams(window.location.search);
+        const instance = urlParams.get('instance');
+        
+        let currentPageKey;
+        
+        // NUEVA LÓGICA: Detectar inventario.html con parámetros
+        if (filename === 'inventario.html' && instance) {
+            currentPageKey = `inventario-${instance}`;
+        } else {
+            currentPageKey = pageConfig[filename];
+        }
 
         // Remover clases activas de todos los enlaces
         document.querySelectorAll('[data-page]').forEach(link => {
@@ -142,11 +152,51 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         }
+        
+        // Log para debug
+        console.log(`🎯 Navbar activo: ${filename}, Instancia: ${instance || 'ninguna'}, Clave: ${currentPageKey}`);
     }
 
-    // API global para que otras partes de la aplicación puedan actualizar el navbar
+    // NUEVA FUNCIÓN: Detectar instancia actual
+    function getCurrentInstance() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('instance') || null;
+    }
+
+    // NUEVA FUNCIÓN: Generar URL de inventario
+    function getInventoryUrl(instance) {
+        const isInSubfolder = window.location.pathname.includes('/pages/');
+        const basePath = isInSubfolder ? './inventario.html' : './pages/inventario.html';
+        return `${basePath}?instance=${instance}`;
+    }
+
+    // NUEVA FUNCIÓN: Detectar cambios en URL (incluyendo parámetros)
+    function handleUrlParameterChanges() {
+        let currentUrl = window.location.href;
+        
+        // Detectar cambios en la URL (incluyendo parámetros)
+        window.addEventListener('popstate', setActiveNavLink);
+        
+        // También detectar cambios programáticos en la URL
+        const originalPushState = history.pushState;
+        const originalReplaceState = history.replaceState;
+        
+        history.pushState = function() {
+            originalPushState.apply(history, arguments);
+            setTimeout(setActiveNavLink, 0);
+        };
+        
+        history.replaceState = function() {
+            originalReplaceState.apply(history, arguments);
+            setTimeout(setActiveNavLink, 0);
+        };
+    }
+
+    // API global MEJORADA para que otras partes de la aplicación puedan actualizar el navbar
     window.NavbarAPI = {
         refresh: setActiveNavLink,
+        getCurrentInstance: getCurrentInstance,
+        getInventoryUrl: getInventoryUrl,
         closeMobileMenu: () => {
             const mobileMenu = document.getElementById('mobile-menu');
             const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
@@ -159,5 +209,9 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     // Inicializar la navbar
-    initializeNavbar();
+    initializeNavbar().then(() => {
+        // Una vez inicializada, configurar detectores de cambios de URL
+        handleUrlParameterChanges();
+        console.log("✅ Navbar inicializado con soporte para template unificado");
+    });
 });
