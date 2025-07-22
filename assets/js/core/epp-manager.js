@@ -1,5 +1,5 @@
 // assets/js/core/epp-manager.js
-// LÓGICA CENTRAL COMPARTIDA PARA TODAS LAS INSTANCIAS DE EPP - VERSIÓN CORREGIDA
+// LÓGICA CENTRAL COMPARTIDA PARA TODAS LAS INSTANCIAS DE EPP - VERSIÓN FINAL
 
 import {
     signInWithEmailAndPassword, signOut, onAuthStateChanged
@@ -34,8 +34,31 @@ export class EPPManager {
         this.setupAuthListener();
     }
 
-    // --- NUEVO MÉTODO ---
-    // Centraliza la lógica que se ejecuta cuando un usuario está autenticado.
+    // === MÉTODOS DE CONFIGURACIÓN ===
+    setupRealtimeListeners() {
+        console.log('📡 Configurando listeners en tiempo real...');
+        
+        const eppInventoryCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_inventory`);
+        const eppLoansCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_loans`);
+        const eppDeliveriesCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_deliveries`);
+
+        // Cargar inventario
+        this.loadInventory(eppInventoryCollectionRef, this.isUserAdmin);
+        
+        // Si es admin, cargar préstamos y entregas
+        if (this.isUserAdmin) {
+            this.loadLoans(eppLoansCollectionRef);
+            this.loadDeliveries(eppDeliveriesCollectionRef);
+        }
+    }
+
+    updateUIForAuthState(isAuthenticated) {
+        console.log(`🎨 Actualizando UI - Autenticado: ${isAuthenticated}, Admin: ${this.isUserAdmin}`);
+        
+        const user = this.auth.currentUser;
+        this.updateUIVisibility(user, this.isUserAdmin);
+    }
+
     handleUserAuthenticated(user) {
         if (this.currentUserId === user.uid) return; // Evita re-ejecuciones innecesarias
 
@@ -48,8 +71,6 @@ export class EPPManager {
         this.updateUIForAuthState(true);
     }
 
-    // --- MÉTODO MODIFICADO ---
-    // Ahora utiliza el nuevo método 'handleUserAuthenticated'.
     setupAuthListener() {
         this.unsubscribeAuth = onAuthStateChanged(this.auth, user => {
             if (user) {
@@ -70,7 +91,6 @@ export class EPPManager {
         });
     }
 
-
     // === INICIALIZACIÓN ===
     initializeEventListeners() {
         console.log('📋 Configurando event listeners...');
@@ -78,26 +98,6 @@ export class EPPManager {
         document.addEventListener('submit', this.handleSubmit.bind(this));
         document.addEventListener('input', this.handleInput.bind(this));
         window.addEventListener('beforeunload', this.cleanup.bind(this));
-    }
-
-    setupFirebase() {
-        console.log(`🔥 Configurando Firebase para ${this.config.instanceName}...`);
-
-        const eppInventoryCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_inventory`);
-        const eppLoansCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_loans`);
-        const eppDeliveriesCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_deliveries`);
-
-        console.log('📡 Configurando listener de autenticación...');
-        this.unsubscribeAuth = onAuthStateChanged(this.auth, (user) => {
-            console.log('🔐 Estado de autenticación cambiado:', user ? user.email : 'Sin usuario');
-            const isAdmin = user && user.uid === this.ADMIN_UID;
-            this.updateUIVisibility(user, isAdmin);
-            this.loadInventory(eppInventoryCollectionRef, isAdmin);
-            if (isAdmin) {
-                this.loadLoans(eppLoansCollectionRef);
-                this.loadDeliveries(eppDeliveriesCollectionRef);
-            }
-        });
     }
 
     // === MANEJADORES DE EVENTOS ===
@@ -207,7 +207,6 @@ export class EPPManager {
         });
     }
 
-    // FUNCIÓN: Cargar entregas
     loadDeliveries(eppDeliveriesCollectionRef) {
         console.log('🚚 Cargando entregas...');
         if (window.updateAuthStatus) window.updateAuthStatus('loading', 'Cargando entregas...');
@@ -274,7 +273,6 @@ export class EPPManager {
         }
     }
 
-    // FUNCIÓN: Actualizar select de entregas
     updateDeliverySelect() {
         const eppToDeliverSelect = document.getElementById('eppToDeliverSelect');
         if (!eppToDeliverSelect) return;
@@ -304,7 +302,6 @@ export class EPPManager {
         });
     }
 
-    // FUNCIÓN: Mostrar entregas
     displayDeliveries() {
         const deliveryTableBody = document.getElementById('deliveryHistoryTableBody');
         if (!deliveryTableBody) return;
@@ -358,7 +355,6 @@ export class EPPManager {
         });
     }
 
-    // FUNCIÓN: Filtrar entregas
     filterDeliveryHistory() {
         const searchInput = document.getElementById('historySearchInput');
         const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
@@ -492,7 +488,6 @@ export class EPPManager {
         }
     }
 
-    // FUNCIÓN: Manejar entrega de EPP
     async handleDeliveryEpp(form) {
         console.log('🚚 Registrando entrega de EPP...');
         const eppInventoryCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_inventory`);
@@ -972,6 +967,5 @@ export class EPPManager {
     // === INICIALIZACIÓN PÚBLICA ===
     initialize() {
         console.log(`📱 Aplicación de inventario EPP iniciada para ${this.config.instanceName}`);
-        this.setupFirebase();
     }
 }
