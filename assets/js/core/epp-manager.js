@@ -1,5 +1,5 @@
 // assets/js/core/epp-manager.js
-// LÓGICA CENTRAL COMPARTIDA PARA TODAS LAS INSTANCIAS DE EPP - VERSIÓN FINAL
+// LÓGICA CENTRAL COMPARTIDA PARA TODAS LAS INSTANCIAS DE EPP - CON VISTA PÚBLICA
 
 import {
     signInWithEmailAndPassword, signOut, onAuthStateChanged
@@ -32,6 +32,40 @@ export class EPPManager {
         // Inicializar listeners de eventos de la UI y autenticación
         this.initializeEventListeners();
         this.setupAuthListener();
+        
+        // === NUEVO: CARGAR INVENTARIO INMEDIATAMENTE PARA VISTA PÚBLICA ===
+        this.loadPublicInventory();
+    }
+
+    // === NUEVO MÉTODO: CARGAR INVENTARIO PÚBLICO ===
+    loadPublicInventory() {
+        console.log('🌐 Cargando inventario para vista pública...');
+        const eppInventoryCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_inventory`);
+        
+        // Cargar inventario inmediatamente (sin esperar autenticación)
+        this.loadInventory(eppInventoryCollectionRef, false);
+        
+        // Mostrar la interfaz principal inmediatamente
+        this.showMainContentForPublic();
+    }
+
+    // === NUEVO MÉTODO: MOSTRAR CONTENIDO PRINCIPAL PARA PÚBLICO ===
+    showMainContentForPublic() {
+        const elements = {
+            mainContent: document.getElementById('mainContent'),
+            loadingIndicator: document.getElementById('loadingIndicator'),
+            loginSection: document.getElementById('loginSection')
+        };
+
+        // Mostrar contenido principal y login simultáneamente
+        if (elements.mainContent) elements.mainContent.classList.remove('hidden');
+        if (elements.loadingIndicator) elements.loadingIndicator.classList.add('hidden');
+        if (elements.loginSection) elements.loginSection.classList.remove('hidden');
+        
+        // Asegurar que las columnas de admin estén ocultas para visitantes
+        this.adjustAdminColumnsVisibility(false);
+        
+        console.log('✅ Vista pública del inventario habilitada');
     }
 
     // === MÉTODOS DE CONFIGURACIÓN ===
@@ -42,7 +76,7 @@ export class EPPManager {
         const eppLoansCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_loans`);
         const eppDeliveriesCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_deliveries`);
 
-        // Cargar inventario
+        // === MODIFICADO: RECARGAR INVENTARIO CON PERMISOS DE ADMIN ===
         this.loadInventory(eppInventoryCollectionRef, this.isUserAdmin);
         
         // Si es admin, cargar préstamos y entregas
@@ -77,16 +111,19 @@ export class EPPManager {
                 // Si hay un cambio de estado a "logueado", maneja la autenticación.
                 this.handleUserAuthenticated(user);
             } else {
-                // Si el usuario cierra sesión.
-                console.log("❌ Usuario no autenticado.");
+                // === MODIFICADO: MANTENER VISTA PÚBLICA AL CERRAR SESIÓN ===
+                console.log("❌ Usuario no autenticado - Mostrando vista pública.");
                 this.currentUserId = null;
                 this.isUserAdmin = false;
                 this.updateUIForAuthState(false);
 
-                // Detiene las suscripciones a la base de datos para evitar errores.
-                if (this.unsubscribeInventory) this.unsubscribeInventory();
+                // No detener el listener del inventario para mantener vista pública
+                // Solo detener préstamos y entregas que son exclusivos de admin
                 if (this.unsubscribeLoans) this.unsubscribeLoans();
                 if (this.unsubscribeDeliveries) this.unsubscribeDeliveries();
+                
+                // === NUEVO: ASEGURAR QUE LA VISTA PÚBLICA PERMANEZCA ===
+                this.showMainContentForPublic();
             }
         });
     }
@@ -131,8 +168,8 @@ export class EPPManager {
 
     handleInput(e) {
         if (e.target.id === 'searchEppInput') {
-            const isAdmin = this.auth.currentUser && this.auth.currentUser.uid === this.ADMIN_UID;
-            this.displayFilteredInventory(isAdmin);
+            // === MODIFICADO: USAR ESTADO ACTUAL DE ADMIN ===
+            this.displayFilteredInventory(this.isUserAdmin);
         } else if (e.target.id === 'historySearchInput') {
             this.filterDeliveryHistory();
         } else if (e.target.id === 'eppToDeliverSelect') {
@@ -142,7 +179,7 @@ export class EPPManager {
 
     // === GESTIÓN DE UI ===
     updateUIVisibility(user, isAdmin) {
-        console.log(`🎨 Actualizando UI - Usuario: ${user ? user.email : 'ninguno'}, Admin: ${isAdmin}`);
+        console.log(`🎨 Actualizando UI - Usuario: ${user ? user.email : 'visitante'}, Admin: ${isAdmin}`);
 
         const elements = {
             loginSection: document.getElementById('loginSection'),
@@ -166,9 +203,10 @@ export class EPPManager {
             if (elements.loansSection) elements.loansSection.classList.toggle('hidden', !isAdmin);
             if (elements.deliverySection) elements.deliverySection.classList.toggle('hidden', !isAdmin);
         } else {
-            if (elements.userIdDisplay) elements.userIdDisplay.textContent = "Visitante";
-            if (elements.authStatus) elements.authStatus.textContent = "No autenticado.";
-            if (window.updateAuthStatus) window.updateAuthStatus('error', 'No autenticado');
+            // === MODIFICADO: VISTA PÚBLICA MEJORADA ===
+            if (elements.userIdDisplay) elements.userIdDisplay.textContent = "Vista Pública - Inventario de Solo Lectura";
+            if (elements.authStatus) elements.authStatus.textContent = "Modo Público (inicie sesión para administrar)";
+            if (window.updateAuthStatus) window.updateAuthStatus('connected', 'Vista pública');
             if (elements.loginSection) elements.loginSection.classList.remove('hidden');
             if (elements.logoutButton) elements.logoutButton.classList.add('hidden');
             if (elements.addEppFormSection) elements.addEppFormSection.classList.add('hidden');
@@ -190,8 +228,13 @@ export class EPPManager {
 
     // === GESTIÓN DE INVENTARIO ===
     loadInventory(eppInventoryCollectionRef, isAdmin) {
-        console.log('📦 Cargando inventario...');
+        console.log(`📦 Cargando inventario - Modo: ${isAdmin ? 'Administrador' : 'Público'}...`);
         if (window.updateAuthStatus) window.updateAuthStatus('loading', 'Cargando inventario...');
+
+        // === MODIFICADO: EVITAR MÚLTIPLES SUSCRIPCIONES ===
+        if (this.unsubscribeInventory) {
+            this.unsubscribeInventory();
+        }
 
         this.unsubscribeInventory = onSnapshot(query(eppInventoryCollectionRef), (snapshot) => {
             console.log(`📊 Inventario cargado: ${snapshot.docs.length} items`);
@@ -199,7 +242,7 @@ export class EPPManager {
             this.allEppItems.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
             this.displayFilteredInventory(isAdmin);
             this.updateDeliverySelect();
-            if (window.updateAuthStatus) window.updateAuthStatus('connected', 'Inventario cargado');
+            if (window.updateAuthStatus) window.updateAuthStatus('connected', isAdmin ? 'Inventario cargado' : 'Vista pública activa');
         }, (error) => {
             console.error("❌ Error al cargar inventario EPP: ", error);
             this.showTemporaryMessage(`Error al cargar inventario: ${error.message}`, "error");
