@@ -1,5 +1,4 @@
-// assets/js/pwa-install.js - Versión Mejorada
-// Manejador universal de instalación PWA con mejor detección para iOS
+// assets/js/pwa-install.js - Versión Corregida y Simplificada
 
 class PWAInstaller {
     constructor() {
@@ -31,7 +30,6 @@ class PWAInstaller {
 
     // Detectar si ya está instalada como PWA
     detectStandalone() {
-        // Múltiples formas de detectar modo standalone
         return (
             window.matchMedia('(display-mode: standalone)').matches ||
             window.navigator.standalone === true ||
@@ -45,20 +43,24 @@ class PWAInstaller {
         if (!this.isIOS) return false;
         
         const userAgent = navigator.userAgent;
-        // Safari nativo en iOS (no Chrome, Firefox, etc.)
         return /Safari/.test(userAgent) && 
                !/CriOS|FxiOS|OPiOS|mercury|Edge/.test(userAgent);
     }
 
-    // Verificar si la instalación es realmente posible
+    // Verificar si la instalación es posible
     canInstall() {
+        // Si ya está instalada, no mostrar
+        if (this.isStandalone) {
+            return { possible: false, method: 'already-installed' };
+        }
+
         // Android con prompt disponible
         if (this.isAndroid && this.deferredPrompt) {
             return { possible: true, method: 'native' };
         }
         
         // iOS Safari con capacidades PWA
-        if (this.isIOSSafari && !this.isStandalone) {
+        if (this.isIOSSafari) {
             return { possible: true, method: 'manual' };
         }
         
@@ -87,22 +89,24 @@ class PWAInstaller {
             return;
         }
 
-        // Verificar si es posible instalar
-        const installCheck = this.canInstall();
-        if (!installCheck.possible) {
-            console.log('❌ Instalación PWA no disponible en este navegador');
-            return;
-        }
-
-        console.log(`✅ Instalación PWA disponible (${installCheck.method})`);
-        
-        this.createInstallButton();
-        this.setupEventListeners();
-        
-        // Mostrar el botón después de un delay más corto para testing
+        // Esperar un poco antes de verificar si es posible instalar
         setTimeout(() => {
-            this.showInstallPrompt();
-        }, 2000);
+            const installCheck = this.canInstall();
+            if (!installCheck.possible) {
+                console.log(`❌ Instalación PWA no disponible: ${installCheck.method}`);
+                return;
+            }
+
+            console.log(`✅ Instalación PWA disponible (${installCheck.method})`);
+            
+            this.createInstallButton();
+            this.setupEventListeners();
+            
+            // Mostrar el botón después de un delay para mejor UX
+            setTimeout(() => {
+                this.showInstallPrompt();
+            }, 3000);
+        }, 1000);
     }
 
     createInstallButton() {
@@ -110,14 +114,10 @@ class PWAInstaller {
         this.installButton.id = 'pwa-install-button';
         this.installButton.className = 'pwa-install-btn hidden';
         
-        const buttonText = this.isIOSSafari ? 'Instalar en iPhone' : 'Instalar App';
-        const iconSvg = this.isIOSSafari ? 
-            `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-            </svg>` :
-            `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-            </svg>`;
+        const buttonText = this.isIOSSafari ? 'Instalar App' : 'Instalar App';
+        const iconSvg = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>`;
         
         this.installButton.innerHTML = `
             <div class="pwa-install-content">
@@ -127,7 +127,10 @@ class PWAInstaller {
             <button class="pwa-close-btn" aria-label="Cerrar">×</button>
         `;
 
-        this.createIOSModal();
+        if (this.isIOSSafari) {
+            this.createIOSModal();
+        }
+        
         document.body.appendChild(this.installButton);
     }
 
@@ -145,14 +148,14 @@ class PWAInstaller {
                 </div>
                 <div class="ios-modal-body">
                     <div class="ios-intro">
-                        <p>Para usar esta app como aplicación nativa en tu iPhone:</p>
+                        <p>Para instalar esta app en tu iPhone:</p>
                     </div>
                     
                     <div class="ios-instruction">
                         <div class="ios-step">
                             <div class="ios-step-number">1</div>
                             <div class="ios-step-content">
-                                <p><strong>Presiona el botón "Compartir"</strong> en la barra inferior de Safari</p>
+                                <p><strong>Toca el botón "Compartir"</strong> en la barra inferior de Safari</p>
                                 <div class="ios-share-demo">
                                     <div class="safari-bar">
                                         <div class="safari-icons">
@@ -163,7 +166,7 @@ class PWAInstaller {
                                             <div class="safari-icon inactive">⭐</div>
                                         </div>
                                     </div>
-                                    <div class="arrow-point">👆 Presiona aquí</div>
+                                    <div class="arrow-point">👆 Toca aquí</div>
                                 </div>
                             </div>
                         </div>
@@ -171,7 +174,7 @@ class PWAInstaller {
                         <div class="ios-step">
                             <div class="ios-step-number">2</div>
                             <div class="ios-step-content">
-                                <p><strong>Busca y presiona "Añadir a pantalla de inicio"</strong></p>
+                                <p><strong>Busca y toca "Añadir a pantalla de inicio"</strong></p>
                                 <div class="ios-action-demo">
                                     <div class="ios-option">
                                         <span class="ios-option-icon">📱</span>
@@ -184,7 +187,7 @@ class PWAInstaller {
                         <div class="ios-step">
                             <div class="ios-step-number">3</div>
                             <div class="ios-step-content">
-                                <p><strong>Confirma presionando "Añadir"</strong></p>
+                                <p><strong>Confirma tocando "Añadir"</strong></p>
                                 <div class="ios-result">
                                     <p class="ios-success">✅ ¡Listo! La app aparecerá en tu pantalla de inicio</p>
                                 </div>
@@ -193,8 +196,8 @@ class PWAInstaller {
                     </div>
                     
                     <div class="ios-footer">
-                        <button class="ios-understand-btn" onclick="window.pwaInstaller.testInstallSuccess()">
-                            Ya entendí las instrucciones
+                        <button class="ios-understand-btn" onclick="this.closest('.ios-install-modal').classList.add('hidden')">
+                            Entendido
                         </button>
                         <p class="ios-note">💡 Una vez instalada, funcionará como cualquier app nativa</p>
                     </div>
@@ -203,9 +206,6 @@ class PWAInstaller {
         `;
         
         document.body.appendChild(this.modal);
-        
-        // Hacer referencia global para testing
-        window.pwaInstaller = this;
     }
 
     setupEventListeners() {
@@ -254,18 +254,6 @@ class PWAInstaller {
                 this.onInstallSuccess();
             }
         });
-
-        // Detectar visibilidad de la página (para iOS)
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden && this.isIOSSafari) {
-                // Verificar si ahora está en modo standalone después de volver a la página
-                setTimeout(() => {
-                    if (this.detectStandalone()) {
-                        this.onInstallSuccess();
-                    }
-                }, 1000);
-            }
-        });
     }
 
     handleInstallClick() {
@@ -285,6 +273,7 @@ class PWAInstaller {
                 this.deferredPrompt = null;
             });
         } else {
+            // Fallback para otros navegadores
             this.showGenericInstructions();
         }
     }
@@ -310,17 +299,21 @@ class PWAInstaller {
     }
 
     showIOSModal() {
-        this.modal.classList.remove('hidden');
-        this.modal.classList.add('show');
-        document.body.style.overflow = 'hidden';
-        console.log('📱 Mostrando modal de instrucciones iOS');
+        if (this.modal) {
+            this.modal.classList.remove('hidden');
+            this.modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+            console.log('📱 Mostrando modal de instrucciones iOS');
+        }
     }
 
     hideIOSModal() {
-        this.modal.classList.remove('show');
-        this.modal.classList.add('hidden');
-        document.body.style.overflow = '';
-        console.log('📱 Ocultando modal de instrucciones iOS');
+        if (this.modal) {
+            this.modal.classList.remove('show');
+            this.modal.classList.add('hidden');
+            document.body.style.overflow = '';
+            console.log('📱 Ocultando modal de instrucciones iOS');
+        }
     }
 
     onInstallSuccess() {
@@ -359,18 +352,24 @@ class PWAInstaller {
         }, 4000);
     }
 
-    // Método para testing - simular instalación exitosa en iOS
-    testInstallSuccess() {
-        this.hideIOSModal();
-        this.showSuccessMessage();
-        this.hideInstallPrompt();
+    showGenericInstructions() {
+        const instructions = {
+            'Chrome': 'Menú (⋮) → "Instalar aplicación"',
+            'Firefox': 'Menú (≡) → "Instalar"',
+            'Edge': 'Menú (⋯) → "Aplicaciones" → "Instalar este sitio como aplicación"',
+            'Safari': 'Compartir (📤) → "Añadir a pantalla de inicio"'
+        };
         
-        console.log('🧪 Simulando instalación exitosa para testing');
+        let browserInstructions = 'Busca la opción de "Instalar aplicación" en el menú de tu navegador.';
         
-        // En un escenario real, esto se detectaría automáticamente
-        setTimeout(() => {
-            alert('💡 En la vida real, ahora deberías ir a tu pantalla de inicio y encontrar la app "Control EPP" instalada.');
-        }, 2000);
+        for (const [browser, instruction] of Object.entries(instructions)) {
+            if (navigator.userAgent.includes(browser)) {
+                browserInstructions = instruction;
+                break;
+            }
+        }
+        
+        alert(`Para instalar esta aplicación:\n\n${browserInstructions}`);
     }
 
     shouldShowPrompt() {
@@ -392,29 +391,9 @@ class PWAInstaller {
 
         return this.canInstall().possible;
     }
-
-    showGenericInstructions() {
-        const instructions = {
-            'Chrome': 'Menú (⋮) → "Instalar aplicación"',
-            'Firefox': 'Menú (≡) → "Instalar"',
-            'Edge': 'Menú (⋯) → "Aplicaciones" → "Instalar este sitio como aplicación"',
-            'Safari': 'Compartir (📤) → "Añadir a pantalla de inicio"'
-        };
-        
-        let browserInstructions = 'Busca la opción de "Instalar aplicación" en el menú de tu navegador.';
-        
-        for (const [browser, instruction] of Object.entries(instructions)) {
-            if (navigator.userAgent.includes(browser)) {
-                browserInstructions = instruction;
-                break;
-            }
-        }
-        
-        alert(`Para instalar esta aplicación:\n\n${browserInstructions}`);
-    }
 }
 
-// Estilos CSS mejorados
+// Estilos CSS mejorados y más simples
 const PWA_STYLES = `
 <style>
 .pwa-install-btn {
@@ -436,19 +415,12 @@ const PWA_STYLES = `
     transform: translateY(100px);
     opacity: 0;
     border: 2px solid rgba(255, 255, 255, 0.2);
+    font-family: 'Inter', sans-serif;
 }
 
 .pwa-install-btn.show {
     transform: translateY(0);
     opacity: 1;
-    animation: bounce 0.6s ease-out;
-}
-
-@keyframes bounce {
-    0% { transform: translateY(100px); }
-    60% { transform: translateY(-10px); }
-    80% { transform: translateY(5px); }
-    100% { transform: translateY(0); }
 }
 
 .pwa-install-btn.hidden {
@@ -460,7 +432,6 @@ const PWA_STYLES = `
 .pwa-install-btn:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
-    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
 }
 
 .pwa-install-content {
@@ -492,7 +463,7 @@ const PWA_STYLES = `
     transform: scale(1.1);
 }
 
-/* Modal mejorado para iOS */
+/* Modal para iOS */
 .ios-install-modal {
     position: fixed;
     top: 0;
@@ -507,6 +478,7 @@ const PWA_STYLES = `
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
 }
 
 .ios-install-modal.show {
@@ -533,18 +505,6 @@ const PWA_STYLES = `
     overflow-y: auto;
     position: relative;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    animation: slideUpModal 0.4s ease-out;
-}
-
-@keyframes slideUpModal {
-    from {
-        opacity: 0;
-        transform: translateY(50px) scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
 }
 
 .ios-modal-header {
@@ -639,7 +599,6 @@ const PWA_STYLES = `
     font-size: 15px;
 }
 
-/* Demostración visual mejorada */
 .ios-share-demo {
     background: #f8fafc;
     border: 2px solid #e2e8f0;
@@ -687,12 +646,6 @@ const PWA_STYLES = `
     color: #3b82f6;
     font-weight: 600;
     font-size: 14px;
-    animation: pointDown 2s ease-in-out infinite;
-}
-
-@keyframes pointDown {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(4px); }
 }
 
 .ios-action-demo {
@@ -711,12 +664,6 @@ const PWA_STYLES = `
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    animation: highlight 3s ease-in-out infinite;
-}
-
-@keyframes highlight {
-    0%, 100% { background: white; }
-    50% { background: #dbeafe; }
 }
 
 .ios-option-icon {
@@ -789,6 +736,7 @@ const PWA_STYLES = `
     z-index: 10001;
     opacity: 0;
     transition: all 0.4s ease;
+    font-family: 'Inter', sans-serif;
 }
 
 .pwa-success-message.show {
@@ -841,75 +789,6 @@ const PWA_STYLES = `
         font-size: 14px;
     }
 }
-
-/* Dark mode */
-@media (prefers-color-scheme: dark) {
-    .ios-modal-content {
-        background: #1f2937;
-        color: #f9fafb;
-    }
-    
-    .ios-modal-header {
-        border-color: #374151;
-    }
-    
-    .ios-modal-header h3 {
-        color: #f9fafb;
-    }
-    
-    .ios-modal-close {
-        background: #374151;
-        color: #d1d5db;
-    }
-    
-    .ios-modal-close:hover {
-        background: #4b5563;
-    }
-    
-    .ios-intro {
-        background: #1e3a8a;
-        border-color: #3b82f6;
-    }
-    
-    .ios-intro p {
-        color: #dbeafe;
-    }
-    
-    .ios-step-content p {
-        color: #d1d5db;
-    }
-    
-    .ios-share-demo,
-    .ios-action-demo {
-        background: #374151;
-        border-color: #4b5563;
-    }
-    
-    .ios-option {
-        background: #4b5563;
-    }
-    
-    .ios-option-text {
-        color: #f3f4f6;
-    }
-    
-    .ios-result {
-        background: #065f46;
-        border-color: #059669;
-    }
-    
-    .ios-success {
-        color: #d1fae5;
-    }
-    
-    .ios-footer {
-        border-color: #374151;
-    }
-    
-    .ios-note {
-        color: #9ca3af;
-    }
-}
 </style>
 `;
 
@@ -918,7 +797,7 @@ document.head.insertAdjacentHTML('beforeend', PWA_STYLES);
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 Inicializando PWA Installer mejorado...');
+    console.log('🚀 Inicializando PWA Installer corregido...');
     new PWAInstaller();
 });
 
