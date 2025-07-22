@@ -12,6 +12,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="manifest" href="/inventarioSiceMantenimiento/assets/manifest/manifest.json">
 </head>
 <body>
     <!-- Navbar placeholder -->
@@ -292,6 +293,25 @@
     </main>
 <script src="../assets/js/navbar.js"></script>
 <script type="module" src="../assets/js/formulario-ast.js"></script>
+<!-- PWA Install Handler -->
+<script src="../assets/js/pwa-install.js"></script>
+
+<!-- Service Worker -->
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/inventarioSiceMantenimiento/assets/manifest/sw.js', {
+                scope: '/inventarioSiceMantenimiento/'
+            })
+            .then(registration => {
+                console.log('✅ Service Worker registrado:', registration.scope);
+            })
+            .catch(error => {
+                console.error('❌ Error registrando Service Worker:', error);
+            });
+        });
+    }
+</script>
 <script>
 // Función de inicialización específica para AST
 document.addEventListener('DOMContentLoaded', function() {

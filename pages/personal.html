@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/styles.css">
-    <link rel="manifest" href="../assets/manifest/manifest.json">
+    <link rel="manifest" href="/inventarioSiceMantenimiento/assets/manifest/manifest.json">
     
     <style>
         .progress-bar {
@@ -283,7 +283,25 @@
 
     <!-- Scripts -->
     <script src="../assets/js/navbar.js"></script>
-    
+    <!-- PWA Install Handler -->
+<script src="../assets/js/pwa-install.js"></script>
+
+<!-- Service Worker -->
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/inventarioSiceMantenimiento/assets/manifest/sw.js', {
+                scope: '/inventarioSiceMantenimiento/'
+            })
+            .then(registration => {
+                console.log('✅ Service Worker registrado:', registration.scope);
+            })
+            .catch(error => {
+                console.error('❌ Error registrando Service Worker:', error);
+            });
+        });
+    }
+</script>
     <!-- Firebase Setup -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";

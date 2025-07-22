@@ -8,7 +8,7 @@
     <title>Checklist - Control EPP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="manifest" href="../assets/manifest/manifest.json">
+    <link rel="manifest" href="/inventarioSiceMantenimiento/assets/manifest/manifest.json">
     <link rel="stylesheet" href="../assets/css/styles.css">
     
     <!-- Estilos para las firmas -->
@@ -233,6 +233,25 @@
     <!-- Scripts -->
     <!-- 1. Navbar -->
     <script src="../assets/js/navbar.js"></script>
+    <!-- PWA Install Handler -->
+<script src="../assets/js/pwa-install.js"></script>
+
+<!-- Service Worker -->
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/inventarioSiceMantenimiento/assets/manifest/sw.js', {
+                scope: '/inventarioSiceMantenimiento/'
+            })
+            .then(registration => {
+                console.log('✅ Service Worker registrado:', registration.scope);
+            })
+            .catch(error => {
+                console.error('❌ Error registrando Service Worker:', error);
+            });
+        });
+    }
+</script>
     
     <!-- 2. Signature Pad - CARGADO PRIMERO -->
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
