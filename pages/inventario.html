@@ -415,8 +415,61 @@
 
     <!-- Scripts -->
     <script src="../assets/js/navbar.js"></script>
-    <!-- Aquí se carga el script específico de cada instancia -->
-    <script type="module" id="instanceScript"></script>
+    
+    <!-- Script para detectar instancia y cargar configuración -->
+    <script>
+        // Detectar instancia desde URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const instance = urlParams.get('instance');
+        
+        console.log('🎯 Instancia detectada:', instance);
+        
+        if (!instance) {
+            // Si no hay instancia en URL, redirigir al índice
+            console.error('❌ No se especificó instancia en URL');
+            document.body.innerHTML = `
+                <div class="flex items-center justify-center min-h-screen bg-gray-100">
+                    <div class="text-center">
+                        <h1 class="text-2xl font-bold text-red-600 mb-4">Error: Instancia no especificada</h1>
+                        <p class="text-gray-600 mb-4">La página debe cargarse con un parámetro de instancia válido</p>
+                        <a href="../index.html" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                            Volver al Inicio
+                        </a>
+                    </div>
+                </div>
+            `;
+        } else {
+            // Cargar el script correspondiente a la instancia
+            const validInstances = ['luis', 'alex', 'javier'];
+            if (validInstances.includes(instance)) {
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.src = `../assets/js/instances/app-${instance}.js`;
+                script.onload = () => {
+                    console.log(`✅ Script de ${instance} cargado correctamente`);
+                };
+                script.onerror = () => {
+                    console.error(`❌ Error cargando script de ${instance}`);
+                    document.getElementById('authStatus').textContent = 'Error cargando configuración';
+                    document.getElementById('statusIndicator').className = 'w-2 h-2 bg-red-500 rounded-full';
+                };
+                document.head.appendChild(script);
+            } else {
+                console.error('❌ Instancia no válida:', instance);
+                document.body.innerHTML = `
+                    <div class="flex items-center justify-center min-h-screen bg-gray-100">
+                        <div class="text-center">
+                            <h1 class="text-2xl font-bold text-red-600 mb-4">Error: Instancia no válida</h1>
+                            <p class="text-gray-600 mb-4">La instancia "${instance}" no existe</p>
+                            <a href="../index.html" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                                Volver al Inicio
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+    </script>
     
     <script>
         // Funciones globales de UI compartidas

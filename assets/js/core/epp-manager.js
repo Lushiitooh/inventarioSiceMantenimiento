@@ -1,5 +1,5 @@
 // assets/js/core/epp-manager.js
-// LÓGICA CENTRAL COMPARTIDA PARA TODAS LAS INSTANCIAS DE EPP
+// LÓGICA CENTRAL COMPARTIDA PARA TODAS LAS INSTANCIAS DE EPP - VERSIÓN CORREGIDA
 
 import {
     signInWithEmailAndPassword, signOut, onAuthStateChanged
@@ -25,12 +25,15 @@ export class EPPManager {
         this.allEppItems = [];
         this.allDeliveries = [];
         
+        console.log(`🔧 EPPManager inicializado para ${config.instanceName}`);
+        
         // Inicializar event listeners
         this.initializeEventListeners();
     }
 
     // === INICIALIZACIÓN ===
     initializeEventListeners() {
+        console.log('📋 Configurando event listeners...');
         document.addEventListener('click', this.handleClick.bind(this));
         document.addEventListener('submit', this.handleSubmit.bind(this));
         document.addEventListener('input', this.handleInput.bind(this));
@@ -38,11 +41,15 @@ export class EPPManager {
     }
 
     setupFirebase() {
+        console.log(`🔥 Configurando Firebase para ${this.config.instanceName}...`);
+        
         const eppInventoryCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_inventory`);
         const eppLoansCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_loans`);
         const eppDeliveriesCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_deliveries`);
 
+        console.log('📡 Configurando listener de autenticación...');
         this.unsubscribeAuth = onAuthStateChanged(this.auth, (user) => {
+            console.log('🔐 Estado de autenticación cambiado:', user ? user.email : 'Sin usuario');
             const isAdmin = user && user.uid === this.ADMIN_UID;
             this.updateUIVisibility(user, isAdmin);
             this.loadInventory(eppInventoryCollectionRef, isAdmin);
@@ -95,6 +102,8 @@ export class EPPManager {
 
     // === GESTIÓN DE UI ===
     updateUIVisibility(user, isAdmin) {
+        console.log(`🎨 Actualizando UI - Usuario: ${user ? user.email : 'ninguno'}, Admin: ${isAdmin}`);
+        
         const elements = {
             loginSection: document.getElementById('loginSection'),
             mainContent: document.getElementById('mainContent'),
@@ -133,6 +142,7 @@ export class EPPManager {
     }
 
     adjustAdminColumnsVisibility(isAdminView) {
+        console.log(`👨‍💼 Ajustando columnas de admin - Visible: ${isAdminView}`);
         document.querySelectorAll('.admin-col').forEach(col => {
             col.style.display = isAdminView ? '' : 'none';
         });
@@ -140,44 +150,52 @@ export class EPPManager {
 
     // === GESTIÓN DE INVENTARIO ===
     loadInventory(eppInventoryCollectionRef, isAdmin) {
+        console.log('📦 Cargando inventario...');
         if (window.updateAuthStatus) window.updateAuthStatus('loading', 'Cargando inventario...');
         
         this.unsubscribeInventory = onSnapshot(query(eppInventoryCollectionRef), (snapshot) => {
+            console.log(`📊 Inventario cargado: ${snapshot.docs.length} items`);
             this.allEppItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             this.allEppItems.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
             this.displayFilteredInventory(isAdmin);
             this.updateDeliverySelect();
             if (window.updateAuthStatus) window.updateAuthStatus('connected', 'Inventario cargado');
         }, (error) => {
-            console.error("Error al cargar inventario EPP: ", error);
+            console.error("❌ Error al cargar inventario EPP: ", error);
             this.showTemporaryMessage(`Error al cargar inventario: ${error.message}`, "error");
             if (window.updateAuthStatus) window.updateAuthStatus('error', 'Error al cargar');
         });
     }
 
-    // NUEVA FUNCIÓN: Cargar entregas
+    // FUNCIÓN: Cargar entregas
     loadDeliveries(eppDeliveriesCollectionRef) {
+        console.log('🚚 Cargando entregas...');
         if (window.updateAuthStatus) window.updateAuthStatus('loading', 'Cargando entregas...');
         
         this.unsubscribeDeliveries = onSnapshot(
             query(eppDeliveriesCollectionRef, orderBy('deliveryDate', 'desc')), 
             (snapshot) => {
+                console.log(`📦 Entregas cargadas: ${snapshot.docs.length} entregas`);
                 this.allDeliveries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 this.displayDeliveries();
                 if (window.updateAuthStatus) window.updateAuthStatus('connected', 'Entregas cargadas');
             }, 
             (error) => {
-                console.error("Error al cargar entregas:", error);
+                console.error("❌ Error al cargar entregas:", error);
                 this.showTemporaryMessage(`Error al cargar entregas: ${error.message}`, "error");
             }
         );
     }
 
     displayFilteredInventory(isAdminView) {
+        console.log(`🗂️ Mostrando inventario filtrado - Admin: ${isAdminView}`);
         const eppTableBody = document.getElementById('eppTableBody');
         const eppToLoanSelect = document.getElementById('eppToLoanSelect');
         const searchEppInput = document.getElementById('searchEppInput');
-        if (!eppTableBody) return;
+        if (!eppTableBody) {
+            console.warn('⚠️ No se encontró eppTableBody');
+            return;
+        }
 
         eppTableBody.innerHTML = '';
         if (isAdminView && eppToLoanSelect) {
@@ -191,6 +209,8 @@ export class EPPManager {
                 (item.size && item.size.toLowerCase().includes(searchTerm))
             )
             : [...this.allEppItems];
+
+        console.log(`🔍 Items filtrados: ${filteredItems.length}/${this.allEppItems.length}`);
 
         if (filteredItems.length === 0) {
             const message = searchTerm ? "No hay EPP que coincidan con la búsqueda." : "No hay EPP registrados en el sistema.";
@@ -214,7 +234,7 @@ export class EPPManager {
         }
     }
 
-    // NUEVA FUNCIÓN: Actualizar select de entregas
+    // FUNCIÓN: Actualizar select de entregas
     updateDeliverySelect() {
         const eppToDeliverSelect = document.getElementById('eppToDeliverSelect');
         if (!eppToDeliverSelect) return;
@@ -244,7 +264,7 @@ export class EPPManager {
         });
     }
 
-    // NUEVA FUNCIÓN: Mostrar entregas
+    // FUNCIÓN: Mostrar entregas
     displayDeliveries() {
         const deliveryTableBody = document.getElementById('deliveryHistoryTableBody');
         if (!deliveryTableBody) return;
@@ -298,7 +318,7 @@ export class EPPManager {
         });
     }
 
-    // NUEVA FUNCIÓN: Filtrar entregas
+    // FUNCIÓN: Filtrar entregas
     filterDeliveryHistory() {
         const searchInput = document.getElementById('historySearchInput');
         const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
@@ -369,6 +389,7 @@ export class EPPManager {
 
     // === AUTENTICACIÓN ===
     async handleLogin(form) {
+        console.log('🔐 Intentando iniciar sesión...');
         const email = form.querySelector('#email').value;
         const password = form.querySelector('#password').value;
         const loginError = form.querySelector('#loginError');
@@ -380,8 +401,9 @@ export class EPPManager {
             await signInWithEmailAndPassword(this.auth, email, password);
             form.reset();
             this.showTemporaryMessage("Inicio de sesión exitoso", "success");
+            console.log('✅ Sesión iniciada correctamente');
         } catch (error) {
-            console.error("Error de inicio de sesión:", error);
+            console.error("❌ Error de inicio de sesión:", error);
             loginError.textContent = `Error: ${this.mapAuthError(error.code)}`;
             loginError.classList.remove('hidden');
             if (window.updateAuthStatus) window.updateAuthStatus('error', 'Error de autenticación');
@@ -389,17 +411,20 @@ export class EPPManager {
     }
 
     async handleLogout() {
+        console.log('🚪 Cerrando sesión...');
         try {
             await signOut(this.auth);
             this.showTemporaryMessage("Sesión cerrada correctamente", "success");
+            console.log('✅ Sesión cerrada correctamente');
         } catch (error) {
-            console.error("Error al cerrar sesión:", error);
+            console.error("❌ Error al cerrar sesión:", error);
             this.showTemporaryMessage(`Error al cerrar sesión: ${error.message}`, "error");
         }
     }
 
     // === GESTIÓN DE EPP ===
     async handleAddEpp(form) {
+        console.log('➕ Agregando nuevo EPP...');
         const eppInventoryCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_inventory`);
         const name = form.querySelector('#eppName').value.trim();
         const size = form.querySelector('#eppSize').value.trim();
@@ -417,8 +442,9 @@ export class EPPManager {
                 });
                 form.reset();
                 this.showTemporaryMessage("EPP agregado con éxito.", "success");
+                console.log(`✅ EPP agregado: ${name}`);
             } catch (error) {
-                console.error("Error al agregar EPP:", error);
+                console.error("❌ Error al agregar EPP:", error);
                 this.showTemporaryMessage(`Error al agregar EPP: ${error.message}`, "error");
             }
         } else {
@@ -426,8 +452,9 @@ export class EPPManager {
         }
     }
 
-    // NUEVA FUNCIÓN: Manejar entrega de EPP
+    // FUNCIÓN: Manejar entrega de EPP
     async handleDeliveryEpp(form) {
+        console.log('🚚 Registrando entrega de EPP...');
         const eppInventoryCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_inventory`);
         const eppDeliveriesCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_deliveries`);
         
@@ -478,14 +505,16 @@ export class EPPManager {
             await batch.commit();
             form.reset();
             this.showTemporaryMessage(`EPP entregado a ${personName} correctamente.`, "success");
+            console.log(`✅ Entrega registrada: ${eppData.name} a ${personName}`);
             
         } catch (error) {
-            console.error("Error al registrar entrega:", error);
+            console.error("❌ Error al registrar entrega:", error);
             this.showTemporaryMessage(`Error al registrar entrega: ${error.message}`, "error");
         }
     }
 
     async handleLoanEpp(form) {
+        console.log('📋 Registrando préstamo de EPP...');
         const eppLoansCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_loans`);
         const eppInventoryCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_inventory`);
         
@@ -536,14 +565,15 @@ export class EPPManager {
             await batch.commit();
             form.reset();
             this.showTemporaryMessage("Préstamo registrado con éxito.", "success");
+            console.log(`✅ Préstamo registrado: ${eppData.name} a ${loanedTo}`);
             
         } catch (error) {
-            console.error("Error al registrar préstamo:", error);
+            console.error("❌ Error al registrar préstamo:", error);
             this.showTemporaryMessage(`Error al registrar préstamo: ${error.message}`, "error");
         }
     }
 
-    // NUEVA FUNCIÓN: Abrir modal de edición
+    // FUNCIÓN: Abrir modal de edición
     handleEditEpp(button) {
         const eppId = button.dataset.id;
         const item = this.allEppItems.find(epp => epp.id === eppId);
@@ -564,8 +594,9 @@ export class EPPManager {
         this.showEditModal();
     }
 
-    // NUEVA FUNCIÓN: Actualizar EPP
+    // FUNCIÓN: Actualizar EPP
     async handleUpdateEpp(form) {
+        console.log('✏️ Actualizando EPP...');
         const eppInventoryCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_inventory`);
         
         const eppId = form.querySelector('#editEppId').value;
@@ -591,8 +622,9 @@ export class EPPManager {
             
             this.hideEditModal();
             this.showTemporaryMessage(`EPP "${name}" actualizado correctamente.`, "success");
+            console.log(`✅ EPP actualizado: ${name}`);
         } catch (error) {
-            console.error("Error al actualizar EPP:", error);
+            console.error("❌ Error al actualizar EPP:", error);
             this.showTemporaryMessage(`Error al actualizar EPP: ${error.message}`, "error");
         }
     }
@@ -615,10 +647,12 @@ export class EPPManager {
             if (action === 'increase') {
                 await updateDoc(itemRef, { quantity: currentQuantity + 1 });
                 this.showTemporaryMessage(`Cantidad de ${itemName} aumentada.`, "success");
+                console.log(`📈 Cantidad aumentada: ${itemName}`);
             } else if (action === 'decrease') {
                 if (currentQuantity > 0) {
                     await updateDoc(itemRef, { quantity: currentQuantity - 1 });
                     this.showTemporaryMessage(`Cantidad de ${itemName} reducida.`, "success");
+                    console.log(`📉 Cantidad reducida: ${itemName}`);
                 } else {
                     this.showTemporaryMessage("No se puede reducir: cantidad ya es 0.", "warning");
                 }
@@ -629,6 +663,7 @@ export class EPPManager {
                         try {
                             await deleteDoc(itemRef);
                             this.showTemporaryMessage("EPP eliminado correctamente.", "success");
+                            console.log(`🗑️ EPP eliminado: ${itemName}`);
                         } catch (error) {
                             this.showTemporaryMessage(`Error al eliminar: ${error.message}`, "error");
                         }
@@ -636,12 +671,13 @@ export class EPPManager {
                 );
             }
         } catch (error) {
-            console.error("Error al actualizar el EPP:", error);
+            console.error("❌ Error al actualizar el EPP:", error);
             this.showTemporaryMessage(`Error al actualizar el EPP: ${error.message}`, "error");
         }
     }
 
     async handleReturnLoan(button) {
+        console.log('🔄 Devolviendo préstamo...');
         const eppLoansCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_loans`);
         const eppInventoryCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_inventory`);
         
@@ -670,22 +706,25 @@ export class EPPManager {
                 
                 await batch.commit();
                 this.showTemporaryMessage("Préstamo devuelto correctamente.", "success");
+                console.log(`✅ Préstamo devuelto: ${loanData.eppName}`);
             } else {
                 this.showTemporaryMessage("Error: El EPP asociado no existe en el inventario.", "error");
             }
         } catch (error) {
-            console.error("Error al devolver préstamo:", error);
+            console.error("❌ Error al devolver préstamo:", error);
             this.showTemporaryMessage(`Error al devolver préstamo: ${error.message}`, "error");
         }
     }
 
     loadLoans(eppLoansCollectionRef) {
+        console.log('📋 Cargando préstamos...');
         const loansTableBody = document.getElementById('loansTableBody');
         if (!loansTableBody) return;
 
         this.unsubscribeLoans = onSnapshot(
             query(eppLoansCollectionRef, where('status', '==', 'active')), 
             (snapshot) => {
+                console.log(`📊 Préstamos cargados: ${snapshot.docs.length} activos`);
                 loansTableBody.innerHTML = '';
                 
                 if (snapshot.empty) {
@@ -704,7 +743,7 @@ export class EPPManager {
                 });
             }, 
             (error) => {
-                console.error("Error al cargar préstamos:", error);
+                console.error("❌ Error al cargar préstamos:", error);
                 loansTableBody.innerHTML = `
                     <tr>
                         <td colspan="6" class="text-center py-4 text-red-500">Error al cargar préstamos</td>
@@ -743,7 +782,7 @@ export class EPPManager {
         return tr;
     }
 
-    // NUEVAS FUNCIONES: Modal de edición
+    // FUNCIONES: Modal de edición
     showEditModal() {
         const modal = document.getElementById('editEppModal');
         if (modal) {
@@ -763,7 +802,7 @@ export class EPPManager {
         }
     }
 
-    // NUEVA FUNCIÓN: Actualizar límites de cantidad en entregas
+    // FUNCIÓN: Actualizar límites de cantidad en entregas
     updateDeliveryQuantityLimits() {
         const eppSelect = document.getElementById('eppToDeliverSelect');
         const quantityInput = document.getElementById('deliveryQuantity');
@@ -783,7 +822,7 @@ export class EPPManager {
         }
     }
 
-    // NUEVA FUNCIÓN: Exportar histórico
+    // FUNCIÓN: Exportar histórico
     exportDeliveryHistory() {
         if (this.allDeliveries.length === 0) {
             this.showTemporaryMessage("No hay entregas para exportar.", "warning");
@@ -822,8 +861,9 @@ export class EPPManager {
             }
             
             this.showTemporaryMessage("Histórico exportado correctamente.", "success");
+            console.log('📄 Histórico exportado');
         } catch (error) {
-            console.error("Error al exportar:", error);
+            console.error("❌ Error al exportar:", error);
             this.showTemporaryMessage("Error al exportar el histórico.", "error");
         }
     }
@@ -891,7 +931,7 @@ export class EPPManager {
 
     // === INICIALIZACIÓN PÚBLICA ===
     initialize() {
-        console.log("📱 Aplicación de inventario EPP iniciada");
+        console.log(`📱 Aplicación de inventario EPP iniciada para ${this.config.instanceName}`);
         this.setupFirebase();
     }
 }
