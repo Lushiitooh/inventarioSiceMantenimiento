@@ -1,6 +1,6 @@
-// assets/js/instances/app-alex.js - CÓDIGO COMPLETO Y CORREGIDO
+// assets/js/instances/app-alex.js - CÓDIGO CORREGIDO
 import { EPPManager } from '../core/epp-manager.js';
-import { alexConfig, alexConfig } from '../configs/config-alex.js';
+import { alexConfig } from '../configs/config-alex.js';
 
 console.log(`🚀 Inicializando instancia de ${alexConfig.instanceName}...`);
 

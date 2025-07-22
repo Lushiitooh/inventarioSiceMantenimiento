@@ -1,6 +1,6 @@
-// assets/js/instances/app-javier.js - CÓDIGO COMPLETO Y CORREGIDO
+// assets/js/instances/app-javier.js - CÓDIGO CORREGIDO
 import { EPPManager } from '../core/epp-manager.js';
-import { javierConfig, javierConfig } from '../configs/config-javier.js';
+import { javierConfig } from '../configs/config-javier.js';
 
 console.log(`🚀 Inicializando instancia de ${javierConfig.instanceName}...`);
 
