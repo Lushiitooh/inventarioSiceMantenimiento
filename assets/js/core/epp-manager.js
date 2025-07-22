@@ -16,20 +16,60 @@ export class EPPManager {
         this.ADMIN_UID = config.ADMIN_UID;
         this.appIdForPath = config.appIdForPath;
         
-        // Referencias globales para las suscripciones
+        // Referencias globales para las suscripciones y estado
         this.unsubscribeInventory = null;
         this.unsubscribeLoans = null;
         this.unsubscribeAuth = null;
         this.unsubscribeDeliveries = null;
+        this.currentUserId = null;
+        this.isUserAdmin = false;
         this.confirmCallback = null;
         this.allEppItems = [];
         this.allDeliveries = [];
         
         console.log(`🔧 EPPManager inicializado para ${config.instanceName}`);
         
-        // Inicializar event listeners
+        // Inicializar listeners de eventos de la UI y autenticación
         this.initializeEventListeners();
+        this.setupAuthListener();
     }
+
+    // --- NUEVO MÉTODO ---
+    // Centraliza la lógica que se ejecuta cuando un usuario está autenticado.
+    handleUserAuthenticated(user) {
+        if (this.currentUserId === user.uid) return; // Evita re-ejecuciones innecesarias
+
+        console.log("✅ Usuario autenticado:", user.uid);
+        this.currentUserId = user.uid;
+        this.isUserAdmin = user.uid === this.ADMIN_UID;
+        
+        // Configura los listeners de la base de datos ahora que sabemos quién es el usuario
+        this.setupRealtimeListeners();
+        this.updateUIForAuthState(true);
+    }
+
+    // --- MÉTODO MODIFICADO ---
+    // Ahora utiliza el nuevo método 'handleUserAuthenticated'.
+    setupAuthListener() {
+        this.unsubscribeAuth = onAuthStateChanged(this.auth, user => {
+            if (user) {
+                // Si hay un cambio de estado a "logueado", maneja la autenticación.
+                this.handleUserAuthenticated(user);
+            } else {
+                // Si el usuario cierra sesión.
+                console.log("❌ Usuario no autenticado.");
+                this.currentUserId = null;
+                this.isUserAdmin = false;
+                this.updateUIForAuthState(false);
+
+                // Detiene las suscripciones a la base de datos para evitar errores.
+                if (this.unsubscribeInventory) this.unsubscribeInventory();
+                if (this.unsubscribeLoans) this.unsubscribeLoans();
+                if (this.unsubscribeDeliveries) this.unsubscribeDeliveries();
+            }
+        });
+    }
+
 
     // === INICIALIZACIÓN ===
     initializeEventListeners() {
@@ -42,7 +82,7 @@ export class EPPManager {
 
     setupFirebase() {
         console.log(`🔥 Configurando Firebase para ${this.config.instanceName}...`);
-        
+
         const eppInventoryCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_inventory`);
         const eppLoansCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_loans`);
         const eppDeliveriesCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_deliveries`);
@@ -103,7 +143,7 @@ export class EPPManager {
     // === GESTIÓN DE UI ===
     updateUIVisibility(user, isAdmin) {
         console.log(`🎨 Actualizando UI - Usuario: ${user ? user.email : 'ninguno'}, Admin: ${isAdmin}`);
-        
+
         const elements = {
             loginSection: document.getElementById('loginSection'),
             mainContent: document.getElementById('mainContent'),
@@ -135,7 +175,7 @@ export class EPPManager {
             if (elements.loansSection) elements.loansSection.classList.add('hidden');
             if (elements.deliverySection) elements.deliverySection.classList.add('hidden');
         }
-        
+
         this.adjustAdminColumnsVisibility(isAdmin);
         if (elements.mainContent) elements.mainContent.classList.remove('hidden');
         if (elements.loadingIndicator) elements.loadingIndicator.classList.add('hidden');
@@ -152,7 +192,7 @@ export class EPPManager {
     loadInventory(eppInventoryCollectionRef, isAdmin) {
         console.log('📦 Cargando inventario...');
         if (window.updateAuthStatus) window.updateAuthStatus('loading', 'Cargando inventario...');
-        
+
         this.unsubscribeInventory = onSnapshot(query(eppInventoryCollectionRef), (snapshot) => {
             console.log(`📊 Inventario cargado: ${snapshot.docs.length} items`);
             this.allEppItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -171,15 +211,15 @@ export class EPPManager {
     loadDeliveries(eppDeliveriesCollectionRef) {
         console.log('🚚 Cargando entregas...');
         if (window.updateAuthStatus) window.updateAuthStatus('loading', 'Cargando entregas...');
-        
+
         this.unsubscribeDeliveries = onSnapshot(
-            query(eppDeliveriesCollectionRef, orderBy('deliveryDate', 'desc')), 
+            query(eppDeliveriesCollectionRef, orderBy('deliveryDate', 'desc')),
             (snapshot) => {
                 console.log(`📦 Entregas cargadas: ${snapshot.docs.length} entregas`);
                 this.allDeliveries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 this.displayDeliveries();
                 if (window.updateAuthStatus) window.updateAuthStatus('connected', 'Entregas cargadas');
-            }, 
+            },
             (error) => {
                 console.error("❌ Error al cargar entregas:", error);
                 this.showTemporaryMessage(`Error al cargar entregas: ${error.message}`, "error");
@@ -240,7 +280,7 @@ export class EPPManager {
         if (!eppToDeliverSelect) return;
 
         eppToDeliverSelect.innerHTML = '<option value="">Seleccione un EPP</option>';
-        
+
         this.allEppItems.forEach(item => {
             if (item.quantity > 0) {
                 const option = document.createElement('option');
@@ -249,7 +289,7 @@ export class EPPManager {
                 option.dataset.stock = item.quantity || 0;
                 option.dataset.name = item.name;
                 option.dataset.size = item.size || '';
-                
+
                 // Agregar clase CSS según el stock
                 if (item.quantity <= item.minStock) {
                     option.className = 'epp-option-low-stock';
@@ -258,7 +298,7 @@ export class EPPManager {
                 } else {
                     option.className = 'epp-option-ok-stock';
                 }
-                
+
                 eppToDeliverSelect.appendChild(option);
             }
         });
@@ -291,7 +331,7 @@ export class EPPManager {
         this.allDeliveries.forEach(delivery => {
             const tr = document.createElement('tr');
             tr.className = 'bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors';
-            
+
             const deliveryDate = delivery.deliveryDate?.toDate()?.toLocaleDateString('es-ES', {
                 year: 'numeric',
                 month: '2-digit',
@@ -299,7 +339,7 @@ export class EPPManager {
                 hour: '2-digit',
                 minute: '2-digit'
             }) || 'Fecha no disponible';
-            
+
             tr.innerHTML = `
                 <td class="py-4 px-6 text-sm text-gray-900 dark:text-white">${deliveryDate}</td>
                 <td class="py-4 px-6">
@@ -313,7 +353,7 @@ export class EPPManager {
                 </td>
                 <td class="py-4 px-6 text-gray-900 dark:text-white">${delivery.personName || 'N/A'}</td>
             `;
-            
+
             deliveryTableBody.appendChild(tr);
         });
     }
@@ -322,26 +362,26 @@ export class EPPManager {
     filterDeliveryHistory() {
         const searchInput = document.getElementById('historySearchInput');
         const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
-        
+
         const deliveryTableBody = document.getElementById('deliveryHistoryTableBody');
         if (!deliveryTableBody) return;
 
         deliveryTableBody.innerHTML = '';
 
         let filteredDeliveries = [...this.allDeliveries];
-        
+
         if (searchTerm) {
-            filteredDeliveries = this.allDeliveries.filter(delivery => 
+            filteredDeliveries = this.allDeliveries.filter(delivery =>
                 (delivery.personName && delivery.personName.toLowerCase().includes(searchTerm)) ||
                 (delivery.eppName && delivery.eppName.toLowerCase().includes(searchTerm))
             );
         }
 
         if (filteredDeliveries.length === 0) {
-            const message = searchTerm ? 
-                `No se encontraron entregas que coincidan con "${searchTerm}"` : 
+            const message = searchTerm ?
+                `No se encontraron entregas que coincidan con "${searchTerm}"` :
                 'No hay entregas registradas';
-                
+
             deliveryTableBody.innerHTML = `
                 <tr>
                     <td colspan="4" class="empty-state-delivery">
@@ -360,7 +400,7 @@ export class EPPManager {
         filteredDeliveries.forEach(delivery => {
             const tr = document.createElement('tr');
             tr.className = 'bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors';
-            
+
             const deliveryDate = delivery.deliveryDate?.toDate()?.toLocaleDateString('es-ES', {
                 year: 'numeric',
                 month: '2-digit',
@@ -368,7 +408,7 @@ export class EPPManager {
                 hour: '2-digit',
                 minute: '2-digit'
             }) || 'Fecha no disponible';
-            
+
             tr.innerHTML = `
                 <td class="py-4 px-6 text-sm text-gray-900 dark:text-white">${deliveryDate}</td>
                 <td class="py-4 px-6">
@@ -382,7 +422,7 @@ export class EPPManager {
                 </td>
                 <td class="py-4 px-6 text-gray-900 dark:text-white">${delivery.personName || 'N/A'}</td>
             `;
-            
+
             deliveryTableBody.appendChild(tr);
         });
     }
@@ -393,10 +433,10 @@ export class EPPManager {
         const email = form.querySelector('#email').value;
         const password = form.querySelector('#password').value;
         const loginError = form.querySelector('#loginError');
-        
+
         loginError.classList.add('hidden');
         if (window.updateAuthStatus) window.updateAuthStatus('loading', 'Autenticando...');
-        
+
         try {
             await signInWithEmailAndPassword(this.auth, email, password);
             form.reset();
@@ -433,12 +473,12 @@ export class EPPManager {
 
         if (name && !isNaN(quantity) && quantity >= 0 && !isNaN(minStock) && minStock >= 0) {
             try {
-                await addDoc(eppInventoryCollectionRef, { 
-                    name, 
-                    size: size || '', 
-                    quantity, 
-                    minStock, 
-                    createdAt: Timestamp.now() 
+                await addDoc(eppInventoryCollectionRef, {
+                    name,
+                    size: size || '',
+                    quantity,
+                    minStock,
+                    createdAt: Timestamp.now()
                 });
                 form.reset();
                 this.showTemporaryMessage("EPP agregado con éxito.", "success");
@@ -457,7 +497,7 @@ export class EPPManager {
         console.log('🚚 Registrando entrega de EPP...');
         const eppInventoryCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_inventory`);
         const eppDeliveriesCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_deliveries`);
-        
+
         const eppId = form.querySelector('#eppToDeliverSelect').value;
         const quantity = parseInt(form.querySelector('#deliveryQuantity').value);
         const personName = form.querySelector('#deliveryPersonName').value.trim();
@@ -470,7 +510,7 @@ export class EPPManager {
         try {
             const eppRef = doc(eppInventoryCollectionRef, eppId);
             const eppDoc = await getDoc(eppRef);
-            
+
             if (!eppDoc.exists()) {
                 this.showTemporaryMessage("El EPP seleccionado no existe.", "error");
                 return;
@@ -484,7 +524,7 @@ export class EPPManager {
 
             // Crear la entrega y actualizar el inventario en una transacción
             const batch = writeBatch(this.db);
-            
+
             // Agregar entrega al histórico
             const deliveryRef = doc(eppDeliveriesCollectionRef);
             batch.set(deliveryRef, {
@@ -506,7 +546,7 @@ export class EPPManager {
             form.reset();
             this.showTemporaryMessage(`EPP entregado a ${personName} correctamente.`, "success");
             console.log(`✅ Entrega registrada: ${eppData.name} a ${personName}`);
-            
+
         } catch (error) {
             console.error("❌ Error al registrar entrega:", error);
             this.showTemporaryMessage(`Error al registrar entrega: ${error.message}`, "error");
@@ -517,7 +557,7 @@ export class EPPManager {
         console.log('📋 Registrando préstamo de EPP...');
         const eppLoansCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_loans`);
         const eppInventoryCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_inventory`);
-        
+
         const eppId = form.querySelector('#eppToLoanSelect').value;
         const quantity = parseInt(form.querySelector('#loanQuantity').value);
         const loanedTo = form.querySelector('#loanedTo').value.trim();
@@ -530,7 +570,7 @@ export class EPPManager {
         try {
             const eppRef = doc(eppInventoryCollectionRef, eppId);
             const eppDoc = await getDoc(eppRef);
-            
+
             if (!eppDoc.exists()) {
                 this.showTemporaryMessage("El EPP seleccionado no existe.", "error");
                 return;
@@ -544,7 +584,7 @@ export class EPPManager {
 
             // Crear el préstamo y actualizar el inventario en una transacción
             const batch = writeBatch(this.db);
-            
+
             // Agregar préstamo
             const loanRef = doc(eppLoansCollectionRef);
             batch.set(loanRef, {
@@ -566,7 +606,7 @@ export class EPPManager {
             form.reset();
             this.showTemporaryMessage("Préstamo registrado con éxito.", "success");
             console.log(`✅ Préstamo registrado: ${eppData.name} a ${loanedTo}`);
-            
+
         } catch (error) {
             console.error("❌ Error al registrar préstamo:", error);
             this.showTemporaryMessage(`Error al registrar préstamo: ${error.message}`, "error");
@@ -577,7 +617,7 @@ export class EPPManager {
     handleEditEpp(button) {
         const eppId = button.dataset.id;
         const item = this.allEppItems.find(epp => epp.id === eppId);
-        
+
         if (!item) {
             this.showTemporaryMessage("EPP no encontrado.", "error");
             return;
@@ -598,7 +638,7 @@ export class EPPManager {
     async handleUpdateEpp(form) {
         console.log('✏️ Actualizando EPP...');
         const eppInventoryCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_inventory`);
-        
+
         const eppId = form.querySelector('#editEppId').value;
         const name = form.querySelector('#editEppName').value.trim();
         const size = form.querySelector('#editEppSize').value.trim();
@@ -619,7 +659,7 @@ export class EPPManager {
                 minStock,
                 updatedAt: Timestamp.now()
             });
-            
+
             this.hideEditModal();
             this.showTemporaryMessage(`EPP "${name}" actualizado correctamente.`, "success");
             console.log(`✅ EPP actualizado: ${name}`);
@@ -640,7 +680,7 @@ export class EPPManager {
                 this.showTemporaryMessage("El EPP no existe.", "error");
                 return;
             }
-            
+
             const currentQuantity = itemDoc.data().quantity || 0;
             const itemName = itemDoc.data().name || 'EPP';
 
@@ -658,7 +698,7 @@ export class EPPManager {
                 }
             } else if (action === 'delete') {
                 this.showConfirmationModal(
-                    `¿Estás seguro de que quieres eliminar "${itemName}"? Esta acción no se puede deshacer.`, 
+                    `¿Estás seguro de que quieres eliminar "${itemName}"? Esta acción no se puede deshacer.`,
                     async () => {
                         try {
                             await deleteDoc(itemRef);
@@ -680,13 +720,13 @@ export class EPPManager {
         console.log('🔄 Devolviendo préstamo...');
         const eppLoansCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_loans`);
         const eppInventoryCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_inventory`);
-        
+
         const loanId = button.dataset.loanId;
-        
+
         try {
             const loanRef = doc(eppLoansCollectionRef, loanId);
             const loanDoc = await getDoc(loanRef);
-            
+
             if (!loanDoc.exists()) {
                 this.showTemporaryMessage("El préstamo no existe.", "error");
                 return;
@@ -698,12 +738,12 @@ export class EPPManager {
 
             if (eppDoc.exists()) {
                 const currentQuantity = eppDoc.data().quantity || 0;
-                
+
                 // Actualizar inventario y eliminar préstamo
                 const batch = writeBatch(this.db);
                 batch.update(eppRef, { quantity: currentQuantity + loanData.quantity });
                 batch.delete(loanRef);
-                
+
                 await batch.commit();
                 this.showTemporaryMessage("Préstamo devuelto correctamente.", "success");
                 console.log(`✅ Préstamo devuelto: ${loanData.eppName}`);
@@ -722,11 +762,11 @@ export class EPPManager {
         if (!loansTableBody) return;
 
         this.unsubscribeLoans = onSnapshot(
-            query(eppLoansCollectionRef, where('status', '==', 'active')), 
+            query(eppLoansCollectionRef, where('status', '==', 'active')),
             (snapshot) => {
                 console.log(`📊 Préstamos cargados: ${snapshot.docs.length} activos`);
                 loansTableBody.innerHTML = '';
-                
+
                 if (snapshot.empty) {
                     loansTableBody.innerHTML = `
                         <tr>
@@ -741,7 +781,7 @@ export class EPPManager {
                     const tr = this.renderLoanItem(loan);
                     loansTableBody.appendChild(tr);
                 });
-            }, 
+            },
             (error) => {
                 console.error("❌ Error al cargar préstamos:", error);
                 loansTableBody.innerHTML = `
@@ -756,9 +796,9 @@ export class EPPManager {
     renderLoanItem(loan) {
         const tr = document.createElement('tr');
         tr.className = 'bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600';
-        
+
         const loanDate = loan.loanDate?.toDate()?.toLocaleDateString() || 'Fecha no disponible';
-        
+
         tr.innerHTML = `
             <td class="py-4 px-6 font-medium text-gray-900 dark:text-white">
                 ${loan.eppName || 'N/A'}${loan.eppSize ? ` (${loan.eppSize})` : ''}
@@ -778,7 +818,7 @@ export class EPPManager {
                 </button>
             </td>
         `;
-        
+
         return tr;
     }
 
@@ -806,15 +846,15 @@ export class EPPManager {
     updateDeliveryQuantityLimits() {
         const eppSelect = document.getElementById('eppToDeliverSelect');
         const quantityInput = document.getElementById('deliveryQuantity');
-        
+
         if (!eppSelect || !quantityInput) return;
-        
+
         const selectedOption = eppSelect.options[eppSelect.selectedIndex];
         if (selectedOption && selectedOption.dataset.stock) {
             const maxStock = parseInt(selectedOption.dataset.stock);
             quantityInput.max = maxStock;
             quantityInput.placeholder = `Máximo: ${maxStock}`;
-            
+
             // Si la cantidad actual excede el máximo, ajustarla
             if (parseInt(quantityInput.value) > maxStock) {
                 quantityInput.value = maxStock;
@@ -849,7 +889,7 @@ export class EPPManager {
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
-            
+
             if (link.download !== undefined) {
                 const url = URL.createObjectURL(blob);
                 link.setAttribute('href', url);
@@ -859,7 +899,7 @@ export class EPPManager {
                 link.click();
                 document.body.removeChild(link);
             }
-            
+
             this.showTemporaryMessage("Histórico exportado correctamente.", "success");
             console.log('📄 Histórico exportado');
         } catch (error) {
@@ -883,7 +923,7 @@ export class EPPManager {
     showTemporaryMessage(message, type = 'info') {
         const messageContainer = document.getElementById('messageContainer');
         if (!messageContainer) return;
-        
+
         messageContainer.textContent = message;
         const baseClasses = 'p-3 mb-4 text-sm rounded-lg';
         const typeClasses = {
@@ -894,7 +934,7 @@ export class EPPManager {
         };
         messageContainer.className = `${baseClasses} ${typeClasses[type] || typeClasses['info']}`;
         messageContainer.classList.remove('hidden');
-        
+
         setTimeout(() => {
             messageContainer.classList.add('hidden');
         }, 4000);
@@ -904,7 +944,7 @@ export class EPPManager {
         const modal = document.getElementById('confirmationModal');
         const modalMessage = document.getElementById('confirmationMessage');
         if (!modal || !modalMessage) return;
-        
+
         modalMessage.textContent = message;
         this.confirmCallback = callback;
         modal.classList.remove('hidden');
