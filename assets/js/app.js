@@ -1,11 +1,11 @@
-// assets/js/app.js (Refactorizado - sin dependencia del router SPA)
+// assets/js/app.js (Refactorizado - con nuevas funcionalidades)
 
 import { db, auth, ADMIN_UID, appIdForPath } from './firebase-config.js';
 import {
     signInWithEmailAndPassword, signOut, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {
-    collection, addDoc, doc, getDoc, updateDoc, deleteDoc, onSnapshot, query, where, Timestamp, writeBatch
+    collection, addDoc, doc, getDoc, updateDoc, deleteDoc, onSnapshot, query, where, Timestamp, writeBatch, orderBy
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 console.log("⚙️ Iniciando aplicación de Inventario EPP");
@@ -14,8 +14,10 @@ console.log("⚙️ Iniciando aplicación de Inventario EPP");
 let unsubscribeInventory = null;
 let unsubscribeLoans = null;
 let unsubscribeAuth = null;
+let unsubscribeDeliveries = null; // NUEVO
 let confirmCallback = null;
 let allEppItems = [];
+let allDeliveries = []; // NUEVO
 
 // --- MANEJADORES DE EVENTOS CENTRALIZADOS ---
 
@@ -30,7 +32,11 @@ function handleClick(e) {
         if (confirmCallback) confirmCallback();
         hideConfirmationModal();
     } else if (button.id === 'cancelButton') hideConfirmationModal();
+    else if (button.id === 'closeEditModal') hideEditModal();
+    else if (button.id === 'cancelEditEpp') hideEditModal();
+    else if (button.id === 'exportHistoryBtn') exportDeliveryHistory(); // NUEVO
     else if (action === 'increase' || action === 'decrease' || action === 'delete') handleInventoryAction(button);
+    else if (action === 'edit') handleEditEpp(button); // NUEVO
     else if (action === 'returnLoan') handleReturnLoan(button);
 }
 
@@ -39,12 +45,18 @@ function handleSubmit(e) {
     if (e.target.id === 'loginForm') handleLogin(e.target);
     else if (e.target.id === 'addEppForm') handleAddEpp(e.target);
     else if (e.target.id === 'loanEppForm') handleLoanEpp(e.target);
+    else if (e.target.id === 'deliveryEppForm') handleDeliveryEpp(e.target); // NUEVO
+    else if (e.target.id === 'editEppForm') handleUpdateEpp(e.target); // NUEVO
 }
 
 function handleInput(e) {
     if (e.target.id === 'searchEppInput') {
         const isAdmin = auth.currentUser && auth.currentUser.uid === ADMIN_UID;
         displayFilteredInventory(isAdmin);
+    } else if (e.target.id === 'historySearchInput') { // NUEVO
+        filterDeliveryHistory();
+    } else if (e.target.id === 'eppToDeliverSelect') { // NUEVO
+        updateDeliveryQuantityLimits();
     }
 }
 
@@ -58,6 +70,7 @@ function cleanup() {
     if (unsubscribeInventory) unsubscribeInventory();
     if (unsubscribeLoans) unsubscribeLoans();
     if (unsubscribeAuth) unsubscribeAuth();
+    if (unsubscribeDeliveries) unsubscribeDeliveries(); // NUEVO
 }
 
 // --- REGISTRO DE LISTENERS ---
@@ -73,6 +86,7 @@ window.addEventListener('beforeunload', cleanup);
 function setupFirebase() {
     const eppInventoryCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_inventory`);
     const eppLoansCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_loans`);
+    const eppDeliveriesCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_deliveries`); // NUEVO
 
     unsubscribeAuth = onAuthStateChanged(auth, (user) => {
         const isAdmin = user && user.uid === ADMIN_UID;
@@ -80,6 +94,7 @@ function setupFirebase() {
         loadInventory(eppInventoryCollectionRef, isAdmin);
         if (isAdmin) {
             loadLoans(eppLoansCollectionRef);
+            loadDeliveries(eppDeliveriesCollectionRef); // NUEVO
         }
     });
 }
@@ -91,6 +106,7 @@ function updateUIVisibility(user, isAdmin) {
     const logoutButton = document.getElementById('logoutButton');
     const addEppFormSection = document.getElementById('addEppFormSection');
     const loansSection = document.getElementById('loansSection');
+    const deliverySection = document.getElementById('deliveryEppSection'); // NUEVO
     const userIdDisplay = document.getElementById('userIdDisplay');
     const authStatus = document.getElementById('authStatus');
 
@@ -102,6 +118,7 @@ function updateUIVisibility(user, isAdmin) {
         if (logoutButton) logoutButton.classList.remove('hidden');
         if (addEppFormSection) addEppFormSection.classList.toggle('hidden', !isAdmin);
         if (loansSection) loansSection.classList.toggle('hidden', !isAdmin);
+        if (deliverySection) deliverySection.classList.toggle('hidden', !isAdmin); // NUEVO
     } else {
         if (userIdDisplay) userIdDisplay.textContent = "Visitante";
         if (authStatus) authStatus.textContent = "No autenticado.";
@@ -110,6 +127,7 @@ function updateUIVisibility(user, isAdmin) {
         if (logoutButton) logoutButton.classList.add('hidden');
         if (addEppFormSection) addEppFormSection.classList.add('hidden');
         if (loansSection) loansSection.classList.add('hidden');
+        if (deliverySection) deliverySection.classList.add('hidden'); // NUEVO
     }
     
     adjustAdminColumnsVisibility(isAdmin);
@@ -124,12 +142,31 @@ function loadInventory(eppInventoryCollectionRef, isAdmin) {
         allEppItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         allEppItems.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
         displayFilteredInventory(isAdmin);
+        updateDeliverySelect(); // NUEVO
         if (window.updateAuthStatus) window.updateAuthStatus('connected', 'Inventario cargado');
     }, (error) => {
         console.error("Error al cargar inventario EPP: ", error);
         showTemporaryMessage(`Error al cargar inventario: ${error.message}`, "error");
         if (window.updateAuthStatus) window.updateAuthStatus('error', 'Error al cargar');
     });
+}
+
+// NUEVA FUNCIÓN: Cargar entregas
+function loadDeliveries(eppDeliveriesCollectionRef) {
+    if (window.updateAuthStatus) window.updateAuthStatus('loading', 'Cargando entregas...');
+    
+    unsubscribeDeliveries = onSnapshot(
+        query(eppDeliveriesCollectionRef, orderBy('deliveryDate', 'desc')), 
+        (snapshot) => {
+            allDeliveries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            displayDeliveries();
+            if (window.updateAuthStatus) window.updateAuthStatus('connected', 'Entregas cargadas');
+        }, 
+        (error) => {
+            console.error("Error al cargar entregas:", error);
+            showTemporaryMessage(`Error al cargar entregas: ${error.message}`, "error");
+        }
+    );
 }
 
 function displayFilteredInventory(isAdminView) {
@@ -171,6 +208,159 @@ function displayFilteredInventory(isAdminView) {
             }
         });
     }
+}
+
+// NUEVA FUNCIÓN: Actualizar select de entregas
+function updateDeliverySelect() {
+    const eppToDeliverSelect = document.getElementById('eppToDeliverSelect');
+    if (!eppToDeliverSelect) return;
+
+    eppToDeliverSelect.innerHTML = '<option value="">Seleccione un EPP</option>';
+    
+    allEppItems.forEach(item => {
+        if (item.quantity > 0) {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = `${item.name || 'N/A'}${item.size ? ` (${item.size})` : ''} - Stock: ${item.quantity}`;
+            option.dataset.stock = item.quantity || 0;
+            option.dataset.name = item.name;
+            option.dataset.size = item.size || '';
+            
+            // Agregar clase CSS según el stock
+            if (item.quantity <= item.minStock) {
+                option.className = 'epp-option-low-stock';
+            } else if (item.quantity <= item.minStock + 5) {
+                option.className = 'epp-option-warning-stock';
+            } else {
+                option.className = 'epp-option-ok-stock';
+            }
+            
+            eppToDeliverSelect.appendChild(option);
+        }
+    });
+}
+
+// NUEVA FUNCIÓN: Mostrar entregas
+function displayDeliveries() {
+    const deliveryTableBody = document.getElementById('deliveryHistoryTableBody');
+    if (!deliveryTableBody) return;
+
+    deliveryTableBody.innerHTML = '';
+
+    if (allDeliveries.length === 0) {
+        deliveryTableBody.innerHTML = `
+            <tr>
+                <td colspan="4" class="empty-state-delivery">
+                    <div class="empty-state-delivery-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No hay entregas registradas</h3>
+                    <p class="text-gray-500 dark:text-gray-400">Las entregas aparecerán aquí cuando se registren</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    allDeliveries.forEach(delivery => {
+        const tr = document.createElement('tr');
+        tr.className = 'bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors';
+        
+        const deliveryDate = delivery.deliveryDate?.toDate()?.toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        }) || 'Fecha no disponible';
+        
+        tr.innerHTML = `
+            <td class="py-4 px-6 text-sm text-gray-900 dark:text-white">${deliveryDate}</td>
+            <td class="py-4 px-6">
+                <div class="font-medium text-gray-900 dark:text-white">
+                    ${delivery.eppName || 'N/A'}${delivery.eppSize ? ` (${delivery.eppSize})` : ''}
+                </div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">EPP de seguridad</div>
+            </td>
+            <td class="py-4 px-6 text-center">
+                <span class="delivery-badge">${delivery.quantity || 0}</span>
+            </td>
+            <td class="py-4 px-6 text-gray-900 dark:text-white">${delivery.personName || 'N/A'}</td>
+        `;
+        
+        deliveryTableBody.appendChild(tr);
+    });
+}
+
+// NUEVA FUNCIÓN: Filtrar entregas
+function filterDeliveryHistory() {
+    const searchInput = document.getElementById('historySearchInput');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    
+    const deliveryTableBody = document.getElementById('deliveryHistoryTableBody');
+    if (!deliveryTableBody) return;
+
+    deliveryTableBody.innerHTML = '';
+
+    let filteredDeliveries = [...allDeliveries];
+    
+    if (searchTerm) {
+        filteredDeliveries = allDeliveries.filter(delivery => 
+            (delivery.personName && delivery.personName.toLowerCase().includes(searchTerm)) ||
+            (delivery.eppName && delivery.eppName.toLowerCase().includes(searchTerm))
+        );
+    }
+
+    if (filteredDeliveries.length === 0) {
+        const message = searchTerm ? 
+            `No se encontraron entregas que coincidan con "${searchTerm}"` : 
+            'No hay entregas registradas';
+            
+        deliveryTableBody.innerHTML = `
+            <tr>
+                <td colspan="4" class="empty-state-delivery">
+                    <div class="empty-state-delivery-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <p class="text-gray-500 dark:text-gray-400">${message}</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    filteredDeliveries.forEach(delivery => {
+        const tr = document.createElement('tr');
+        tr.className = 'bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors';
+        
+        const deliveryDate = delivery.deliveryDate?.toDate()?.toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        }) || 'Fecha no disponible';
+        
+        tr.innerHTML = `
+            <td class="py-4 px-6 text-sm text-gray-900 dark:text-white">${deliveryDate}</td>
+            <td class="py-4 px-6">
+                <div class="font-medium text-gray-900 dark:text-white">
+                    ${delivery.eppName || 'N/A'}${delivery.eppSize ? ` (${delivery.eppSize})` : ''}
+                </div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">EPP de seguridad</div>
+            </td>
+            <td class="py-4 px-6 text-center">
+                <span class="delivery-badge">${delivery.quantity || 0}</span>
+            </td>
+            <td class="py-4 px-6 text-gray-900 dark:text-white">${delivery.personName || 'N/A'}</td>
+        `;
+        
+        deliveryTableBody.appendChild(tr);
+    });
 }
 
 async function handleLogin(form) {
@@ -230,6 +420,65 @@ async function handleAddEpp(form) {
     }
 }
 
+// NUEVA FUNCIÓN: Manejar entrega de EPP
+async function handleDeliveryEpp(form) {
+    const eppInventoryCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_inventory`);
+    const eppDeliveriesCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_deliveries`);
+    
+    const eppId = form.querySelector('#eppToDeliverSelect').value;
+    const quantity = parseInt(form.querySelector('#deliveryQuantity').value);
+    const personName = form.querySelector('#deliveryPersonName').value.trim();
+
+    if (!eppId || !quantity || quantity <= 0 || !personName) {
+        showTemporaryMessage("Por favor, complete todos los campos de la entrega.", "error");
+        return;
+    }
+
+    try {
+        const eppRef = doc(eppInventoryCollectionRef, eppId);
+        const eppDoc = await getDoc(eppRef);
+        
+        if (!eppDoc.exists()) {
+            showTemporaryMessage("El EPP seleccionado no existe.", "error");
+            return;
+        }
+
+        const eppData = eppDoc.data();
+        if (eppData.quantity < quantity) {
+            showTemporaryMessage(`Stock insuficiente. Disponible: ${eppData.quantity}`, "error");
+            return;
+        }
+
+        // Crear la entrega y actualizar el inventario en una transacción
+        const batch = writeBatch(db);
+        
+        // Agregar entrega al histórico
+        const deliveryRef = doc(eppDeliveriesCollectionRef);
+        batch.set(deliveryRef, {
+            eppId,
+            eppName: eppData.name,
+            eppSize: eppData.size || '',
+            quantity,
+            personName,
+            deliveryDate: Timestamp.now(),
+            deliveredBy: auth.currentUser.email
+        });
+
+        // Actualizar inventario
+        batch.update(eppRef, {
+            quantity: eppData.quantity - quantity
+        });
+
+        await batch.commit();
+        form.reset();
+        showTemporaryMessage(`EPP entregado a ${personName} correctamente.`, "success");
+        
+    } catch (error) {
+        console.error("Error al registrar entrega:", error);
+        showTemporaryMessage(`Error al registrar entrega: ${error.message}`, "error");
+    }
+}
+
 async function handleLoanEpp(form) {
     const eppLoansCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_loans`);
     const eppInventoryCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_inventory`);
@@ -285,6 +534,60 @@ async function handleLoanEpp(form) {
     } catch (error) {
         console.error("Error al registrar préstamo:", error);
         showTemporaryMessage(`Error al registrar préstamo: ${error.message}`, "error");
+    }
+}
+
+// NUEVA FUNCIÓN: Abrir modal de edición
+function handleEditEpp(button) {
+    const eppId = button.dataset.id;
+    const item = allEppItems.find(epp => epp.id === eppId);
+    
+    if (!item) {
+        showTemporaryMessage("EPP no encontrado.", "error");
+        return;
+    }
+
+    // Llenar el formulario de edición
+    document.getElementById('editEppId').value = eppId;
+    document.getElementById('editEppName').value = item.name || '';
+    document.getElementById('editEppSize').value = item.size || '';
+    document.getElementById('editEppQuantity').value = item.quantity || 0;
+    document.getElementById('editEppMinStock').value = item.minStock || 0;
+
+    // Mostrar modal
+    showEditModal();
+}
+
+// NUEVA FUNCIÓN: Actualizar EPP
+async function handleUpdateEpp(form) {
+    const eppInventoryCollectionRef = collection(db, `artifacts/${appIdForPath}/users/${ADMIN_UID}/epp_inventory`);
+    
+    const eppId = form.querySelector('#editEppId').value;
+    const name = form.querySelector('#editEppName').value.trim();
+    const size = form.querySelector('#editEppSize').value.trim();
+    const quantity = parseInt(form.querySelector('#editEppQuantity').value);
+    const minStock = parseInt(form.querySelector('#editEppMinStock').value);
+
+    if (!name || isNaN(quantity) || quantity < 0 || isNaN(minStock) || minStock < 0) {
+        showTemporaryMessage("Por favor, complete todos los campos correctamente.", "error");
+        return;
+    }
+
+    try {
+        const eppRef = doc(eppInventoryCollectionRef, eppId);
+        await updateDoc(eppRef, {
+            name,
+            size: size || '',
+            quantity,
+            minStock,
+            updatedAt: Timestamp.now()
+        });
+        
+        hideEditModal();
+        showTemporaryMessage(`EPP "${name}" actualizado correctamente.`, "success");
+    } catch (error) {
+        console.error("Error al actualizar EPP:", error);
+        showTemporaryMessage(`Error al actualizar EPP: ${error.message}`, "error");
     }
 }
 
@@ -434,6 +737,91 @@ function renderLoanItem(loan) {
     return tr;
 }
 
+// NUEVAS FUNCIONES: Modal de edición
+function showEditModal() {
+    const modal = document.getElementById('editEppModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        // Agregar clase para animación
+        const modalContent = modal.querySelector('.slide-in-modal');
+        if (modalContent) {
+            modalContent.classList.add('slide-in-modal');
+        }
+    }
+}
+
+function hideEditModal() {
+    const modal = document.getElementById('editEppModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+// NUEVA FUNCIÓN: Actualizar límites de cantidad en entregas
+function updateDeliveryQuantityLimits() {
+    const eppSelect = document.getElementById('eppToDeliverSelect');
+    const quantityInput = document.getElementById('deliveryQuantity');
+    
+    if (!eppSelect || !quantityInput) return;
+    
+    const selectedOption = eppSelect.options[eppSelect.selectedIndex];
+    if (selectedOption && selectedOption.dataset.stock) {
+        const maxStock = parseInt(selectedOption.dataset.stock);
+        quantityInput.max = maxStock;
+        quantityInput.placeholder = `Máximo: ${maxStock}`;
+        
+        // Si la cantidad actual excede el máximo, ajustarla
+        if (parseInt(quantityInput.value) > maxStock) {
+            quantityInput.value = maxStock;
+        }
+    }
+}
+
+// NUEVA FUNCIÓN: Exportar histórico
+function exportDeliveryHistory() {
+    if (allDeliveries.length === 0) {
+        showTemporaryMessage("No hay entregas para exportar.", "warning");
+        return;
+    }
+
+    try {
+        const csvHeaders = ['Fecha', 'EPP', 'Talla', 'Cantidad', 'Entregado a', 'Entregado por'];
+        const csvRows = allDeliveries.map(delivery => {
+            const date = delivery.deliveryDate?.toDate()?.toLocaleDateString('es-ES') || '';
+            return [
+                date,
+                delivery.eppName || '',
+                delivery.eppSize || '',
+                delivery.quantity || 0,
+                delivery.personName || '',
+                delivery.deliveredBy || ''
+            ];
+        });
+
+        const csvContent = [csvHeaders, ...csvRows]
+            .map(row => row.map(cell => `"${cell}"`).join(','))
+            .join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `historico_entregas_epp_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        showTemporaryMessage("Histórico exportado correctamente.", "success");
+    } catch (error) {
+        console.error("Error al exportar:", error);
+        showTemporaryMessage("Error al exportar el histórico.", "error");
+    }
+}
+
 function mapAuthError(errorCode) {
     switch (errorCode) {
         case 'auth/invalid-email': return 'El formato del correo electrónico es inválido.';
@@ -492,6 +880,29 @@ function adjustAdminColumnsVisibility(isAdminView) {
 document.addEventListener('DOMContentLoaded', () => {
     console.log("📱 Aplicación de inventario EPP iniciada");
     setupFirebase();
+    
+    // Event listeners adicionales para el modal de edición
+    const closeModalBtn = document.getElementById('closeEditModal');
+    const cancelEditBtn = document.getElementById('cancelEditEpp');
+    const editModal = document.getElementById('editEppModal');
+    
+    if (closeModalBtn) closeModalBtn.addEventListener('click', hideEditModal);
+    if (cancelEditBtn) cancelEditBtn.addEventListener('click', hideEditModal);
+    
+    // Cerrar modal al hacer click fuera de él
+    if (editModal) {
+        editModal.addEventListener('click', (e) => {
+            if (e.target === editModal) {
+                hideEditModal();
+            }
+        });
+    }
+    
+    // Event listener para exportar
+    const exportBtn = document.getElementById('exportHistoryBtn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', exportDeliveryHistory);
+    }
 });
 
 // Exportar funciones para uso global si es necesario
@@ -499,5 +910,8 @@ window.InventarioApp = {
     cleanup,
     showTemporaryMessage,
     showConfirmationModal,
-    hideConfirmationModal
+    hideConfirmationModal,
+    showEditModal,
+    hideEditModal,
+    exportDeliveryHistory
 };

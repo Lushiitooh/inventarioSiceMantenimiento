@@ -2013,3 +2013,318 @@ body {
     margin: 0 auto 1rem;
     opacity: 0.5;
 }
+
+/* ====================================================================
+   NUEVAS FUNCIONALIDADES EPP - EDICIÓN Y HISTÓRICO DE ENTREGAS
+   Agregar al final de styles.css
+   ==================================================================== */
+
+/* Modal de edición con animación mejorada */
+.modal-backdrop {
+    backdrop-filter: blur(4px);
+    transition: all 0.3s ease;
+}
+
+.slide-in-modal {
+    animation: slideInModal 0.3s ease-out;
+}
+
+@keyframes slideInModal {
+    from {
+        transform: scale(0.95) translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Botón de edición específico */
+.btn-edit {
+    background-color: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+    color: rgb(59, 130, 246);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    border: 1px solid;
+    cursor: pointer;
+}
+
+.btn-edit:hover {
+    background-color: rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.5);
+    color: rgb(29, 78, 216);
+    transform: scale(1.05);
+}
+
+.dark .btn-edit {
+    background-color: rgba(96, 165, 250, 0.15);
+    border-color: rgba(96, 165, 250, 0.4);
+    color: rgb(96, 165, 250);
+}
+
+/* Tabla de histórico de entregas */
+.delivery-history-table {
+    font-size: 14px;
+}
+
+.delivery-history-table tbody tr:hover {
+    background-color: rgba(147, 51, 234, 0.05);
+    transform: scale(1.002);
+    transition: all 0.2s ease;
+}
+
+.dark .delivery-history-table tbody tr:hover {
+    background-color: rgba(147, 51, 234, 0.1);
+}
+
+/* Badge para entregas */
+.delivery-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background-color: rgba(147, 51, 234, 0.1);
+    color: rgb(147, 51, 234);
+    border: 1px solid rgba(147, 51, 234, 0.2);
+}
+
+.dark .delivery-badge {
+    background-color: rgba(196, 181, 253, 0.15);
+    color: rgb(196, 181, 253);
+    border-color: rgba(196, 181, 253, 0.3);
+}
+
+/* Estado de carga para histórico */
+.loading-history {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    color: #6b7280;
+}
+
+.loading-history .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e5e7eb;
+    border-top-color: #8b5cf6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 0.5rem;
+}
+
+/* Estado vacío mejorado */
+.empty-state-delivery {
+    padding: 4rem 2rem;
+    text-align: center;
+    color: #6b7280;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 12px;
+    border: 2px dashed #cbd5e1;
+}
+
+.dark .empty-state-delivery {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    color: #94a3b8;
+    border-color: #475569;
+}
+
+.empty-state-delivery-icon {
+    width: 4rem;
+    height: 4rem;
+    margin: 0 auto 1rem;
+    opacity: 0.4;
+}
+
+/* Animación para mensajes de éxito específicos */
+.success-message-delivery {
+    animation: slideInFromRight 0.4s ease-out;
+}
+
+@keyframes slideInFromRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Mejoras específicas para formulario de entregas */
+.delivery-form-section {
+    background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+    border: 1px solid #d8b4fe;
+}
+
+.dark .delivery-form-section {
+    background: linear-gradient(135deg, #581c87 0%, #7c3aed 100%);
+    border-color: #8b5cf6;
+}
+
+/* Responsive para móviles específico de entregas */
+@media (max-width: 768px) {
+    .delivery-history-table {
+        font-size: 12px;
+    }
+    
+    .delivery-history-table th,
+    .delivery-history-table td {
+        padding: 0.5rem 0.25rem;
+    }
+    
+    .delivery-badge {
+        padding: 0.125rem 0.5rem;
+        font-size: 0.7rem;
+    }
+}
+
+/* Mejoras para campo de búsqueda del histórico */
+.history-search-container {
+    position: relative;
+}
+
+.history-search-container input:focus + .search-icon {
+    color: #8b5cf6;
+}
+
+/* Indicador de cantidad disponible en select */
+.epp-option-low-stock {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+.epp-option-warning-stock {
+    color: #d97706;
+    font-weight: 500;
+}
+
+.epp-option-ok-stock {
+    color: #059669;
+}
+
+/* Mejoras específicas para el modal de edición */
+#editEppModal .slide-in-modal {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+#editEppModal .form-section {
+    margin: 1.5rem 0;
+}
+
+#editEppModal .form-actions {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    padding: 1rem 0;
+    border-top: 1px solid #e5e7eb;
+    margin-top: 2rem;
+}
+
+.dark #editEppModal .form-actions {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+/* Estados hover mejorados para botones de acción */
+.btn-increase:hover,
+.btn-decrease:hover,
+.btn-edit:hover,
+.btn-delete:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Indicadores de stock en tiempo real */
+.stock-indicator-critical::before {
+    content: "⚠️";
+    margin-right: 0.5rem;
+}
+
+.stock-indicator-low::before {
+    content: "📦";
+    margin-right: 0.5rem;
+}
+
+.stock-indicator-ok::before {
+    content: "✅";
+    margin-right: 0.5rem;
+}
+
+/* Mejoras para accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+    .slide-in-modal,
+    .success-message-delivery,
+    .delivery-history-table tbody tr {
+        animation: none;
+        transition: none;
+    }
+    
+    .btn-edit:hover,
+    .action-button:hover {
+        transform: none;
+    }
+}
+
+/* Mejoras para alto contraste */
+@media (prefers-contrast: high) {
+    .btn-edit {
+        border-width: 2px;
+    }
+    
+    .delivery-badge {
+        border-width: 2px;
+    }
+    
+    .delivery-history-table {
+        border: 2px solid currentColor;
+    }
+}
+
+/* Print styles específicos para entregas */
+@media print {
+    .delivery-form-section,
+    .btn-edit,
+    .history-search-container {
+        display: none;
+    }
+    
+    .delivery-history-table {
+        font-size: 11pt;
+        border-collapse: collapse;
+    }
+    
+    .delivery-history-table th,
+    .delivery-history-table td {
+        border: 1px solid #000;
+        padding: 8pt;
+    }
+}
+
+/* Tooltips para botones de acción */
+.action-button[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-bottom: 5px;
+    pointer-events: none;
+}

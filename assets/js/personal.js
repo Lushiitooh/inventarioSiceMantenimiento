@@ -6,7 +6,7 @@ async function waitForFirebase() {
             resolve();
         } else {
             window.addEventListener('firebaseReady', resolve, { once: true });
-            
+
             const checkFirebase = () => {
                 if (window.firebaseReady && window.db && window.auth) {
                     resolve();
@@ -27,7 +27,7 @@ class PersonalManager {
         this.confirmCallback = null;
         this.CLOUDINARY_CLOUD_NAME = "dep5jbtjh";
         this.CLOUDINARY_UPLOAD_PRESET = "inv_epp_unsigned";
-        
+
         // Definición de certificaciones
         this.certifications = [
             { key: 'examen', name: 'Examen ACHS', hasDate: true, hasVencimiento: true },
@@ -50,12 +50,12 @@ class PersonalManager {
 
     async init() {
         console.log("📋 Inicializando PersonalManager");
-        
+
         await waitForFirebase();
-        
+
         this.setupEventListeners();
         this.generateCertificationFields();
-        
+
         // Verificar autenticación
         window.onAuthStateChanged(window.auth, (user) => {
             this.updateUIVisibility(user);
@@ -71,10 +71,10 @@ class PersonalManager {
         const mainContent = document.getElementById('mainContent');
         const loadingIndicator = document.getElementById('loadingIndicator');
         const personalStats = document.getElementById('personalStats');
-        
+
         if (authStatus) {
-            authStatus.textContent = isAuthorized 
-                ? `Acceso autorizado: ${user.email}` 
+            authStatus.textContent = isAuthorized
+                ? `Acceso autorizado: ${user.email}`
                 : "Acceso restringido - Solo Luis Sepúlveda";
         }
 
@@ -96,7 +96,7 @@ class PersonalManager {
             `;
             mainContent.classList.remove('hidden');
         }
-        
+
         loadingIndicator?.classList.add('hidden');
     }
 
@@ -108,14 +108,14 @@ class PersonalManager {
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
+
         const expiry = new Date(expiryDate);
         expiry.setHours(0, 0, 0, 0);
-        
+
         // Calcular días hasta el vencimiento
         const diffTime = expiry.getTime() - today.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
+
         // Lógica de estados
         if (diffDays < 0) {
             return "Vencido";
@@ -131,15 +131,15 @@ class PersonalManager {
         const dateInput = document.getElementById(`${certKey}Date`);
         const expiryInput = document.getElementById(`${certKey}Expiry`);
         const statusSelect = document.getElementById(`${certKey}Status`);
-        
+
         if (!dateInput || !expiryInput || !statusSelect) return;
-        
+
         const dateValue = dateInput.value;
         const expiryValue = expiryInput.value;
-        
+
         if (dateValue && expiryValue) {
             const calculatedStatus = this.calculateCertificateStatus(dateValue, expiryValue);
-            
+
             // Solo actualizar si el select no está en modo manual
             if (statusSelect.disabled || !['No Aplica', 'Prohibición'].includes(statusSelect.value)) {
                 statusSelect.value = calculatedStatus;
@@ -151,7 +151,7 @@ class PersonalManager {
     // ✅ NUEVA FUNCIÓN: Mostrar indicador visual del estado
     showStatusIndicator(certKey, status, expiryDate) {
         let indicatorContainer = document.getElementById(`${certKey}StatusIndicator`);
-        
+
         if (!indicatorContainer) {
             const expiryInput = document.getElementById(`${certKey}Expiry`);
             if (expiryInput) {
@@ -161,16 +161,16 @@ class PersonalManager {
                 expiryInput.parentNode.appendChild(indicatorContainer);
             }
         }
-        
+
         const statusConfig = {
             'Vigente': { color: 'green', icon: '✓', message: 'Certificado vigente' },
             'Por Vencer': { color: 'yellow', icon: '⚠', message: 'Próximo a vencer (≤30 días)' },
             'Vencido': { color: 'red', icon: '✗', message: 'Certificado vencido' },
             'Sin definir': { color: 'gray', icon: '?', message: 'Estado no definido' }
         };
-        
+
         const config = statusConfig[status] || statusConfig['Sin definir'];
-        
+
         // Calcular días restantes si hay fecha de vencimiento
         let daysMessage = '';
         if (expiryDate && status !== 'Sin definir') {
@@ -178,14 +178,14 @@ class PersonalManager {
             const expiry = new Date(expiryDate);
             const diffTime = expiry.getTime() - today.getTime();
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
+
             if (diffDays < 0) {
                 daysMessage = ` (vencido hace ${Math.abs(diffDays)} días)`;
             } else if (diffDays <= 30) {
                 daysMessage = ` (${diffDays} días restantes)`;
             }
         }
-        
+
         indicatorContainer.innerHTML = `
             <div class="flex items-center text-xs">
                 <span class="w-3 h-3 rounded-full bg-${config.color}-500 mr-2"></span>
@@ -200,7 +200,7 @@ class PersonalManager {
     toggleManualStatus(certKey) {
         const statusSelect = document.getElementById(`${certKey}Status`);
         const button = event.target;
-        
+
         if (statusSelect.disabled) {
             // Cambiar a modo manual
             statusSelect.disabled = false;
@@ -217,7 +217,7 @@ class PersonalManager {
             button.title = "Cambiar a modo manual";
             button.classList.remove('bg-orange-500', 'hover:bg-orange-600');
             button.classList.add('bg-gray-500', 'hover:bg-gray-600');
-            
+
             // Recalcular el estado automáticamente
             this.updateCertificateStatus(certKey);
         }
@@ -347,7 +347,7 @@ class PersonalManager {
         try {
             console.log("📋 Cargando trabajadores...");
             const workersRef = window.collection(window.db, `artifacts/${window.appIdForPath}/users/${window.ADMIN_UID}/workers`);
-            
+
             window.onSnapshot(window.query(workersRef, window.orderBy('apellidos', 'asc')), (snapshot) => {
                 this.allWorkers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 this.displayWorkers();
@@ -368,7 +368,7 @@ class PersonalManager {
     // ✅ NUEVA FUNCIÓN: Ejecutar verificación automática de todos los trabajadores
     async runAutomaticStatusCheck() {
         console.log("🔄 Ejecutando verificación automática de estados...");
-        
+
         const certificationsWithExpiry = this.certifications.filter(cert => cert.hasDate && cert.hasVencimiento);
 
         for (const worker of this.allWorkers) {
@@ -376,14 +376,14 @@ class PersonalManager {
                 if (worker[`${cert.key}Date`] && worker[`${cert.key}Expiry`]) {
                     const realizationDate = worker[`${cert.key}Date`].toDate();
                     const expiryDate = worker[`${cert.key}Expiry`].toDate();
-                    
+
                     const calculatedStatus = this.calculateCertificateStatus(
                         realizationDate.toISOString().split('T')[0],
                         expiryDate.toISOString().split('T')[0]
                     );
-                    
+
                     const currentStatus = worker[`${cert.key}Status`];
-                    
+
                     // Solo actualizar si el estado calculado es diferente y no es un estado manual
                     if (currentStatus !== calculatedStatus && !['No Aplica', 'Prohibición'].includes(currentStatus)) {
                         await this.updateWorkerCertificateStatus(worker.id, cert.key, calculatedStatus);
@@ -391,7 +391,7 @@ class PersonalManager {
                 }
             }
         }
-        
+
         console.log("✅ Verificación automática completada");
     }
 
@@ -413,16 +413,16 @@ class PersonalManager {
     showExpiryNotifications() {
         const notifications = [];
         const today = new Date();
-        
+
         this.allWorkers.forEach(worker => {
             const certificationsWithExpiry = this.certifications.filter(cert => cert.hasDate && cert.hasVencimiento);
-            
+
             certificationsWithExpiry.forEach(cert => {
                 if (worker[`${cert.key}Expiry`]) {
                     const expiryDate = worker[`${cert.key}Expiry`].toDate();
                     const diffTime = expiryDate.getTime() - today.getTime();
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    
+
                     if (diffDays <= 30 && diffDays >= 0) {
                         notifications.push({
                             worker: `${worker.nombres} ${worker.apellidos}`,
@@ -434,7 +434,7 @@ class PersonalManager {
                 }
             });
         });
-        
+
         if (notifications.length > 0) {
             this.showExpiryAlert(notifications);
         }
@@ -444,7 +444,7 @@ class PersonalManager {
     showExpiryAlert(notifications) {
         // Evitar mostrar múltiples alertas
         if (document.getElementById('expiryAlert')) return;
-        
+
         const alertContainer = document.createElement('div');
         alertContainer.id = 'expiryAlert';
         alertContainer.className = 'fixed top-4 right-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded shadow-lg max-w-md z-50';
@@ -459,9 +459,9 @@ class PersonalManager {
                     <h3 class="text-sm font-medium">Certificados próximos a vencer (${notifications.length})</h3>
                     <div class="mt-2 text-sm">
                         <ul class="list-disc space-y-1 pl-5">
-                            ${notifications.slice(0, 5).map(notif => 
-                                `<li>${notif.worker} - ${notif.certification} (${notif.daysLeft} días)</li>`
-                            ).join('')}
+                            ${notifications.slice(0, 5).map(notif =>
+            `<li>${notif.worker} - ${notif.certification} (${notif.daysLeft} días)</li>`
+        ).join('')}
                             ${notifications.length > 5 ? `<li>... y ${notifications.length - 5} más</li>` : ''}
                         </ul>
                     </div>
@@ -472,9 +472,9 @@ class PersonalManager {
                 </div>
             </div>
         `;
-        
+
         document.body.appendChild(alertContainer);
-        
+
         // Auto-remover después de 15 segundos
         setTimeout(() => {
             if (alertContainer.parentNode) {
@@ -533,7 +533,7 @@ class PersonalManager {
         const complianceLevel = document.getElementById('complianceFilter')?.value;
 
         if (searchTerm) {
-            filteredWorkers = filteredWorkers.filter(worker => 
+            filteredWorkers = filteredWorkers.filter(worker =>
                 `${worker.nombres} ${worker.apellidos}`.toLowerCase().includes(searchTerm) ||
                 worker.rut?.toLowerCase().includes(searchTerm) ||
                 worker.cargo?.toLowerCase().includes(searchTerm)
@@ -567,7 +567,7 @@ class PersonalManager {
         container.innerHTML = filteredWorkers.map(worker => {
             const compliance = this.calculateCompliance(worker);
             const complianceLevel = this.getComplianceLevel(compliance);
-            
+
             return `
                 <div class="worker-card ${complianceLevel}-compliance bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                     <div class="flex items-start justify-between">
@@ -596,10 +596,10 @@ class PersonalManager {
                             
                             <div class="flex flex-wrap gap-2 mb-4">
                                 ${this.certifications.slice(0, 4).map(cert => {
-                                    const status = worker[`${cert.key}Status`] || (worker[`${cert.key}Completed`] ? 'Completado' : 'Pendiente');
-                                    const statusClass = this.getStatusClass(status);
-                                    return `<span class="px-2 py-1 text-xs rounded ${statusClass}">${cert.name}: ${status}</span>`;
-                                }).join('')}
+                const status = worker[`${cert.key}Status`] || (worker[`${cert.key}Completed`] ? 'Completado' : 'Pendiente');
+                const statusClass = this.getStatusClass(status);
+                return `<span class="px-2 py-1 text-xs rounded ${statusClass}">${cert.name}: ${status}</span>`;
+            }).join('')}
                             </div>
                         </div>
                         
@@ -646,7 +646,7 @@ class PersonalManager {
 
     async handleWorkerSubmit(e) {
         e.preventDefault();
-        
+
         const submitBtn = e.target.querySelector('button[type="submit"]');
         const originalText = submitBtn.textContent;
         submitBtn.disabled = true;
@@ -689,7 +689,7 @@ class PersonalManager {
             nombres: document.getElementById('workerNombres').value.trim(),
             apellidos: document.getElementById('workerApellidos').value.trim(),
             cargo: document.getElementById('workerCargo').value,
-            
+
             // Documentos básicos
             contrato: document.getElementById('contrato').checked,
             anexo: document.getElementById('anexo').checked,
@@ -702,12 +702,12 @@ class PersonalManager {
         for (const cert of this.certifications) {
             if (cert.hasDate) {
                 data[`${cert.key}Status`] = document.getElementById(`${cert.key}Status`).value;
-                
+
                 const dateValue = document.getElementById(`${cert.key}Date`).value;
                 if (dateValue) {
                     data[`${cert.key}Date`] = window.Timestamp.fromDate(new Date(dateValue));
                 }
-                
+
                 if (cert.hasVencimiento) {
                     const expiryValue = document.getElementById(`${cert.key}Expiry`).value;
                     if (expiryValue) {
@@ -755,7 +755,7 @@ class PersonalManager {
     selectFile(certKey) {
         const fileInput = document.getElementById(`${certKey}File`);
         fileInput.click();
-        
+
         fileInput.onchange = () => {
             const fileName = fileInput.files[0]?.name;
             const fileNameSpan = document.getElementById(`${certKey}FileName`);
@@ -773,15 +773,15 @@ class PersonalManager {
         document.getElementById('cancelEditBtn').classList.add('hidden');
         document.getElementById('submitButtonText').textContent = 'Agregar Trabajador';
         document.getElementById('editingWorkerId').value = '';
-        
+
         // Limpiar nombres de archivos e indicadores de estado
         this.certifications.forEach(cert => {
             const fileNameSpan = document.getElementById(`${cert.key}FileName`);
             if (fileNameSpan) fileNameSpan.textContent = '';
-            
+
             const statusIndicator = document.getElementById(`${cert.key}StatusIndicator`);
             if (statusIndicator) statusIndicator.innerHTML = '';
-            
+
             // Restaurar modo automático para certificaciones con vencimiento
             if (cert.hasDate && cert.hasVencimiento) {
                 const statusSelect = document.getElementById(`${cert.key}Status`);
@@ -789,7 +789,7 @@ class PersonalManager {
                     statusSelect.disabled = true;
                     statusSelect.title = "Estado calculado automáticamente";
                 }
-                
+
                 const manualButton = statusSelect?.parentNode.querySelector('button');
                 if (manualButton) {
                     manualButton.textContent = "Manual";
@@ -830,7 +830,7 @@ class PersonalManager {
                 const statusSelect = document.getElementById(`${cert.key}Status`);
                 if (statusSelect) {
                     statusSelect.value = worker[`${cert.key}Status`] || '';
-                    
+
                     // Si es un estado manual, habilitar el select
                     if (['No Aplica', 'Prohibición'].includes(worker[`${cert.key}Status`])) {
                         statusSelect.disabled = false;
@@ -855,7 +855,7 @@ class PersonalManager {
                         const date = worker[`${cert.key}Expiry`].toDate();
                         expiryInput.value = date.toISOString().split('T')[0];
                     }
-                    
+
                     // Actualizar indicador de estado después de cargar las fechas
                     setTimeout(() => {
                         this.updateCertificateStatus(cert.key);
@@ -879,7 +879,7 @@ class PersonalManager {
         document.getElementById('cancelEditBtn').classList.remove('hidden');
         document.getElementById('submitButtonText').textContent = 'Actualizar Trabajador';
         document.getElementById('addWorkerSection').classList.remove('hidden');
-        
+
         // Scroll al formulario
         document.getElementById('addWorkerSection').scrollIntoView({ behavior: 'smooth' });
     }
@@ -888,7 +888,7 @@ class PersonalManager {
         const worker = this.allWorkers.find(w => w.id === workerId);
         if (!worker) return;
 
-        document.getElementById('modalWorkerInfo').textContent = 
+        document.getElementById('modalWorkerInfo').textContent =
             `${worker.nombres} ${worker.apellidos} - ${worker.cargo} - RUT: ${worker.rut}`;
 
         const documentsContent = document.getElementById('documentsContent');
@@ -910,12 +910,12 @@ class PersonalManager {
                 </div>
                 
                 ${this.certifications.map(cert => {
-                    const status = worker[`${cert.key}Status`] || (worker[`${cert.key}Completed`] ? 'Completado' : 'Sin definir');
-                    const hasDocument = worker[`${cert.key}Document`];
-                    const date = worker[`${cert.key}Date`] ? worker[`${cert.key}Date`].toDate().toLocaleDateString('es-CL') : 'No definida';
-                    const expiry = worker[`${cert.key}Expiry`] ? worker[`${cert.key}Expiry`].toDate().toLocaleDateString('es-CL') : 'No definida';
-                    
-                    return `
+            const status = worker[`${cert.key}Status`] || (worker[`${cert.key}Completed`] ? 'Completado' : 'Sin definir');
+            const hasDocument = worker[`${cert.key}Document`];
+            const date = worker[`${cert.key}Date`] ? worker[`${cert.key}Date`].toDate().toLocaleDateString('es-CL') : 'No definida';
+            const expiry = worker[`${cert.key}Expiry`] ? worker[`${cert.key}Expiry`].toDate().toLocaleDateString('es-CL') : 'No definida';
+
+            return `
                         <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
                             <div class="flex items-center justify-between mb-2">
                                 <h5 class="font-medium">${cert.name}</h5>
@@ -940,7 +940,7 @@ class PersonalManager {
                             ` : '<p class="text-xs text-gray-500 mt-2">Sin documento adjunto</p>'}
                         </div>
                     `;
-                }).join('')}
+        }).join('')}
             </div>
         `;
 
@@ -966,7 +966,7 @@ class PersonalManager {
     showMessage(message, type = 'info') {
         const container = document.getElementById('messageContainer');
         if (!container) return;
-        
+
         container.textContent = message;
         const classes = {
             success: 'bg-green-100 text-green-700 border-green-200',
@@ -974,10 +974,10 @@ class PersonalManager {
             warning: 'bg-yellow-100 text-yellow-700 border-yellow-200',
             info: 'bg-blue-100 text-blue-700 border-blue-200'
         };
-        
+
         container.className = `p-4 mb-6 text-sm rounded-lg border ${classes[type] || classes.info}`;
         container.classList.remove('hidden');
-        
+
         setTimeout(() => {
             container.classList.add('hidden');
         }, 5000);
