@@ -54,10 +54,24 @@
 
             <div class="space-y-2">
                 <p id="userIdDisplay" class="text-sm text-gray-600 dark:text-gray-400">Cargando...</p>
-                <div class="flex items-center justify-center space-x-2">
-                    <div id="authStatus" class="text-sm">Estado: Inicializando...</div>
-                    <div id="statusIndicator" class="w-2 h-2 bg-gray-400 rounded-full"></div>
-                </div>
+                <div class="flex flex-col items-center space-y-2">
+    <div class="flex items-center space-x-2">
+        <div id="authStatus" class="text-sm">Estado: Inicializando...</div>
+        <div id="statusIndicator" class="w-2 h-2 bg-gray-400 rounded-full"></div>
+    </div>
+    <div class="flex items-center space-x-2">
+        <div id="connectionStatus" class="text-xs">Verificando conexión...</div>
+        <div id="connectionIndicator" class="w-2 h-2 bg-gray-400 rounded-full"></div>
+    </div>
+    <div id="offlineIndicator" class="hidden flex items-center space-x-2 bg-orange-100 dark:bg-orange-900 px-3 py-1 rounded-full">
+        <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span class="text-xs text-orange-600">
+            <span id="pendingCount">0</span> cambios pendientes
+        </span>
+    </div>
+</div>
                 <button id="logoutButton"
                     class="hidden mt-3 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium">
                     Cerrar Sesión

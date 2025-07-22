@@ -26,11 +26,24 @@ export class EPPManager {
         this.confirmCallback = null;
         this.allEppItems = [];
         this.allDeliveries = [];
-        
+        this.isOnline = navigator.onLine;
+        this.offlineDB = null;
+        this.syncInProgress = false;
+
+        // Inicializar almacenamiento offline
+        this.initializeOfflineStorage();
+
+        // Listeners para cambios de conectividad
+        window.addEventListener('online', () => this.handleOnlineStatus(true));
+        window.addEventListener('offline', () => this.handleOnlineStatus(false));
+
+
         console.log(`🔧 EPPManager inicializado para ${config.instanceName}`);
         
         // Inicializar listeners de eventos de la UI y autenticación
         this.initializeEventListeners();
+        // Inicializar sistema offline
+        this.initializeOfflineSystem();
         this.setupAuthListener();
         
         // === NUEVO: CARGAR INVENTARIO INMEDIATAMENTE PARA VISTA PÚBLICA ===
@@ -237,18 +250,56 @@ export class EPPManager {
         }
 
         this.unsubscribeInventory = onSnapshot(query(eppInventoryCollectionRef), (snapshot) => {
-            console.log(`📊 Inventario cargado: ${snapshot.docs.length} items`);
-            this.allEppItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            this.allEppItems.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-            this.displayFilteredInventory(isAdmin);
-            this.updateDeliverySelect();
-            if (window.updateAuthStatus) window.updateAuthStatus('connected', isAdmin ? 'Inventario cargado' : 'Vista pública activa');
-        }, (error) => {
-            console.error("❌ Error al cargar inventario EPP: ", error);
-            this.showTemporaryMessage(`Error al cargar inventario: ${error.message}`, "error");
-            if (window.updateAuthStatus) window.updateAuthStatus('error', 'Error al cargar');
+            if (this.isOnline) {
+    this.unsubscribeInventory = onSnapshot(query(eppInventoryCollectionRef), (snapshot) => {
+        console.log(`📊 Inventario cargado desde Firebase: ${snapshot.docs.length} items`);
+        this.allEppItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        this.allEppItems.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        
+        // Guardar en almacenamiento offline
+        this.saveInventoryOffline(this.allEppItems);
+        
+        this.displayFilteredInventory(isAdmin);
+        this.updateDeliverySelect();
+        if (window.updateAuthStatus) window.updateAuthStatus('connected', isAdmin ? 'Inventario cargado' : 'Vista pública activa');
+    }, (error) => {
+        console.error("❌ Error al cargar inventario EPP: ", error);
+        this.loadOfflineInventory(isAdmin);
+    });
+} else {
+    this.loadOfflineInventory(isAdmin);
+}
         });
     }
+    async loadOfflineInventory(isAdmin) {
+    try {
+        this.allEppItems = await this.loadInventoryOffline();
+        this.displayFilteredInventory(isAdmin);
+        this.updateDeliverySelect();
+        
+        if (this.allEppItems.length > 0) {
+            if (window.updateAuthStatus) window.updateAuthStatus('connected', 'Inventario offline activo');
+            this.showTemporaryMessage(`📱 Modo offline: ${this.allEppItems.length} items cargados desde almacenamiento local`, "info");
+        } else {
+            if (window.updateAuthStatus) window.updateAuthStatus('error', 'Sin datos offline');
+            this.showTemporaryMessage("No hay datos offline disponibles. Conecte a internet para sincronizar.", "warning");
+        }
+    } catch (error) {
+        console.error("❌ Error cargando inventario offline:", error);
+        if (window.updateAuthStatus) window.updateAuthStatus('error', 'Error cargando offline');
+        this.showTemporaryMessage("Error al cargar datos offline", "error");
+    }
+}
+async initializeOfflineSystem() {
+    try {
+        await this.initializeOfflineStorage();
+        this.updateConnectionStatus();
+        this.updatePendingChangesUI();
+        console.log('✅ Sistema offline inicializado correctamente');
+    } catch (error) {
+        console.error('❌ Error inicializando sistema offline:', error);
+    }
+}
 
     loadDeliveries(eppDeliveriesCollectionRef) {
         console.log('🚚 Cargando entregas...');
@@ -503,33 +554,57 @@ export class EPPManager {
 
     // === GESTIÓN DE EPP ===
     async handleAddEpp(form) {
-        console.log('➕ Agregando nuevo EPP...');
-        const eppInventoryCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_inventory`);
-        const name = form.querySelector('#eppName').value.trim();
-        const size = form.querySelector('#eppSize').value.trim();
-        const quantity = parseInt(form.querySelector('#eppQuantity').value);
-        const minStock = parseInt(form.querySelector('#eppMinStock').value);
+    console.log('➕ Agregando nuevo EPP...');
+    const eppInventoryCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_inventory`);
+    const name = form.querySelector('#eppName').value.trim();
+    const size = form.querySelector('#eppSize').value.trim();
+    const quantity = parseInt(form.querySelector('#eppQuantity').value);
+    const minStock = parseInt(form.querySelector('#eppMinStock').value);
 
-        if (name && !isNaN(quantity) && quantity >= 0 && !isNaN(minStock) && minStock >= 0) {
-            try {
-                await addDoc(eppInventoryCollectionRef, {
-                    name,
-                    size: size || '',
-                    quantity,
-                    minStock,
-                    createdAt: Timestamp.now()
-                });
-                form.reset();
+    if (name && !isNaN(quantity) && quantity >= 0 && !isNaN(minStock) && minStock >= 0) {
+        const itemData = {
+            name,
+            size: size || '',
+            quantity,
+            minStock,
+            createdAt: new Date() // Usar Date en lugar de Timestamp para offline
+        };
+
+        try {
+            if (this.isOnline) {
+                // Online: usar Timestamp de Firebase
+                itemData.createdAt = Timestamp.now();
+                await addDoc(eppInventoryCollectionRef, itemData);
                 this.showTemporaryMessage("EPP agregado con éxito.", "success");
-                console.log(`✅ EPP agregado: ${name}`);
-            } catch (error) {
-                console.error("❌ Error al agregar EPP:", error);
-                this.showTemporaryMessage(`Error al agregar EPP: ${error.message}`, "error");
+            } else {
+                // Offline: generar ID temporal y agregar a memoria local
+                const tempId = 'temp_' + Date.now();
+                const newItem = { ...itemData, id: tempId };
+                
+                this.allEppItems.push(newItem);
+                this.allEppItems.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                this.displayFilteredInventory(this.isUserAdmin);
+                
+                await this.addPendingChange({
+                    type: 'addItem',
+                    itemData: itemData,
+                    tempId: tempId
+                });
+                
+                this.showTemporaryMessage("EPP agregado (se sincronizará cuando haya conexión)", "warning");
             }
-        } else {
-            this.showTemporaryMessage("Datos inválidos. Por favor, complete todos los campos requeridos.", "error");
+            
+            form.reset();
+            console.log(`✅ EPP agregado: ${name}`);
+            
+        } catch (error) {
+            console.error("❌ Error al agregar EPP:", error);
+            this.showTemporaryMessage(`Error al agregar EPP: ${error.message}`, "error");
         }
+    } else {
+        this.showTemporaryMessage("Datos inválidos. Por favor, complete todos los campos requeridos.", "error");
     }
+}
 
     async handleDeliveryEpp(form) {
         console.log('🚚 Registrando entrega de EPP...');
@@ -674,85 +749,140 @@ export class EPPManager {
 
     // FUNCIÓN: Actualizar EPP
     async handleUpdateEpp(form) {
-        console.log('✏️ Actualizando EPP...');
-        const eppInventoryCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_inventory`);
+    console.log('✏️ Actualizando EPP...');
+    const eppInventoryCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_inventory`);
 
-        const eppId = form.querySelector('#editEppId').value;
-        const name = form.querySelector('#editEppName').value.trim();
-        const size = form.querySelector('#editEppSize').value.trim();
-        const quantity = parseInt(form.querySelector('#editEppQuantity').value);
-        const minStock = parseInt(form.querySelector('#editEppMinStock').value);
+    const eppId = form.querySelector('#editEppId').value;
+    const name = form.querySelector('#editEppName').value.trim();
+    const size = form.querySelector('#editEppSize').value.trim();
+    const quantity = parseInt(form.querySelector('#editEppQuantity').value);
+    const minStock = parseInt(form.querySelector('#editEppMinStock').value);
 
-        if (!name || isNaN(quantity) || quantity < 0 || isNaN(minStock) || minStock < 0) {
-            this.showTemporaryMessage("Por favor, complete todos los campos correctamente.", "error");
-            return;
-        }
-
-        try {
-            const eppRef = doc(eppInventoryCollectionRef, eppId);
-            await updateDoc(eppRef, {
-                name,
-                size: size || '',
-                quantity,
-                minStock,
-                updatedAt: Timestamp.now()
-            });
-
-            this.hideEditModal();
-            this.showTemporaryMessage(`EPP "${name}" actualizado correctamente.`, "success");
-            console.log(`✅ EPP actualizado: ${name}`);
-        } catch (error) {
-            console.error("❌ Error al actualizar EPP:", error);
-            this.showTemporaryMessage(`Error al actualizar EPP: ${error.message}`, "error");
-        }
+    if (!name || isNaN(quantity) || quantity < 0 || isNaN(minStock) || minStock < 0) {
+        this.showTemporaryMessage("Por favor, complete todos los campos correctamente.", "error");
+        return;
     }
 
-    async handleInventoryAction(button) {
-        const eppInventoryCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_inventory`);
-        const { action, id } = button.dataset;
-        const itemRef = doc(eppInventoryCollectionRef, id);
+    const updateData = {
+        name,
+        size: size || '',
+        quantity,
+        minStock,
+        updatedAt: new Date()
+    };
 
-        try {
-            const itemDoc = await getDoc(itemRef);
-            if (!itemDoc.exists()) {
+    try {
+        // Actualizar en memoria local inmediatamente
+        const itemIndex = this.allEppItems.findIndex(item => item.id === eppId);
+        if (itemIndex !== -1) {
+            this.allEppItems[itemIndex] = { ...this.allEppItems[itemIndex], ...updateData };
+            this.displayFilteredInventory(this.isUserAdmin);
+        }
+
+        if (this.isOnline) {
+            updateData.updatedAt = Timestamp.now();
+            const eppRef = doc(eppInventoryCollectionRef, eppId);
+            await updateDoc(eppRef, updateData);
+            this.showTemporaryMessage(`EPP "${name}" actualizado correctamente.`, "success");
+        } else {
+            await this.addPendingChange({
+                type: 'updateItem',
+                itemId: eppId,
+                updateData: updateData,
+                itemName: name
+            });
+            this.showTemporaryMessage(`EPP "${name}" actualizado (se sincronizará cuando haya conexión)`, "warning");
+        }
+
+        this.hideEditModal();
+        console.log(`✅ EPP actualizado: ${name}`);
+        
+    } catch (error) {
+        console.error("❌ Error al actualizar EPP:", error);
+        this.showTemporaryMessage(`Error al actualizar EPP: ${error.message}`, "error");
+    }
+}
+
+    async handleInventoryAction(button) {
+    const eppInventoryCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_inventory`);
+    const { action, id } = button.dataset;
+
+    try {
+        if (action === 'increase' || action === 'decrease') {
+            // Buscar item en memoria local primero
+            const item = this.allEppItems.find(epp => epp.id === id);
+            if (!item) {
                 this.showTemporaryMessage("El EPP no existe.", "error");
                 return;
             }
 
-            const currentQuantity = itemDoc.data().quantity || 0;
-            const itemName = itemDoc.data().name || 'EPP';
+            const currentQuantity = item.quantity || 0;
+            const newQuantity = action === 'increase' ? currentQuantity + 1 : 
+                               (currentQuantity > 0 ? currentQuantity - 1 : 0);
 
-            if (action === 'increase') {
-                await updateDoc(itemRef, { quantity: currentQuantity + 1 });
-                this.showTemporaryMessage(`Cantidad de ${itemName} aumentada.`, "success");
-                console.log(`📈 Cantidad aumentada: ${itemName}`);
-            } else if (action === 'decrease') {
-                if (currentQuantity > 0) {
-                    await updateDoc(itemRef, { quantity: currentQuantity - 1 });
-                    this.showTemporaryMessage(`Cantidad de ${itemName} reducida.`, "success");
-                    console.log(`📉 Cantidad reducida: ${itemName}`);
-                } else {
-                    this.showTemporaryMessage("No se puede reducir: cantidad ya es 0.", "warning");
-                }
-            } else if (action === 'delete') {
-                this.showConfirmationModal(
-                    `¿Estás seguro de que quieres eliminar "${itemName}"? Esta acción no se puede deshacer.`,
-                    async () => {
-                        try {
+            if (action === 'decrease' && currentQuantity <= 0) {
+                this.showTemporaryMessage("No se puede reducir: cantidad ya es 0.", "warning");
+                return;
+            }
+
+            // Actualizar en memoria local inmediatamente
+            item.quantity = newQuantity;
+            this.displayFilteredInventory(this.isUserAdmin);
+
+            if (this.isOnline) {
+                // Online: actualizar Firebase directamente
+                const itemRef = doc(eppInventoryCollectionRef, id);
+                await updateDoc(itemRef, { quantity: newQuantity });
+                this.showTemporaryMessage(`Cantidad de ${item.name} ${action === 'increase' ? 'aumentada' : 'reducida'}.`, "success");
+            } else {
+                // Offline: guardar en cola de cambios
+                await this.addPendingChange({
+                    type: 'updateQuantity',
+                    itemId: id,
+                    newQuantity: newQuantity,
+                    itemName: item.name
+                });
+                this.showTemporaryMessage(`${item.name} ${action === 'increase' ? 'aumentado' : 'reducido'} (se sincronizará cuando haya conexión)`, "warning");
+            }
+
+        } else if (action === 'delete') {
+            const item = this.allEppItems.find(epp => epp.id === id);
+            if (!item) {
+                this.showTemporaryMessage("El EPP no existe.", "error");
+                return;
+            }
+
+            this.showConfirmationModal(
+                `¿Estás seguro de que quieres eliminar "${item.name}"? Esta acción no se puede deshacer.`,
+                async () => {
+                    try {
+                        if (this.isOnline) {
+                            const itemRef = doc(eppInventoryCollectionRef, id);
                             await deleteDoc(itemRef);
                             this.showTemporaryMessage("EPP eliminado correctamente.", "success");
-                            console.log(`🗑️ EPP eliminado: ${itemName}`);
-                        } catch (error) {
-                            this.showTemporaryMessage(`Error al eliminar: ${error.message}`, "error");
+                        } else {
+                            // Remover de memoria local
+                            this.allEppItems = this.allEppItems.filter(epp => epp.id !== id);
+                            this.displayFilteredInventory(this.isUserAdmin);
+                            
+                            await this.addPendingChange({
+                                type: 'deleteItem',
+                                itemId: id,
+                                itemName: item.name
+                            });
+                            this.showTemporaryMessage(`${item.name} eliminado (se sincronizará cuando haya conexión)`, "warning");
                         }
+                    } catch (error) {
+                        this.showTemporaryMessage(`Error al eliminar: ${error.message}`, "error");
                     }
-                );
-            }
-        } catch (error) {
-            console.error("❌ Error al actualizar el EPP:", error);
-            this.showTemporaryMessage(`Error al actualizar el EPP: ${error.message}`, "error");
+                }
+            );
         }
+    } catch (error) {
+        console.error("❌ Error al actualizar el EPP:", error);
+        this.showTemporaryMessage(`Error al actualizar el EPP: ${error.message}`, "error");
     }
+}
 
     async handleReturnLoan(button) {
         console.log('🔄 Devolviendo préstamo...');
@@ -1011,4 +1141,219 @@ export class EPPManager {
     initialize() {
         console.log(`📱 Aplicación de inventario EPP iniciada para ${this.config.instanceName}`);
     }
+
+
+    // === SISTEMA OFFLINE ===
+async initializeOfflineStorage() {
+    if (!('indexedDB' in window)) {
+        console.warn('IndexedDB no disponible');
+        return false;
+    }
+
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('EPPOfflineDB', 1);
+        
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+            this.offlineDB = request.result;
+            console.log('✅ Base de datos offline inicializada');
+            resolve(true);
+        };
+        
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            
+            // Store para inventario offline
+            if (!db.objectStoreNames.contains('inventory')) {
+                const inventoryStore = db.createObjectStore('inventory', { keyPath: 'id' });
+                inventoryStore.createIndex('name', 'name', { unique: false });
+            }
+            
+            // Store para cambios pendientes
+            if (!db.objectStoreNames.contains('pendingChanges')) {
+                const changesStore = db.createObjectStore('pendingChanges', { 
+                    keyPath: 'id', 
+                    autoIncrement: true 
+                });
+                changesStore.createIndex('timestamp', 'timestamp', { unique: false });
+                changesStore.createIndex('type', 'type', { unique: false });
+            }
+            
+            // Store para metadatos
+            if (!db.objectStoreNames.contains('metadata')) {
+                db.createObjectStore('metadata', { keyPath: 'key' });
+            }
+        };
+    });
+}
+
+async saveInventoryOffline(items) {
+    if (!this.offlineDB) return false;
+    
+    const transaction = this.offlineDB.transaction(['inventory', 'metadata'], 'readwrite');
+    const inventoryStore = transaction.objectStore('inventory');
+    const metadataStore = transaction.objectStore('metadata');
+    
+    // Limpiar inventario anterior
+    await inventoryStore.clear();
+    
+    // Guardar nuevo inventario
+    for (const item of items) {
+        await inventoryStore.add(item);
+    }
+    
+    // Guardar timestamp de última sincronización
+    await metadataStore.put({
+        key: 'lastSync',
+        value: new Date().toISOString()
+    });
+    
+    console.log(`💾 Inventario guardado offline: ${items.length} items`);
+    return true;
+}
+
+async loadInventoryOffline() {
+    if (!this.offlineDB) return [];
+    
+    return new Promise((resolve, reject) => {
+        const transaction = this.offlineDB.transaction(['inventory'], 'readonly');
+        const store = transaction.objectStore('inventory');
+        const request = store.getAll();
+        
+        request.onsuccess = () => {
+            console.log(`📱 Inventario cargado desde offline: ${request.result.length} items`);
+            resolve(request.result);
+        };
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async addPendingChange(changeData) {
+    if (!this.offlineDB) return false;
+    
+    const transaction = this.offlineDB.transaction(['pendingChanges'], 'readwrite');
+    const store = transaction.objectStore('pendingChanges');
+    
+    const change = {
+        ...changeData,
+        timestamp: new Date().toISOString(),
+        id: Date.now() + Math.random() // ID único temporal
+    };
+    
+    await store.add(change);
+    this.updatePendingChangesUI();
+    console.log('📝 Cambio agregado a cola offline:', change.type);
+    return true;
+}
+
+async getPendingChanges() {
+    if (!this.offlineDB) return [];
+    
+    return new Promise((resolve, reject) => {
+        const transaction = this.offlineDB.transaction(['pendingChanges'], 'readonly');
+        const store = transaction.objectStore('pendingChanges');
+        const request = store.getAll();
+        
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async clearPendingChanges() {
+    if (!this.offlineDB) return;
+    
+    const transaction = this.offlineDB.transaction(['pendingChanges'], 'readwrite');
+    const store = transaction.objectStore('pendingChanges');
+    await store.clear();
+    this.updatePendingChangesUI();
+}
+
+updatePendingChangesUI() {
+    this.getPendingChanges().then(changes => {
+        const indicator = document.getElementById('offlineIndicator');
+        const count = document.getElementById('pendingCount');
+        
+        if (indicator && count) {
+            count.textContent = changes.length;
+            indicator.style.display = changes.length > 0 ? 'flex' : 'none';
+        }
+    });
+}
+handleOnlineStatus(isOnline) {
+    this.isOnline = isOnline;
+    this.updateConnectionStatus();
+    
+    if (isOnline && !this.syncInProgress) {
+        this.syncPendingChanges();
+    }
+}
+
+updateConnectionStatus() {
+    const statusEl = document.getElementById('connectionStatus');
+    const indicatorEl = document.getElementById('connectionIndicator');
+    
+    if (statusEl && indicatorEl) {
+        if (this.isOnline) {
+            statusEl.textContent = 'Conectado';
+            indicatorEl.className = 'w-2 h-2 bg-green-500 rounded-full';
+        } else {
+            statusEl.textContent = 'Sin conexión (Modo Offline)';
+            indicatorEl.className = 'w-2 h-2 bg-orange-500 rounded-full animate-pulse';
+        }
+    }
+}
+
+async syncPendingChanges() {
+    if (this.syncInProgress || !this.isOnline) return;
+    
+    this.syncInProgress = true;
+    const changes = await this.getPendingChanges();
+    
+    if (changes.length === 0) {
+        this.syncInProgress = false;
+        return;
+    }
+    
+    console.log(`🔄 Sincronizando ${changes.length} cambios pendientes...`);
+    
+    try {
+        for (const change of changes) {
+            await this.applySyncChange(change);
+        }
+        
+        await this.clearPendingChanges();
+        this.showTemporaryMessage(`✅ ${changes.length} cambios sincronizados correctamente`, 'success');
+        
+    } catch (error) {
+        console.error('❌ Error durante sincronización:', error);
+        this.showTemporaryMessage('Error al sincronizar cambios. Se reintentará automáticamente.', 'error');
+    }
+    
+    this.syncInProgress = false;
+}
+
+async applySyncChange(change) {
+    const eppInventoryCollectionRef = collection(this.db, `artifacts/${this.appIdForPath}/users/${this.ADMIN_UID}/epp_inventory`);
+    
+    switch (change.type) {
+        case 'updateQuantity':
+            const itemRef = doc(eppInventoryCollectionRef, change.itemId);
+            await updateDoc(itemRef, { quantity: change.newQuantity });
+            break;
+            
+        case 'addItem':
+            await addDoc(eppInventoryCollectionRef, change.itemData);
+            break;
+            
+        case 'updateItem':
+            const updateRef = doc(eppInventoryCollectionRef, change.itemId);
+            await updateDoc(updateRef, change.updateData);
+            break;
+            
+        case 'deleteItem':
+            const deleteRef = doc(eppInventoryCollectionRef, change.itemId);
+            await deleteDoc(deleteRef);
+            break;
+    }
+}
 }
