@@ -6,9 +6,7 @@ const CACHE_NAME = 'inventario-epp-cache-v3';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/pages/inventario-luis.html',
-  '/pages/inventario-alex.html',
-  '/pages/inventario-javier.html',
+  '/pages/inventario.html',
   '/pages/certificados.html',
   '/pages/checklist.html',
   '/pages/formulario-ast.html',

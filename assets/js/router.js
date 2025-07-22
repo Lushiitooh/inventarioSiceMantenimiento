@@ -37,7 +37,8 @@ function updateActiveNavLink() {
         'certificados.html': 'certificados',
         'checklist.html': 'checklist',
         'formulario-ast.html': 'formulario-ast',
-        'personal.html': 'personal'
+        'personal.html': 'personal',
+        'inventario.html':'inventario'
     };
     
     let currentPageKey;
