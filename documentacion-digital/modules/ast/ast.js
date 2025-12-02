@@ -452,7 +452,7 @@ function collectFormData(form) {
         nombre,
         rut: formData.get(`personal_rut_${i}`),
         cargo: formData.get(`personal_cargo_${i}`),
-        firma: firmaImg
+        firmaImg: firmaImg  // ⬅️ CORREGIDO: Cambiar "firma" a "firmaImg" para coincidir con Pipedream
       });
     }
   }
