@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario AST - Documentación Digital SICE</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Estilos personalizados -->
+    <link rel="stylesheet" href="./shared/styles/main.css">
+    
+    <!-- SignaturePad Library -->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+</head>
+<body class="bg-gray-50">
+    
+    <!-- Contenido Principal -->
+    <main class="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 min-h-screen">
+        <form id="astForm" class="form-container fade-in">
+            
+            <!-- Cabecera -->
+            <div class="form-header">
+                <h2>ANÁLISIS DE SEGURIDAD EN EL TRABAJO (AST)</h2>
+                <p>FTO-AL10195-01</p>
+                <div class="mt-4">
+                    <div class="timestamp-badge">
+                        Fecha y hora de creación: <span id="fechaHoraActual" class="font-bold"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1. Información General -->
+            <section class="form-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <span class="section-icon">1</span>
+                        Información General del Trabajo
+                    </h3>
+                </div>
+                
+                <div class="form-grid form-grid-3">
+                    <div>
+                        <label for="empresa" class="form-label required-field">Empresa</label>
+                        <input type="text" id="empresa" name="empresa" class="form-input" value="SICE AGENCIA CHILE S.A" readonly>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="obra_area" class="form-label required-field">OBRA/Área</label>
+                        <input type="text" id="obra_area" name="obra_area" class="form-input" value="Suministro de Puertas Bidireccionales de Control en 7 Estaciones de la Red de Metro." readonly>
+                    </div>
+                </div>
+
+                <div class="form-grid form-grid-2" style="margin-top: 1.5rem;">
+                    <div class="md:col-span-2">
+                        <label for="lugar" class="form-label required-field">Lugar Específico</label>
+                        <select id="lugar" name="lugar" class="form-select" required>
+                            <option value="">Seleccione una estación...</option>
+                            <option value="Estacion Universidad de Chile">Estación Universidad de Chile</option>
+                            <option value="Estacion San Pablo">Estación San Pablo</option>
+                            <option value="Estacion Departamental">Estación Departamental</option>
+                            <option value="Estacion Santa Julia">Estación Santa Julia</option>
+                            <option value="Estacion San Ramon">Estación San Ramón</option>
+                            <option value="Estacion San Joaquin">Estación San Joaquín</option>
+                            <option value="Estacion La Granja">Estación La Granja</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1.5rem;">
+                    <label for="trabajo" class="form-label required-field">Trabajo a Realizar</label>
+                    <textarea id="trabajo" name="trabajo" class="form-textarea" placeholder="Describa detalladamente el trabajo que se va a realizar..." required></textarea>
+                </div>
+            </section>
+
+            <!-- 2. Documentos de Respaldo -->
+            <section class="form-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <span class="section-icon">2</span>
+                        Documento de Respaldo
+                    </h3>
+                </div>
+                
+                <div id="documentos-container">
+                    <div class="form-grid form-grid-2" id="documento-inicial">
+                        <div>
+                            <label for="tipoDocumento" class="form-label">Tipo de Documento</label>
+                            <select id="tipoDocumento" name="tipoDocumento" class="form-select">
+                                <option value="">Seleccione tipo...</option>
+                                <option value="procedimiento">Procedimiento</option>
+                                <option value="instructivo">Instructivo</option>
+                                <option value="otro">Otro</option>
+                                <option value="no_requiere">No requiere</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="nombreCodigo" class="form-label">Nombre o Código del Documento</label>
+                            <input type="text" id="nombreCodigo" name="nombreCodigo" class="form-input" placeholder="Ingrese nombre o código">
+                        </div>
+                    </div>
+                    <div id="documentos-adicionales" style="margin-top: 1rem;"></div>
+                </div>
+                <button type="button" id="add-documento-button" class="btn btn-secondary" style="margin-top: 1rem;">
+                    + Agregar Otro Documento
+                </button>
+            </section>
+
+            <!-- 3. Elementos de Apoyo (EPP) -->
+            <section class="form-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <span class="section-icon">3</span>
+                        Elementos de Apoyo para Control de Riesgos
+                    </h3>
+                </div>
+                
+                <div id="epp-container">
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input id="casco" name="epp_predeterminado" type="checkbox" value="Casco">
+                            <label for="casco">Casco</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input id="linterna_casco" name="epp_predeterminado" type="checkbox" value="Linterna Adosable al Casco">
+                            <label for="linterna_casco">Linterna Adosable al Casco</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input id="lentes" name="epp_predeterminado" type="checkbox" value="Lentes de seguridad">
+                            <label for="lentes">Lentes de seguridad</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input id="zapatos" name="epp_predeterminado" type="checkbox" value="Zapatos de seguridad">
+                            <label for="zapatos">Zapatos de seguridad</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input id="guantes" name="epp_predeterminado" type="checkbox" value="Guantes">
+                            <label for="guantes">Guantes</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input id="guantes_hyflex" name="epp_predeterminado" type="checkbox" value="Guantes Hyflex">
+                            <label for="guantes_hyflex">Guantes Hyflex</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input id="guantes_cabritilla" name="epp_predeterminado" type="checkbox" value="Guantes Cabritilla">
+                            <label for="guantes_cabritilla">Guantes Cabritilla</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input id="protector_auditivo" name="epp_predeterminado" type="checkbox" value="Protector auditivo">
+                            <label for="protector_auditivo">Protector auditivo</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input id="protector_respiratorio" name="epp_predeterminado" type="checkbox" value="Protector respiratorio">
+                            <label for="protector_respiratorio">Protector respiratorio</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input id="arnes" name="epp_predeterminado" type="checkbox" value="Arnés de seguridad">
+                            <label for="arnes">Arnés de seguridad</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input id="cono" name="epp_predeterminado" type="checkbox" value="Cono">
+                            <label for="cono">Cono</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input id="taladro_inalambrico" name="epp_predeterminado" type="checkbox" value="Taladro Inalámbrico">
+                            <label for="taladro_inalambrico">Taladro Inalámbrico</label>
+                        </div>
+                    </div>
+                    
+                    <div id="epp-adicionales" style="margin-top: 1.5rem;">
+                        <h4 style="font-weight: 600; margin-bottom: 1rem; color: var(--neutral-700);">Elementos Adicionales</h4>
+                    </div>
+                </div>
+                <button type="button" id="add-epp-button" class="btn btn-success" style="margin-top: 1rem;">
+                    + Agregar Elemento Adicional
+                </button>
+            </section>
+
+            <!-- 4. Etapas del Trabajo -->
+            <section class="form-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <span class="section-icon">4</span>
+                        Secuencia de las Etapas del Trabajo
+                    </h3>
+                </div>
+                <div id="etapas-container"></div>
+                <button type="button" id="add-etapa-button" class="btn btn-secondary" style="margin-top: 1.5rem;">
+                    + Agregar Otra Etapa
+                </button>
+            </section>
+
+            <!-- 5. Personal Participante -->
+            <section class="form-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <span class="section-icon">5</span>
+                        Personal Participante
+                    </h3>
+                </div>
+                <div id="personal-container"></div>
+                <button type="button" id="add-personal-button" class="btn btn-success" style="margin-top: 1.5rem;">
+                    + Agregar Personal
+                </button>
+            </section>
+
+            <!-- 6. Firmas -->
+            <section class="form-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <span class="section-icon">6</span>
+                        Firmas
+                    </h3>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+                    <!-- Firma Supervisor -->
+                    <div style="text-align: center;">
+                        <h4 style="font-weight: 600; margin-bottom: 1rem;">Supervisor</h4>
+                        <div class="signature-pad-container">
+                            <canvas id="signature-supervisor"></canvas>
+                            <button type="button" class="clear-btn" data-target="signature-supervisor">Limpiar</button>
+                        </div>
+                        <p style="margin-top: 1rem; font-size: 0.875rem; color: var(--neutral-600);">Supervisor de Obra</p>
+                    </div>
+                    
+                    <!-- Firma APR -->
+                    <div style="text-align: center;">
+                        <h4 style="font-weight: 600; margin-bottom: 1rem;">APR</h4>
+                        <div class="signature-pad-container">
+                            <canvas id="signature-apr"></canvas>
+                            <button type="button" class="clear-btn" data-target="signature-apr">Limpiar</button>
+                        </div>
+                        <p style="margin-top: 1rem; font-size: 0.875rem; color: var(--neutral-600);">Análisis Preliminar de Riesgos</p>
+                    </div>
+                    
+                    <!-- Prevencionista -->
+                    <div style="text-align: center;">
+                        <h4 style="font-weight: 600; margin-bottom: 1rem;">Prevencionista</h4>
+                        <select name="prevencionista" class="form-select" style="max-width: 300px; margin: 1rem auto;" required>
+                            <option value="">Seleccione...</option>
+                            <option value="Luis Sepúlveda">Luis Sepúlveda</option>
+                            <option value="Valeria Huichipan">Valeria Huichipan</option>
+                        </select>
+                        <p style="font-size: 0.875rem; color: var(--neutral-600);">Prevención de Riesgos</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Botones -->
+            <div class="form-section">
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; padding-top: 2rem; border-top: 1px solid var(--neutral-200);">
+                    <button type="button" class="btn btn-secondary" onclick="window.location.href='index.html'">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        Guardar y Enviar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <!-- Scripts -->
+    <script type="module" src="./modules/ast/ast.js"></script>
+</body>
+</html>

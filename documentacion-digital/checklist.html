@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checklist Herramientas - Documentación Digital SICE</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Estilos personalizados -->
+    <link rel="stylesheet" href="./shared/styles/main.css">
+    
+    <!-- SignaturePad Library -->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen">
+
+    <!-- Contenido Principal -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6 lg:p-8">
+            
+            <div class="text-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
+                <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">INSPECCIÓN DE HERRAMIENTAS MANUALES</h1>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">FTO-AL10195-24 / Versión 03</p>
+            </div>
+
+            <form id="checklistForm" class="space-y-6">
+                <!-- DATOS GENERALES -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Contrato:</label>
+                        <input type="text" name="contrato" value="SICE AGENCIA CHILE S.A" readonly 
+                               class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white">
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="fechaInspeccion" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fecha de Inspección:</label>
+                            <input type="date" id="fechaInspeccion" name="fechaInspeccion" 
+                                   class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" readonly>
+                        </div>
+                    
+                        <div>
+                            <label for="trabajador" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Trabajador:</label>
+                            <select id="trabajador" name="trabajador" required
+                                    class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                <option value="">Seleccione...</option>
+                                <option value="Nestor Flores">Nestor Flores</option>
+                                <option value="Ronald Cancino">Ronald Cancino</option>
+                                <option value="Nicolas Jara">Nicolas Jara</option>
+                                <option value="Juan Carlos Valenzuela">Juan Carlos Valenzuela</option>
+                                <option value="Avelino Troncoso">Avelino Troncoso</option>
+                                <option value="Ronald Rodriguez">Ronald Rodriguez</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HERRAMIENTAS MANUALES -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                        1. Herramientas Manuales
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm border-collapse">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <th class="p-2 text-left border border-gray-300 dark:border-gray-600">Ítem</th>
+                                    <th class="p-2 text-left border border-gray-300 dark:border-gray-600">Herramienta</th>
+                                    <th class="p-2 text-center border border-gray-300 dark:border-gray-600">Estado<br>(B/M/N/A)</th>
+                                    <th class="p-2 text-center border border-gray-300 dark:border-gray-600">Color Mes<br>(Sí/No)</th>
+                                    <th class="p-2 text-left border border-gray-300 dark:border-gray-600">Observaciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="herramientasTableBody" class="bg-white dark:bg-gray-800">
+                                <!-- Las herramientas se cargarán aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- OTRAS HERRAMIENTAS -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                        2. Otras Herramientas
+                    </h3>
+                    <div id="otras-herramientas-container" class="space-y-4"></div>
+                    <button type="button" id="add-tool-btn" 
+                            class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm transition-colors">
+                        + Agregar Herramienta
+                    </button>
+                </div>
+
+                <!-- PLAN DE ACCIÓN -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                        3. Plan de Acción (No obligatorio)
+                    </h3>
+                    <div id="plan-accion-container" class="space-y-4"></div>
+                </div>
+
+                <!-- FIRMAS -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <!-- FIRMA 1: Realizó -->
+                    <div class="text-center space-y-3">
+                        <div class="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg">
+                            <h4 class="font-semibold text-gray-900 dark:text-white">Realizó</h4>
+                        </div>
+                        <div class="signature-pad-container">
+                            <canvas id="firmaRealizoPad"></canvas>
+                            <button type="button" class="clear-btn" data-target="firmaRealizoPad">Limpiar</button>
+                        </div>
+                        <p id="nombreRealizo" class="font-semibold text-gray-900 dark:text-white">Nombre del Trabajador</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Técnico Montajista</p>
+                        <input type="date" id="fechaRealizo" name="fechaRealizo" readonly
+                               class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                    </div>
+
+                    <!-- FIRMA 2: Revisó -->
+                    <div class="text-center space-y-3">
+                        <div class="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg">
+                            <h4 class="font-semibold text-gray-900 dark:text-white">Revisó</h4>
+                        </div>
+                        <div class="signature-pad-container">
+                            <canvas id="firmaRevisoPad"></canvas>
+                            <button type="button" class="clear-btn" data-target="firmaRevisoPad">Limpiar</button>
+                        </div>
+                        <input type="text" name="nombreReviso" placeholder="Nombre Supervisor" required
+                               class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-center">
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Supervisor</p>
+                        <input type="date" id="fechaReviso" name="fechaReviso" readonly
+                               class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                    </div>
+
+                    <!-- FIRMA 3: Prevención -->
+                    <div class="text-center space-y-3">
+                        <div class="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg">
+                            <h4 class="font-semibold text-gray-900 dark:text-white">Prevención</h4>
+                        </div>
+                        <div class="signature-pad-container">
+                            <canvas id="firmaPrevencionPad"></canvas>
+                            <button type="button" class="clear-btn" data-target="firmaPrevencionPad">Limpiar</button>
+                        </div>
+                        <input type="text" name="nombrePrevencion" placeholder="Nombre Prevencionista" required
+                               class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-center">
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Prevencionista de Riesgos</p>
+                        <input type="date" id="fechaPrevencion" name="fechaPrevencion" readonly
+                               class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                    </div>
+                </div>
+
+                <!-- BOTONES -->
+                <div class="flex gap-4 justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <button type="button" onclick="window.location.href='index.html'"
+                            class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="submit"
+                            class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        Guardar y Enviar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="./modules/checklist/checklist.js"></script>
+</body>
+</html>
