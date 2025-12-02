@@ -191,7 +191,7 @@ function addEtapaRow() {
 }
 
 /**
- * Agregar personal participante
+ * Agregar personal participante con firma
  */
 function addPersonal() {
   personalCount++;
@@ -206,7 +206,7 @@ function addPersonal() {
       <h5 style="font-weight: 600; color: var(--neutral-700); margin: 0;">Participante ${personalCount}</h5>
       <button type="button" onclick="removePersonalCard(${personalCount})" style="background: #ef4444; color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 16px;">&times;</button>
     </div>
-    <div class="form-grid form-grid-3" style="gap: 1rem;">
+    <div class="form-grid form-grid-3" style="gap: 1rem; margin-bottom: 1rem;">
       <div>
         <label class="form-label required-field">Nombre Completo</label>
         <input type="text" name="personal_nombre_${personalCount}" class="form-input" required>
@@ -220,9 +220,22 @@ function addPersonal() {
         <input type="text" name="personal_cargo_${personalCount}" class="form-input" required>
       </div>
     </div>
+    <div style="margin-top: 1rem;">
+      <label class="form-label required-field">Firma del Trabajador</label>
+      <div class="signature-pad-container">
+        <canvas id="firma-personal-${personalCount}"></canvas>
+        <button type="button" class="clear-btn" onclick="clearPersonalSignature(${personalCount})">Limpiar</button>
+      </div>
+    </div>
   `;
   
   container.appendChild(personalDiv);
+  
+  // Configurar firma para este trabajador y guardar referencia
+  setTimeout(() => {
+    const pad = setupSignaturePad(`firma-personal-${personalCount}`);
+    window[`signaturePad_personal_${personalCount}`] = pad;
+  }, 100);
 }
 
 /**
@@ -232,6 +245,16 @@ window.removePersonalCard = function(personalId) {
   const card = document.querySelector(`[data-personal-id="${personalId}"]`);
   if (card) {
     card.remove();
+  }
+};
+
+/**
+ * Función global para limpiar firma de personal
+ */
+window.clearPersonalSignature = function(personalId) {
+  const signaturePad = window[`signaturePad_personal_${personalId}`];
+  if (signaturePad) {
+    signaturePad.clear();
   }
 };
 
@@ -247,7 +270,7 @@ async function handleFormSubmit(e) {
   submitBtn.disabled = true;
   
   try {
-    // Validar firmas
+    // Validar firmas principales
     const signaturesValidation = validateSignatures(
       [firmaSupervisorPad, firmaAprPad],
       ['Firma del Supervisor', 'Firma del APR']
@@ -255,6 +278,25 @@ async function handleFormSubmit(e) {
     
     if (!signaturesValidation.isValid) {
       showMessage(`Faltan las siguientes firmas: ${signaturesValidation.missing.join(', ')}`, 'error');
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
+      return;
+    }
+    
+    // Validar firmas de trabajadores
+    const missingWorkerSignatures = [];
+    for (let i = 1; i <= personalCount; i++) {
+      const nombre = document.querySelector(`input[name="personal_nombre_${i}"]`);
+      if (nombre && nombre.value) {
+        const signaturePad = window[`signaturePad_personal_${i}`];
+        if (!signaturePad || signaturePad.isEmpty()) {
+          missingWorkerSignatures.push(`Firma del trabajador ${nombre.value}`);
+        }
+      }
+    }
+    
+    if (missingWorkerSignatures.length > 0) {
+      showMessage(`Faltan las siguientes firmas de trabajadores: ${missingWorkerSignatures.join(', ')}`, 'error');
       submitBtn.textContent = originalText;
       submitBtn.disabled = false;
       return;
@@ -282,6 +324,30 @@ async function handleFormSubmit(e) {
         e.target.reset();
         if (firmaSupervisorPad) firmaSupervisorPad.clear();
         if (firmaAprPad) firmaAprPad.clear();
+        
+        // Limpiar firmas de trabajadores
+        for (let i = 1; i <= personalCount; i++) {
+          const signaturePad = window[`signaturePad_personal_${i}`];
+          if (signaturePad) {
+            signaturePad.clear();
+          }
+        }
+        
+        // Limpiar contenedores dinámicos
+        document.getElementById('personal-container').innerHTML = '';
+        document.getElementById('etapas-container').innerHTML = '';
+        document.getElementById('epp-adicionales').innerHTML = '<h4 style="font-weight: 600; margin-bottom: 1rem; color: var(--neutral-700);">Elementos Adicionales</h4>';
+        document.getElementById('documentos-adicionales').innerHTML = '';
+        
+        // Resetear contadores
+        personalCount = 0;
+        etapaCount = 0;
+        eppAdicionalesCount = 0;
+        documentosAdicionalesCount = 0;
+        
+        // Agregar una etapa inicial
+        addEtapaRow();
+        
         setCurrentDateTimeInElement('fechaHoraActual');
       }, 2000);
     } else {
@@ -371,10 +437,22 @@ function collectFormData(form) {
   for (let i = 1; i <= personalCount; i++) {
     const nombre = formData.get(`personal_nombre_${i}`);
     if (nombre) {
+      // Obtener firma del trabajador
+      const canvas = document.getElementById(`firma-personal-${i}`);
+      let firmaImg = null;
+      
+      if (canvas) {
+        const signaturePad = window[`signaturePad_personal_${i}`];
+        if (signaturePad && !signaturePad.isEmpty()) {
+          firmaImg = signaturePad.toDataURL('image/png');
+        }
+      }
+      
       astData.personal.push({
         nombre,
         rut: formData.get(`personal_rut_${i}`),
-        cargo: formData.get(`personal_cargo_${i}`)
+        cargo: formData.get(`personal_cargo_${i}`),
+        firma: firmaImg
       });
     }
   }
