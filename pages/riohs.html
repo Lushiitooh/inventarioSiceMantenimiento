@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <title>Recepción RIOHS - SICE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+    <link rel="manifest" href="../assets/manifest/manifest.json">
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        #signatureCanvas { touch-action: none; cursor: crosshair; }
+        .doc-preview {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 2.5rem;
+            font-family: 'Times New Roman', serif;
+            color: #111;
+            line-height: 1.8;
+        }
+        .doc-preview .highlight-field {
+            display: inline-block;
+            min-width: 180px;
+            border-bottom: 1px solid #333;
+            font-weight: 600;
+            color: #0284c7;
+        }
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .step-circle {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.85rem;
+        }
+        .step-active { background: #0284c7; color: white; }
+        .step-done { background: #10b981; color: white; }
+        .step-pending { background: #e5e7eb; color: #6b7280; }
+        .step-line { flex: 1; height: 2px; background: #e5e7eb; }
+        .step-line-done { background: #10b981; }
+        .signature-area {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            position: relative;
+            transition: border-color 0.2s;
+        }
+        .signature-area:hover { border-color: #0284c7; }
+        .tag-sice {
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .alert-info {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            color: #1e40af;
+            font-size: 0.875rem;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+        .btn-primary:hover { opacity: 0.92; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-secondary {
+            background: white;
+            color: #374151;
+            padding: 0.5rem 1.25rem;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid #d1d5db;
+            transition: background 0.2s;
+        }
+        .btn-secondary:hover { background: #f9fafb; }
+
+        /* Success overlay */
+        #successOverlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 9999;
+            align-items: center; justify-content: center;
+        }
+        #successOverlay.show { display: flex; }
+        .success-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2.5rem;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            animation: popIn 0.3s ease;
+        }
+        @keyframes popIn {
+            from { transform: scale(0.85); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .checkmark-circle {
+            width: 72px; height: 72px;
+            background: #dcfce7;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2rem;
+        }
+
+        /* Loading overlay */
+        #loadingOverlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 9998;
+            align-items: center; justify-content: center;
+        }
+        #loadingOverlay.show { display: flex; }
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            width: 40px; height: 40px;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- Navbar placeholder -->
+    <div id="navbar-placeholder"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay">
+        <div class="text-center text-white">
+            <div class="spinner mx-auto mb-3"></div>
+            <p class="font-medium">Enviando y generando PDF...</p>
+        </div>
+    </div>
+
+    <!-- Success Overlay -->
+    <div id="successOverlay">
+        <div class="success-card">
+            <div class="checkmark-circle">✅</div>
+            <h2 class="text-xl font-bold text-gray-900 mb-2">¡Firma registrada!</h2>
+            <p class="text-gray-600 text-sm mb-1">El documento ha sido guardado correctamente.</p>
+            <p class="text-gray-500 text-xs mb-4" id="successTimestamp"></p>
+            <div class="bg-blue-50 rounded-lg p-3 mb-4 text-left">
+                <p class="text-xs text-blue-700 font-semibold mb-1">📄 Próximos pasos:</p>
+                <p class="text-xs text-blue-600">El PDF se generará automáticamente y estará disponible en el panel de administración.</p>
+            </div>
+            <button onclick="resetForm()" class="btn-primary w-full">Nueva firma</button>
+        </div>
+    </div>
+
+    <div class="max-w-3xl mx-auto px-4 py-6">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="tag-sice">SICE</span>
+                    <span class="text-xs text-gray-500">Sistema de Gestión SST</span>
+                </div>
+                <h1 class="text-xl font-bold text-gray-900">Recepción de Reglamento Interno</h1>
+                <p class="text-sm text-gray-500">RIOHS – Versión Octubre 2025</p>
+            </div>
+            <div class="text-right text-xs text-gray-400">
+                <div id="fechaDisplay" class="font-medium text-gray-600"></div>
+            </div>
+        </div>
+
+        <!-- Steps -->
+        <div class="flex items-center mb-6">
+            <div class="step-indicator flex-1">
+                <div class="step-circle step-active" id="step1Circle">1</div>
+                <div class="text-xs font-medium text-gray-700 ml-1 hidden sm:block">Documento</div>
+            </div>
+            <div class="step-line" id="line12"></div>
+            <div class="step-indicator flex-1 justify-center">
+                <div class="step-circle step-pending" id="step2Circle">2</div>
+                <div class="text-xs font-medium text-gray-400 ml-1 hidden sm:block" id="step2Text">Datos</div>
+            </div>
+            <div class="step-line" id="line23"></div>
+            <div class="step-indicator flex-1 justify-end">
+                <div class="step-circle step-pending" id="step3Circle">3</div>
+                <div class="text-xs font-medium text-gray-400 ml-1 hidden sm:block" id="step3Text">Firma</div>
+            </div>
+        </div>
+
+        <!-- =============================== PASO 1: DOCUMENTO =============================== -->
+        <div id="step1" class="space-y-4">
+            <div class="alert-info">
+                ℹ️ <strong>Antes de firmar, lee el documento completo.</strong> Al continuar, confirmas haber leído y entendido su contenido.
+            </div>
+
+            <!-- Vista previa del documento -->
+            <div class="doc-preview shadow-sm">
+                <div class="flex justify-between items-start mb-6">
+                    <!-- Logo SICE (SVG inline como referencia visual) -->
+                    <div class="flex items-center gap-2">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background: linear-gradient(135deg, #00b4d8, #0077b6);">
+                            <span class="text-white font-bold text-sm">S</span>
+                        </div>
+                        <span class="font-black text-xl tracking-tight" style="color:#0077b6;">SICE</span>
+                    </div>
+                    <p class="text-sm text-gray-500">En Santiago a <span id="fechaDocumento" class="font-semibold text-gray-700"></span></p>
+                </div>
+
+                <div class="text-center mb-6">
+                    <h2 class="text-base font-bold underline uppercase tracking-wide">Recepcion de Reglamento Interno</h2>
+                </div>
+
+                <div class="text-sm leading-8 text-justify">
+                    <p>
+                        Yo, <span class="highlight-field" id="previewNombre">___________________________</span>
+                    </p>
+                    <p class="mt-1">
+                        Rut: <span class="highlight-field" id="previewRut">_______________</span>, recibo en este acto, por parte de mi
+                        empleador <strong>SICE AGENCIA CHILE S.A. R.U.T. 59.090.630-1</strong>; un
+                        ejemplar actualizado del Reglamento Interno de Orden, Higiene y
+                        Seguridad (Versión OCTUBRE 2025); Cuyo texto pasa a formar
+                        parte integrante de mi Contrato individual de trabajo.
+                    </p>
+                </div>
+
+                <div class="flex justify-end mt-10 mb-4">
+                    <div class="text-center min-w-[160px]">
+                        <div class="h-12 flex items-end justify-center">
+                            <div class="w-40 border-b border-gray-400"></div>
+                        </div>
+                        <p class="text-xs font-semibold mt-1">RECIBO CONFORME</p>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-gray-200">
+                    <p class="text-xs text-gray-500">CC: – Carpeta personal.</p>
+                    <p class="text-xs text-gray-500 ml-5">– Dpto. Personal.</p>
+                </div>
+            </div>
+
+            <div class="flex justify-end">
+                <button onclick="goToStep2()" class="btn-primary flex items-center gap-2">
+                    He leído el documento &nbsp;→
+                </button>
+            </div>
+        </div>
+
+        <!-- =============================== PASO 2: DATOS =============================== -->
+        <div id="step2" class="space-y-4 hidden">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+                <h3 class="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <span class="text-blue-600">👤</span> Datos del trabajador
+                </h3>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Nombre Completo <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="inputNombre"
+                            placeholder="Ej: Juan Carlos Pérez Soto"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            oninput="updatePreview()">
+                        <p class="text-xs text-gray-400 mt-1">Ingresa tu nombre como aparece en tu cédula de identidad</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            RUT <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="inputRut"
+                            placeholder="Ej: 12.345.678-9"
+                            maxlength="12"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            oninput="formatRut(this); updatePreview()">
+                        <p id="rutValidation" class="text-xs mt-1 hidden"></p>
+                    </div>
+
+                    <!-- Vista previa actualizada -->
+                    <div class="bg-blue-50 rounded-lg p-3">
+                        <p class="text-xs font-semibold text-blue-600 mb-1">👁 Vista previa del documento</p>
+                        <p class="text-xs text-blue-800">
+                            Yo, <strong id="prevNombreSmall">_______________</strong> — 
+                            Rut: <strong id="prevRutSmall">_______________</strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between">
+                <button onclick="goToStep1()" class="btn-secondary">← Volver</button>
+                <button onclick="goToStep3()" id="btnContinueToSign" class="btn-primary" disabled>
+                    Continuar a firma →
+                </button>
+            </div>
+        </div>
+
+        <!-- =============================== PASO 3: FIRMA =============================== -->
+        <div id="step3" class="space-y-4 hidden">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+                <h3 class="font-semibold text-gray-800 mb-1 flex items-center gap-2">
+                    <span class="text-blue-600">✍️</span> Firma digital
+                </h3>
+                <p class="text-xs text-gray-500 mb-4">Firma dentro del recuadro. Puedes usar el mouse o tu dedo en pantalla táctil.</p>
+
+                <!-- Resumen del documento que firmará -->
+                <div class="bg-gray-50 rounded-lg p-3 mb-4 text-sm border border-gray-200">
+                    <p class="font-semibold text-gray-700 mb-1">📄 Firmando como:</p>
+                    <p class="text-gray-600">Nombre: <strong id="summaryNombre"></strong></p>
+                    <p class="text-gray-600">RUT: <strong id="summaryRut"></strong></p>
+                    <p class="text-gray-600">Documento: <strong>RIOHS – SICE AGENCIA CHILE S.A. – Octubre 2025</strong></p>
+                    <p class="text-gray-600">Fecha: <strong id="summaryFecha"></strong></p>
+                </div>
+
+                <!-- Canvas de firma -->
+                <div class="signature-area overflow-hidden">
+                    <canvas id="signatureCanvas" class="w-full" height="200"></canvas>
+                </div>
+
+                <div class="flex justify-between items-center mt-2">
+                    <p class="text-xs text-gray-400" id="signatureHint">← Dibuja tu firma aquí</p>
+                    <button onclick="clearSignature()" class="btn-secondary text-xs py-1 px-3">
+                        🗑 Limpiar firma
+                    </button>
+                </div>
+
+                <p id="signatureError" class="text-xs text-red-500 mt-1 hidden">
+                    ⚠️ Debes añadir tu firma para continuar.
+                </p>
+            </div>
+
+            <!-- Checkbox de confirmación -->
+            <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <label class="flex items-start gap-3 cursor-pointer">
+                    <input type="checkbox" id="confirmCheck" class="mt-0.5 w-4 h-4 accent-blue-600"
+                        onchange="toggleSubmitButton()">
+                    <span class="text-sm text-amber-800">
+                        <strong>Declaro</strong> que he leído y comprendo el Reglamento Interno de Orden, Higiene y Seguridad de SICE AGENCIA CHILE S.A. (Versión Octubre 2025) y acepto que forma parte integrante de mi contrato de trabajo.
+                    </span>
+                </label>
+            </div>
+
+            <div class="flex justify-between">
+                <button onclick="goToStep2()" class="btn-secondary">← Volver</button>
+                <button onclick="submitForm()" id="btnSubmit" class="btn-primary flex items-center gap-2" disabled>
+                    📤 Registrar firma
+                </button>
+            </div>
+        </div>
+
+    </div><!-- /max-w-3xl -->
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs }
+            from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged }
+            from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        // ⚠️ USA TU CONFIGURACIÓN EXISTENTE DE FIREBASE
+        const firebaseConfig = {
+            // REEMPLAZA CON TU CONFIGURACIÓN
+            apiKey: "TU_API_KEY",
+            authDomain: "TU_AUTH_DOMAIN",
+            projectId: "TU_PROJECT_ID",
+            storageBucket: "TU_STORAGE_BUCKET",
+            messagingSenderId: "TU_MESSAGING_SENDER_ID",
+            appId: "TU_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        window.db = getFirestore(app);
+        window.auth = getAuth(app);
+        window.firestoreAdd = addDoc;
+        window.firestoreCollection = collection;
+        window.firestoreServerTimestamp = serverTimestamp;
+        window.firestoreQuery = query;
+        window.firestoreWhere = where;
+        window.firestoreGetDocs = getDocs;
+
+        onAuthStateChanged(window.auth, (user) => {
+            window.currentUser = user;
+        });
+
+        console.log("✅ Firebase inicializado - RIOHS");
+    </script>
+
+    <!-- Navbar loader -->
+    <script>
+        fetch('../assets/components/navbar.html')
+            .then(r => r.ok ? r.text() : '')
+            .then(html => { if(html) document.getElementById('navbar-placeholder').innerHTML = html; })
+            .catch(() => {});
+    </script>
+
+    <!-- Script principal -->
+    <script src="../assets/js/riohs.js"></script>
+</body>
+</html>
