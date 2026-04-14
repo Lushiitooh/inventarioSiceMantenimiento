@@ -4,6 +4,10 @@
  * Arquitectura multi-contrato: cada contrato tiene su propio config + actividades.
  * Para agregar un nuevo contrato: crear carpeta en data/contratos/{id}/,
  * agregar contrato.json y actividades.json, luego registrar en data/contratos/index.json.
+ *
+ * NOTA: Los módulos ES6 son diferidos por defecto (equivalente a defer).
+ * El DOMContentLoaded ya se habrá disparado cuando el módulo se ejecute,
+ * por eso llamamos initAST() directamente al final del archivo.
  */
 
 import { WEBHOOKS, RIESGOS_POTENCIALES } from '../../config/app.config.js';
@@ -1029,3 +1033,10 @@ function collectFormData(form) {
 
   return astData;
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  AUTO-INICIO
+//  Los módulos ES6 son diferidos por naturaleza: el DOM ya está listo cuando
+//  este código se ejecuta, así que llamamos initAST() directamente.
+// ═══════════════════════════════════════════════════════════════════════════
+initAST();
