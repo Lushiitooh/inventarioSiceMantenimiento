@@ -205,6 +205,18 @@ async function loadContrato(contratoId) {
       });
     }
 
+    // ── Supervisores ──────────────────────────────────────────────────────
+    const supSelect = document.getElementById('supervisor_select');
+    if (supSelect) {
+      supSelect.innerHTML = '<option value="">Seleccione...</option>';
+      (contratoActual.supervisores || []).forEach(s => {
+        const opt = document.createElement('option');
+        opt.value       = s;
+        opt.textContent = s;
+        supSelect.appendChild(opt);
+      });
+    }
+
     // ── Habilitar sección de autorrelleno ─────────────────────────────────
     const autofillSection = document.getElementById('autofill-section');
     if (autofillSection) autofillSection.classList.remove('section-disabled');
@@ -236,6 +248,7 @@ function resetContratoFields() {
   document.getElementById('obra_area').value        = '';
   document.getElementById('lugar').innerHTML        = '<option value="">Seleccione contrato primero...</option>';
   document.getElementById('prevencionista_select').innerHTML = '<option value="">Seleccione contrato primero...</option>';
+  document.getElementById('supervisor_select').innerHTML     = '<option value="">Seleccione contrato primero...</option>';
   document.getElementById('codigo-formulario').textContent   = '—';
 
   const grupoSelect = document.getElementById('grupo_actividad');
@@ -970,6 +983,7 @@ function collectFormData(form) {
     epp_adicional:       [],
     etapas:              [],
     personal:            [],
+    supervisor:          formData.get('supervisor'),
     prevencionista:      formData.get('prevencionista'),
     firmaSupervisorImg:  '',
     firmaAprImg:         ''
