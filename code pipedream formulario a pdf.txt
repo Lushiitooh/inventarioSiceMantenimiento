@@ -1,0 +1,1257 @@
+export default defineComponent({
+  async run({ steps, $ }) {
+    // Verificar que existan datos
+    if (!steps.trigger.event.body) {
+      throw new Error("No hay datos de prueba. Por favor, envía un evento desde tu formulario y selecciónalo en el paso 'Trigger' antes de probar este paso.");
+    }
+    
+    try {
+      // Importar dependencias necesarias
+      const PDFDocument = (await import('pdfkit')).default;
+      const fs = await import('fs');
+      const https = await import('https');
+      
+      // Obtener datos del formulario AST
+      const astData = steps.trigger.event.body;
+      console.log('Datos recibidos del AST:', astData);
+      
+      // Generar nombre único para el archivo
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const lugar = astData.lugar ? astData.lugar.replace(/[^a-zA-Z0-9]/g, '_') : 'documento';
+      const filename = `AST_${lugar}_${timestamp}.pdf`;
+      
+      // IMPORTANTE: Usar /tmp como en tu código que funciona
+      const filePath = `/tmp/${filename}`;
+      
+      // Crear nuevo documento PDF (A4: 595.28 x 841.89 puntos)
+      const doc = new PDFDocument({
+        size: 'A4',
+        margins: {
+          top: 15,
+          bottom: 15,
+          left: 15,
+          right: 15
+        }
+      });
+      
+      // Crear stream de escritura como en tu código que funciona
+      const writeStream = fs.createWriteStream(filePath);
+      doc.pipe(writeStream);
+      
+      const streamPromise = new Promise((resolve, reject) => {
+        writeStream.on('finish', () => {
+          console.log('Stream finished successfully');
+          resolve();
+        });
+        writeStream.on('error', (error) => {
+          console.error('Stream error:', error);
+          reject(error);
+        });
+        writeStream.on('close', () => {
+          console.log('Stream closed');
+        });
+      });
+      
+      // ============================================================================
+      // DIMENSIONES EXACTAS BASADAS EN EL EXCEL ORIGINAL
+      // ============================================================================
+      
+      const pageWidth = 595.28;
+      const pageHeight = 841.89;
+      const margins = { top: 15, bottom: 15, left: 15, right: 15 };
+      const usableWidth = pageWidth - margins.left - margins.right;
+      
+      // ANCHOS EXACTOS DE COLUMNAS MEDIDOS DEL EXCEL ORIGINAL (en puntos PDF)
+      const columnWidths = {
+        A: 27,  B: 93,  C: 43,  D: 20,  E: 12,  F: 43,  G: 46,  H: 43,  I: 29,  J: 43,  
+        K: 34,  L: 43,  M: 29,  N: 43,  O: 55,  P: 30,  Q: 43,  R: 43,  S: 55,  T: 43,  
+        U: 43,  V: 43
+      };
+      
+      // Factor de escala para ajustar al ancho de página
+      const totalOriginalWidth = Object.values(columnWidths).reduce((sum, width) => sum + width, 0);
+      console.log('Total width:', totalOriginalWidth, 'Usable width:', usableWidth);
+      
+      const scaleFactor = totalOriginalWidth > 0 ? usableWidth / totalOriginalWidth : 1;
+      console.log('Scale factor:', scaleFactor);
+      
+      // Aplicar factor de escala a todos los anchos - con validación
+      Object.keys(columnWidths).forEach(col => {
+        const originalWidth = columnWidths[col];
+        const scaledWidth = originalWidth * scaleFactor;
+        columnWidths[col] = isNaN(scaledWidth) || scaledWidth <= 0 ? originalWidth : scaledWidth;
+        console.log(`${col}: ${originalWidth} → ${columnWidths[col]}`);
+      });
+      
+      // Alturas de filas basadas en el Excel original - con valores seguros
+      const rowHeights = {
+        title: 18,      // Fila del título
+        subtitle: 12,   // Fila del subtítulo  
+        normal: 18,     // Filas normales
+        section: 20,    // Títulos de sección
+        data: 15        // Filas de datos
+      };
+      
+      // Validar que todas las alturas sean números válidos
+      Object.keys(rowHeights).forEach(key => {
+        if (isNaN(rowHeights[key]) || rowHeights[key] <= 0) {
+          console.log('Invalid row height for', key, ':', rowHeights[key]);
+          rowHeights[key] = 18; // Valor por defecto
+        }
+      });
+      
+      // Función para descargar imagen (igual que en tu código)
+      const downloadImage = (url) => {
+        return new Promise((resolve, reject) => {
+          if (!url || typeof url !== 'string') {
+              return reject(new Error('URL de imagen inválida'));
+          }
+          if (url.startsWith('data:image')) {
+              const base64Data = url.split(',')[1];
+              if (!base64Data) return reject(new Error('Data URL de imagen inválida'));
+              resolve(Buffer.from(base64Data, 'base64'));
+              return;
+          }
+
+          https.get(url, (response) => {
+            if (response.statusCode !== 200) {
+              reject(new Error(`HTTP ${response.statusCode}`));
+              return;
+            }
+            const chunks = [];
+            response.on('data', (chunk) => chunks.push(chunk));
+            response.on('end', () => resolve(Buffer.concat(chunks)));
+            response.on('error', reject);
+          }).on('error', reject);
+        });
+      };
+      
+      // Función para obtener posición X de columna - con validación
+      function getColX(col) {
+        let x = margins.left;
+        const cols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V'];
+        const colIndex = cols.indexOf(col);
+        
+        if (colIndex === -1) {
+          console.log('Invalid column:', col);
+          return margins.left;
+        }
+        
+        for (let i = 0; i < colIndex; i++) {
+          const colWidth = columnWidths[cols[i]];
+          if (isNaN(colWidth) || colWidth <= 0) {
+            console.log('Invalid width for column', cols[i], ':', colWidth);
+            continue;
+          }
+          x += colWidth;
+        }
+        
+        if (isNaN(x)) {
+          console.log('NaN detected in getColX for column:', col);
+          return margins.left;
+        }
+        
+        return x;
+      }
+      
+      // Función para obtener ancho combinado de columnas - con validación
+      function getCombinedWidth(startCol, endCol) {
+        const cols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V'];
+        const startIndex = cols.indexOf(startCol);
+        const endIndex = cols.indexOf(endCol);
+        
+        if (startIndex === -1 || endIndex === -1 || startIndex > endIndex) {
+          console.log('Invalid column range:', startCol, 'to', endCol);
+          return 50; // Ancho por defecto
+        }
+        
+        let width = 0;
+        for (let i = startIndex; i <= endIndex; i++) {
+          const colWidth = columnWidths[cols[i]];
+          if (isNaN(colWidth) || colWidth <= 0) {
+            console.log('Invalid width for column', cols[i], ':', colWidth);
+            continue;
+          }
+          width += colWidth;
+        }
+        
+        if (isNaN(width) || width <= 0) {
+          console.log('NaN or invalid width detected in getCombinedWidth:', width);
+          return 50; // Ancho por defecto
+        }
+        
+        return width;
+      }
+      
+      // Función ÚNICA para calcular altura de texto - MEJORADA
+      function calculateTextHeight(text, width, fontSize = 8) {
+        if (!text || text.trim() === '') return rowHeights.normal;
+        
+        // Estimación más precisa de caracteres por línea
+        const avgCharWidth = fontSize * 0.5; // Aproximación más conservadora
+        const charsPerLine = Math.floor((width - 8) / avgCharWidth); // -8 para padding
+        const textLength = text.length;
+        const lines = Math.ceil(textLength / charsPerLine);
+        const lineHeight = fontSize * 1.4; // Espaciado más generoso
+        
+        return Math.max(rowHeights.normal, lines * lineHeight + 12); // +12 para padding superior e inferior
+      }
+      
+      // Función específica para calcular altura de EPP
+      function calculateEppTextHeight(text, width) {
+        return calculateTextHeight(text, width, 8);
+      }
+      
+      // Función para dibujar celda con texto - CENTRADO VERTICAL MEJORADO
+      function drawCell(text, startCol, endCol, y, options = {}) {
+        const x = getColX(startCol);
+        const width = getCombinedWidth(startCol, endCol);
+        const height = options.height || rowHeights.normal;
+        
+        // Validar todas las coordenadas y dimensiones
+        if (isNaN(x) || isNaN(y) || isNaN(width) || isNaN(height)) {
+          console.log('Invalid coordinates in drawCell:', { x, y, width, height, startCol, endCol });
+          return { x: 0, y: 0, width: 0, height: 0 };
+        }
+        
+        if (x < 0 || y < 0 || width <= 0 || height <= 0) {
+          console.log('Invalid dimensions in drawCell:', { x, y, width, height });
+          return { x: 0, y: 0, width: 0, height: 0 };
+        }
+        
+        try {
+          // Dibujar fondo si se especifica
+          if (options.fillColor) {
+            doc.fillColor(options.fillColor);
+            doc.rect(x, y, width, height).fill();
+          }
+          
+          // Dibujar borde - siempre presente en el Excel
+          doc.strokeColor('black').lineWidth(0.5);
+          doc.rect(x, y, width, height).stroke();
+          
+          // Configurar estilo de texto
+          const fontSize = options.fontSize || 9;
+          if (isNaN(fontSize) || fontSize <= 0) {
+            doc.fontSize(9);
+          } else {
+            doc.fontSize(fontSize);
+          }
+          
+          if (options.bold) doc.font('Helvetica-Bold');
+          else doc.font('Helvetica');
+          
+          // Dibujar texto - CENTRADO VERTICAL PERFECTO
+          if (text && text !== null && text !== undefined) {
+            const textString = String(text);
+            const textOptions = {
+              width: Math.max(width - 8, 10), // Padding horizontal
+              align: options.align || 'left'
+            };
+            
+            doc.fillColor('black');
+            
+            // Obtener altura real del texto usando el documento actual
+            const textHeight = doc.heightOfString(textString, textOptions);
+            
+            // Calcular posición Y perfectamente centrada
+            const centerY = y + (height / 2);
+            const textStartY = centerY - (textHeight / 2);
+            
+            // Asegurar que el texto no se salga de los bordes con un mínimo padding
+            const minY = y + 3;
+            const maxY = y + height - textHeight - 3;
+            const finalTextY = Math.max(minY, Math.min(textStartY, maxY));
+            
+            doc.text(textString, x + 4, finalTextY, textOptions);
+          }
+        } catch (error) {
+          console.log('Error in drawCell:', error.message);
+        }
+        
+        return { x, y, width, height };
+      }
+      
+      // Función para dibujar checkbox - CENTRADO VERTICAL PERFECTO
+      function drawCheckbox(col, y, checked = false, label = '') {
+        const x = getColX(col);
+        const checkboxSize = 8;
+        const cellHeight = rowHeights.data;
+        
+        // Validar coordenadas
+        if (isNaN(x) || isNaN(y) || x < 0 || y < 0) {
+          console.log('Invalid checkbox coordinates:', { x, y, col });
+          return;
+        }
+        
+        try {
+          // Posición centrada verticalmente para el checkbox
+          const checkboxY = y + (cellHeight / 2) - (checkboxSize / 2);
+          
+          // Dibujar cuadrado del checkbox
+          doc.strokeColor('black').lineWidth(0.5);
+          doc.rect(x + 2, checkboxY, checkboxSize, checkboxSize).stroke();
+          
+          // Dibujar X si está seleccionado (CORREGIDO)
+          if (checked) {
+            doc.fillColor('black');
+            doc.fontSize(6).font('Helvetica-Bold');
+            doc.text('X', x + 3.5, checkboxY + 1.5);
+          }
+          
+          // Dibujar etiqueta centrada verticalmente
+          if (label) {
+            doc.fontSize(8).font('Helvetica');
+            doc.fillColor('black');
+            
+            // Centrar verticalmente la etiqueta también
+            const labelHeight = 8; // Tamaño de fuente aproximado
+            const labelY = y + (cellHeight / 2) - (labelHeight / 2);
+            
+            doc.text(String(label), x + checkboxSize + 5, labelY);
+          }
+        } catch (error) {
+          console.log('Error in drawCheckbox:', error.message);
+        }
+      }
+      
+      // ============================================================================
+      // GENERACIÓN DEL DOCUMENTO AST - RÉPLICA EXACTA DEL EXCEL
+      // ============================================================================
+      
+      let currentY = margins.top;
+      
+      // ========== FILA 1: LOGO + TÍTULO PRINCIPAL + CÓDIGO ==========
+      
+      const headerY = currentY;
+      const headerHeight = rowHeights.title * 3; // 3 filas de altura para todo el header
+      
+      // LOGO con borde (A1:C3)
+      const logoX = getColX('A');
+      const logoWidth = getCombinedWidth('A', 'C');
+      
+      // Dibujar borde del logo
+      doc.strokeColor('black').lineWidth(0.5);
+      doc.rect(logoX, headerY, logoWidth, headerHeight).stroke();
+      
+      try {
+        const logoUrl = 'https://res.cloudinary.com/dep5jbtjh/image/upload/v1749610555/thumbnail_Outlook-Logotipoa_nhi7op.png';
+        const logoBuffer = await downloadImage(logoUrl);
+        
+        // Insertar logo dentro del borde
+        doc.image(logoBuffer, logoX + 2, headerY + 2, {
+          fit: [logoWidth - 4, headerHeight - 4],
+          align: 'center'
+        });
+      } catch (error) {
+        console.log('Error cargando logo:', error.message);
+      }
+      
+      // ÁREA DEL TÍTULO con borde (D1:Q3)
+      const titleX = getColX('D');
+      const titleWidth = getCombinedWidth('D', 'Q');
+      
+      // Dibujar borde del área del título
+      doc.strokeColor('black').lineWidth(0.5);
+      doc.rect(titleX, headerY, titleWidth, headerHeight).stroke();
+      
+      // Línea horizontal separando título de subtítulo (aproximadamente en la mitad)
+      const titleSeparatorY = headerY + (headerHeight * 0.6);
+      doc.moveTo(titleX, titleSeparatorY).lineTo(titleX + titleWidth, titleSeparatorY).stroke();
+      
+      // Título principal
+      doc.fontSize(14).font('Helvetica-Bold');
+      doc.fillColor('black');
+      doc.text('Análisis Seguro de Trabajo (AST)', titleX + 2, headerY + 8, { 
+        width: titleWidth - 4, 
+        align: 'center' 
+      });
+      
+      // Subtítulo
+      doc.fontSize(9).font('Helvetica-Oblique');
+      doc.text('Programa de Prevención de Riesgos y Salud Ocupacional', titleX + 2, titleSeparatorY + 4, { 
+        width: titleWidth - 4, 
+        align: 'center' 
+      });
+      
+      // BLOQUE INTEGRADO DE CÓDIGO/VERSIÓN/PÁGINAS (R1:V3) - UN SOLO BORDE
+      const infoBlockX = getColX('R');
+      const infoBlockWidth = getCombinedWidth('R', 'V');
+      
+      // Dibujar borde único para todo el bloque
+      doc.strokeColor('black').lineWidth(0.5);
+      doc.rect(infoBlockX, headerY, infoBlockWidth, headerHeight).stroke();
+      
+      // Líneas internas del bloque
+      // Línea vertical separando etiquetas de valores (entre S y T)
+      const separatorX = getColX('T');
+      doc.moveTo(separatorX, headerY).lineTo(separatorX, headerY + headerHeight).stroke();
+      
+      // Líneas horizontales separando las filas
+      doc.moveTo(infoBlockX, headerY + rowHeights.title).lineTo(infoBlockX + infoBlockWidth, headerY + rowHeights.title).stroke();
+      doc.moveTo(infoBlockX, headerY + rowHeights.title * 2).lineTo(infoBlockX + infoBlockWidth, headerY + rowHeights.title * 2).stroke();
+      
+      // Contenido del bloque integrado
+      doc.fontSize(9).font('Helvetica-Bold');
+      
+      // Fila 1: Código
+      doc.text('Código:', infoBlockX + 2, headerY + 2);
+      doc.fontSize(8).font('Helvetica');
+      doc.text('FTO-AL10195-01', separatorX + 2, headerY + 2, { 
+        width: getCombinedWidth('T', 'V') - 4, 
+        align: 'center' 
+      });
+      
+      // Fila 2: Versión
+      doc.fontSize(9).font('Helvetica-Bold');
+      doc.text('Versión:', infoBlockX + 2, headerY + rowHeights.title + 2);
+      doc.fontSize(8).font('Helvetica');
+      doc.text('0', separatorX + 2, headerY + rowHeights.title + 2, { 
+        width: getCombinedWidth('T', 'V') - 4, 
+        align: 'center' 
+      });
+      
+      // Fila 3: Páginas
+      doc.fontSize(8).font('Helvetica');
+      doc.text('Páginas', infoBlockX + 2, headerY + rowHeights.title * 2 + 2);
+      doc.text('1 de 2', separatorX + 2, headerY + rowHeights.title * 2 + 2, { 
+        width: getCombinedWidth('T', 'V') - 4, 
+        align: 'center' 
+      });
+      
+      currentY = headerY + headerHeight + 10; // Espacio adicional después del header
+      
+      // ========== FILA 5: EMPRESA + FECHA + HORA ==========
+      
+      // EMPRESA con borde completo (incluye los dos puntos)
+      const empresaY = currentY;
+      
+      // Etiqueta EMPRESA con dos puntos incluidos (A5:E5)
+      drawCell('EMPRESA:', 'A', 'E', empresaY, { 
+        height: rowHeights.normal, 
+        fontSize: 9, 
+        bold: true,
+        fillColor: '#F0F0F0'
+      });
+      
+      // Valor empresa (F5:L5)
+      drawCell(astData.empresa || 'SICE AGENCIA CHILE', 'F', 'L', empresaY, { 
+        height: rowHeights.normal, 
+        fontSize: 8 
+      });
+      
+      // FECHA (M5:N5)
+      drawCell('FECHA:', 'M', 'N', empresaY, { 
+        height: rowHeights.normal, 
+        fontSize: 9, 
+        bold: true,
+        fillColor: '#F0F0F0'
+      });
+      
+      // Valor fecha (O5:Q5) - Más pequeño
+      const fechaActual = new Date().toLocaleDateString('es-CL');
+      drawCell(fechaActual, 'O', 'Q', empresaY, { 
+        height: rowHeights.normal, 
+        fontSize: 8 
+      });
+      
+      // HORA (R5:S5)
+      drawCell('HORA:', 'R', 'S', empresaY, { 
+        height: rowHeights.normal, 
+        fontSize: 9, 
+        bold: true,
+        fillColor: '#F0F0F0'
+      });
+      
+      // Valor hora (T5:V5)
+      const horaActual = new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+      drawCell(horaActual, 'T', 'V', empresaY, { 
+        height: rowHeights.normal, 
+        fontSize: 8 
+      });
+      
+      currentY += rowHeights.normal;
+      
+      // ========== FILA 6: OBRA/ÁREA ==========
+      
+      // Etiqueta OBRA/ÁREA con dos puntos incluidos (A6:E6)
+      drawCell('OBRA / AREA:', 'A', 'E', currentY, { 
+        height: rowHeights.normal, 
+        fontSize: 9, 
+        bold: true,
+        fillColor: '#F0F0F0'
+      });
+      
+      // Valor obra (F6:V6)
+      const obraTexto = astData.obra_area || 'Suministro de Puertas Bidireccionales de Control en 7 Estaciones de la Red de Metro';
+      drawCell(obraTexto, 'F', 'V', currentY, { 
+        height: rowHeights.normal, 
+        fontSize: 7 
+      });
+      
+      currentY += rowHeights.normal;
+      
+      // ========== FILA 7: LUGAR DE TRABAJO ==========
+      
+      // Etiqueta con dos puntos incluidos (A7:E7)
+      drawCell('Lugar de trabajo:', 'A', 'E', currentY, { 
+        height: rowHeights.normal, 
+        fontSize: 9, 
+        bold: true,
+        fillColor: '#F0F0F0'
+      });
+      
+      // Valor (F7:V7)
+      drawCell(astData.lugar || '', 'F', 'V', currentY, { 
+        height: rowHeights.normal, 
+        fontSize: 8 
+      });
+      
+      currentY += rowHeights.normal;
+      
+      // ========== FILA 8: ACTIVIDAD A REALIZAR ==========
+      
+      // Etiqueta con dos puntos incluidos (A8:E8)
+      drawCell('Actividad a realizar:', 'A', 'E', currentY, { 
+        height: rowHeights.normal, 
+        fontSize: 9, 
+        bold: true,
+        fillColor: '#F0F0F0'
+      });
+      
+      // Valor (F8:V8)
+      drawCell(astData.trabajo || '', 'F', 'V', currentY, { 
+        height: rowHeights.normal, 
+        fontSize: 8 
+      });
+      
+      currentY += rowHeights.normal;
+      
+      // ========== FILA 9: DOCUMENTO ASOCIADO ==========
+      
+      // Etiqueta con dos puntos incluidos (A9:E9)
+      drawCell('Documento Asociado:', 'A', 'E', currentY, { 
+        height: rowHeights.normal, 
+        fontSize: 9, 
+        bold: true,
+        fillColor: '#F0F0F0'
+      });
+      
+      // Área de checkboxes (F9:V9) - con borde
+      drawCell('', 'F', 'V', currentY, { 
+        height: rowHeights.normal, 
+        fontSize: 8 
+      });
+      
+      // Checkboxes para tipos de documento (superpuestos sobre la celda)
+      const tiposDoc = [
+        { name: 'Procedimiento', col: 'F' },
+        { name: 'Instructivo', col: 'J' },
+        { name: 'Otro', col: 'N' },
+        { name: 'No requiere', col: 'R' }
+      ];
+      
+      tiposDoc.forEach(tipo => {
+        const isSelected = astData.documentos && astData.documentos.some(doc => 
+          doc.tipo && doc.tipo.toLowerCase() === tipo.name.toLowerCase()
+        );
+        drawCheckbox(tipo.col, currentY, isSelected, tipo.name);
+      });
+      
+      currentY += rowHeights.normal;
+      
+      // ========== FILA 10: NOMBRE/CÓDIGO DEL DOCUMENTO ==========
+      
+      // Valor - CORREGIDO: Mostrar todos los documentos separados por "/"
+      let todosLosDocumentos = '';
+      if (astData.documentos && astData.documentos.length > 0) {
+        const documentosConNombre = astData.documentos.filter(doc => doc.nombre && doc.nombre.trim() !== '');
+        todosLosDocumentos = documentosConNombre.map(doc => doc.nombre).join(' / ');
+      }
+      
+      // Calcular altura necesaria para el texto de documentos
+      const documentosHeight = calculateTextHeight(todosLosDocumentos, getCombinedWidth('F', 'V'), 8);
+      const finalDocumentosHeight = Math.max(rowHeights.normal, documentosHeight);
+      
+      // Etiqueta con dos puntos incluidos (A10:E10) - con altura ajustada
+      drawCell('Nombre / Código:', 'A', 'E', currentY, { 
+        height: finalDocumentosHeight, 
+        fontSize: 9, 
+        bold: true,
+        fillColor: '#F0F0F0'
+      });
+      
+      drawCell(todosLosDocumentos, 'F', 'V', currentY, { 
+        height: finalDocumentosHeight, 
+        fontSize: 8 
+      });
+      
+      currentY += finalDocumentosHeight + 10; // Espacio antes de la siguiente sección
+      
+      // ========== FILA 13: TÍTULO SECCIÓN 1 ==========
+      
+      drawCell(
+        '1.- ELEMENTO DE APOYO PARA EL CONTROL DE LOS RIESGOS', 
+        'A', 'V', currentY, 
+        { 
+          fontSize: 10, 
+          bold: true, 
+          fillColor: '#CCCCCC', 
+          height: rowHeights.section,
+          align: 'center'
+        }
+      );
+      
+      currentY += rowHeights.section;
+      
+      // ========== FILA 14: HEADERS DE COLUMNAS EPP ==========
+      
+      drawCell('EPP / Señalización / Materiales / Equipos / Herramientas', 'A', 'V', currentY, { 
+        fontSize: 10, 
+        bold: true, 
+        fillColor: '#F0F0F0',
+        height: rowHeights.normal,
+        align: 'center'
+      });
+      
+      currentY += rowHeights.normal;
+      
+      // ========== FILAS 15-22: EPP PREDETERMINADOS ==========
+      
+      // Mapeo de nombres de EPP del formulario web a los del PDF
+      const eppMapping = {
+        'Casco': 'Casco de seguridad',
+        'Linterna Adosable al Casco': 'Linterna adosable al casco',
+        'Lentes de seguridad': 'Lentes de seguridad',
+        'Zapatos de seguridad': 'Zapatos de seguridad',
+        'Guantes': 'Guantes',
+        'Guantes Hyflex': 'Guantes Hyflex',
+        'Guantes Cabritilla': 'Guantes de Cabritilla',
+        'Protector auditivo': 'Protección auditiva',
+        'Protector respiratorio': 'Protección respiratoria',
+        'Arnés de seguridad': 'Arnés de seguridad',
+        'Cono': 'Cono',
+        'Taladro Inalámbrico': 'Taladro Inalámbrico'
+      };
+      
+      const eppItems = [
+        'Casco de seguridad', 'Linterna adosable al casco', 
+        'Zapatos de seguridad', 'Protección auditiva', 
+        'Lentes de seguridad', 'Protección respiratoria',
+        'Guantes de Cabritilla', 'Chaleco reflectante',
+        'Cono', 'Arnés de seguridad',
+        'Taladro Inalámbrico'
+      ];
+      
+      // Función para verificar si un EPP está seleccionado
+      function isEppSelected(eppName) {
+        if (!astData.epp_predeterminado) return false;
+        
+        // Buscar por nombre exacto o por mapeo
+        const isDirectMatch = astData.epp_predeterminado.includes(eppName);
+        if (isDirectMatch) return true;
+        
+        // Buscar por mapeo inverso
+        for (const [webName, pdfName] of Object.entries(eppMapping)) {
+          if (pdfName === eppName && astData.epp_predeterminado.includes(webName)) {
+            return true;
+          }
+        }
+        
+        return false;
+      }
+      
+      // Recopilar todos los EPP (predeterminados + adicionales)
+      let todosLosEPP = [...eppItems];
+      
+      // Agregar EPP adicionales del formulario
+      if (astData.epp_adicional && astData.epp_adicional.length > 0) {
+        astData.epp_adicional.forEach(epp => {
+          if (epp.nombre && epp.nombre.trim() !== '') {
+            todosLosEPP.push({
+              nombre: epp.nombre,
+              seleccionado: epp.seleccionado,
+              esAdicional: true
+            });
+          }
+        });
+      }
+      
+      // Calcular ancho de columna para EPP
+      const columnWidth = getCombinedWidth('A', 'E');
+      
+      // Organizar en 4 columnas para mejor distribución
+      const eppCol1 = []; // Columna A-E
+      const eppCol2 = []; // Columna F-J  
+      const eppCol3 = []; // Columna K-O
+      const eppCol4 = []; // Columna P-V
+      
+      // Distribuir EPP en las 4 columnas SIN TRUNCAR
+      todosLosEPP.forEach((epp, index) => {
+        const eppData = typeof epp === 'string' ? {
+          nombre: epp, // MANTENER NOMBRE COMPLETO
+          seleccionado: isEppSelected(epp),
+          esAdicional: false
+        } : epp;
+        
+        const colIndex = index % 4;
+        if (colIndex === 0) eppCol1.push(eppData);
+        else if (colIndex === 1) eppCol2.push(eppData);
+        else if (colIndex === 2) eppCol3.push(eppData);
+        else eppCol4.push(eppData);
+      });
+      
+      // Función para dibujar checkbox con altura dinámica - CENTRADO COMO UNIDAD
+      function drawAutoHeightCheckbox(col, y, checked = false, label = '', maxWidth, targetHeight) {
+        const x = getColX(col);
+        const checkboxSize = 8;
+        
+        try {
+          doc.fontSize(8).font('Helvetica');
+          doc.fillColor('black');
+          
+          const labelText = String(label);
+          const textWidth = maxWidth - checkboxSize - 8;
+          
+          // Medir la altura real del contenido completo (checkbox + texto)
+          const textOptions = {
+            width: textWidth,
+            lineGap: 2,
+            align: 'left'
+          };
+          
+          // Obtener altura real del texto
+          const textHeight = doc.heightOfString(labelText, textOptions);
+          
+          // La altura total del contenido es la mayor entre checkbox y texto
+          const contentHeight = Math.max(checkboxSize, textHeight);
+          
+          // Centrar TODO el contenido (checkbox + texto) como una unidad en la celda
+          const contentStartY = y + (targetHeight / 2) - (contentHeight / 2);
+          
+          // Asegurar que no se salga de los bordes
+          const minContentY = y + 4;
+          const maxContentY = y + targetHeight - contentHeight - 4;
+          const finalContentY = Math.max(minContentY, Math.min(contentStartY, maxContentY));
+          
+          // Posicionar checkbox centrado verticalmente DENTRO del área de contenido
+          const checkboxY = finalContentY + (contentHeight / 2) - (checkboxSize / 2);
+          
+          // Dibujar cuadrado del checkbox
+          doc.strokeColor('black').lineWidth(0.5);
+          doc.rect(x + 2, checkboxY, checkboxSize, checkboxSize).stroke();
+          
+          // Dibujar X si está seleccionado
+          if (checked) {
+            doc.fillColor('black');
+            doc.fontSize(6).font('Helvetica-Bold');
+            doc.text('X', x + 3.5, checkboxY + 1.5);
+          }
+          
+          // Posicionar texto centrado verticalmente DENTRO del área de contenido
+          if (label) {
+            doc.fontSize(8).font('Helvetica');
+            doc.fillColor('black');
+            
+            const labelX = x + checkboxSize + 6;
+            const textY = finalContentY + (contentHeight / 2) - (textHeight / 2);
+            
+            doc.text(labelText, labelX, textY, textOptions);
+          }
+        } catch (error) {
+          console.log('Error in drawAutoHeightCheckbox:', error.message);
+        }
+      }
+      
+      // Dibujar EPP en 4 columnas con altura completamente dinámica
+      const maxRows = Math.max(eppCol1.length, eppCol2.length, eppCol3.length, eppCol4.length);
+      
+      for (let i = 0; i < maxRows; i++) {
+        let maxRowHeight = rowHeights.data;
+        
+        // Calcular la altura máxima real necesaria para esta fila
+        if (eppCol1[i]) {
+          const height1 = calculateEppTextHeight(eppCol1[i].nombre, columnWidth);
+          maxRowHeight = Math.max(maxRowHeight, height1);
+        }
+        if (eppCol2[i]) {
+          const height2 = calculateEppTextHeight(eppCol2[i].nombre, columnWidth);
+          maxRowHeight = Math.max(maxRowHeight, height2);
+        }
+        if (eppCol3[i]) {
+          const height3 = calculateEppTextHeight(eppCol3[i].nombre, columnWidth);
+          maxRowHeight = Math.max(maxRowHeight, height3);
+        }
+        if (eppCol4[i]) {
+          const height4 = calculateEppTextHeight(eppCol4[i].nombre, columnWidth);
+          maxRowHeight = Math.max(maxRowHeight, height4);
+        }
+        
+        // Dibujar bordes de fila completa primero para mantener alineación
+        doc.strokeColor('black').lineWidth(0.5);
+        doc.rect(getColX('A'), currentY, getCombinedWidth('A', 'V'), maxRowHeight).stroke();
+        
+        // Líneas divisorias entre columnas
+        doc.moveTo(getColX('F'), currentY).lineTo(getColX('F'), currentY + maxRowHeight).stroke();
+        doc.moveTo(getColX('K'), currentY).lineTo(getColX('K'), currentY + maxRowHeight).stroke();
+        doc.moveTo(getColX('P'), currentY).lineTo(getColX('P'), currentY + maxRowHeight).stroke();
+        
+        // Dibujar contenido de las columnas
+        if (eppCol1[i]) {
+          drawAutoHeightCheckbox('A', currentY, eppCol1[i].seleccionado, eppCol1[i].nombre, columnWidth, maxRowHeight);
+        }
+        if (eppCol2[i]) {
+          drawAutoHeightCheckbox('F', currentY, eppCol2[i].seleccionado, eppCol2[i].nombre, columnWidth, maxRowHeight);
+        }
+        if (eppCol3[i]) {
+          drawAutoHeightCheckbox('K', currentY, eppCol3[i].seleccionado, eppCol3[i].nombre, columnWidth, maxRowHeight);
+        }
+        if (eppCol4[i]) {
+          drawAutoHeightCheckbox('P', currentY, eppCol4[i].seleccionado, eppCol4[i].nombre, columnWidth, maxRowHeight);
+        }
+        
+        currentY += maxRowHeight;
+      }
+      
+      currentY += 10; // Espacio adicional
+      
+      // ========== ADVERTENCIA DESTACADA ==========
+      
+      drawCell(
+        'SI EXISTE ALGÚN RIESGO QUE NO PUEDA CONTROLAR NO PROCEDA CON EL TRABAJO E INFORME DE INMEDIATO A SU SUPERVISOR',
+        'A', 'V', currentY,
+        { 
+          fontSize: 9, 
+          bold: true, 
+          fillColor: '#FFFF99', 
+          height: 25, 
+          align: 'center' 
+        }
+      );
+      
+      currentY += 25 + 10;
+      
+      // ========== SECCIÓN 2: DESARROLLO DE LA ACTIVIDAD ==========
+      
+      drawCell(
+        '2.- DESARROLLO DE LA ACTIVIDAD (paso a paso)',
+        'A', 'V', currentY,
+        { 
+          fontSize: 10, 
+          bold: true, 
+          fillColor: '#CCCCCC', 
+          height: rowHeights.section,
+          align: 'center'
+        }
+      );
+      
+      currentY += rowHeights.section;
+      
+      // Headers de tabla de actividades
+      drawCell('ETAPAS DEL TRABAJO (Tarea)', 'A', 'G', currentY, { 
+        fontSize: 9, 
+        bold: true, 
+        fillColor: '#F0F0F0',
+        height: rowHeights.normal,
+        align: 'center'
+      });
+      
+      drawCell('RIESGOS', 'H', 'M', currentY, { 
+        fontSize: 9, 
+        bold: true, 
+        fillColor: '#F0F0F0',
+        height: rowHeights.normal,
+        align: 'center'
+      });
+      
+      drawCell('MEDIDAS DE CONTROL', 'N', 'V', currentY, { 
+        fontSize: 9, 
+        bold: true, 
+        fillColor: '#F0F0F0',
+        height: rowHeights.normal,
+        align: 'center'
+      });
+      
+      currentY += rowHeights.normal;
+      
+      // Función mejorada para dibujar texto con altura automática
+      function drawAutoHeightCell(text, startCol, endCol, y, options = {}) {
+        const width = getCombinedWidth(startCol, endCol);
+        const fontSize = options.fontSize || 8;
+        const autoHeight = calculateTextHeight(text, width, fontSize);
+        const finalHeight = Math.max(autoHeight, options.minHeight || rowHeights.normal);
+        
+        return drawCell(text, startCol, endCol, y, {
+          ...options,
+          height: finalHeight
+        });
+      }
+      
+      // Etapas de trabajo del formulario - CORREGIDO: Altura ajustable mejorada
+      if (astData.etapas && astData.etapas.length > 0) {
+        astData.etapas.forEach((etapa, index) => {
+          // Calcular altura necesaria basada en el contenido con función mejorada
+          const descripcionText = etapa.descripcion || '';
+          const riesgosText = etapa.riesgos ? etapa.riesgos.join(', ') : '';
+          const medidasText = etapa.medidas || '';
+          
+          const descripcionHeight = calculateTextHeight(descripcionText, getCombinedWidth('A', 'G'), 8);
+          const riesgosHeight = calculateTextHeight(riesgosText, getCombinedWidth('H', 'M'), 8);
+          const medidasHeight = calculateTextHeight(medidasText, getCombinedWidth('N', 'V'), 8);
+          
+          // Usar la altura máxima de las tres columnas con un mínimo de 30
+          const etapaHeight = Math.max(descripcionHeight, riesgosHeight, medidasHeight, 30);
+          
+          // Verificar si necesitamos nueva página
+          if (currentY + etapaHeight > pageHeight - 50) {
+            doc.addPage();
+            currentY = margins.top;
+          }
+          
+          // Descripción de la etapa con altura automática
+          drawCell(descripcionText, 'A', 'G', currentY, { 
+            fontSize: 8, 
+            height: etapaHeight 
+          });
+          
+          // Riesgos con altura automática
+          drawCell(riesgosText, 'H', 'M', currentY, { 
+            fontSize: 8, 
+            height: etapaHeight 
+          });
+          
+          // Medidas de control con altura automática
+          drawCell(medidasText, 'N', 'V', currentY, { 
+            fontSize: 8, 
+            height: etapaHeight 
+          });
+          
+          currentY += etapaHeight;
+        });
+      }
+      
+      // ========== NUEVA PÁGINA PARA PERSONAL Y FIRMAS ==========
+      doc.addPage();
+      currentY = margins.top;
+      
+      // ========== SECCIÓN 3: PERSONAL ENTRENADO ==========
+      
+      drawCell(
+        '3.- PERSONAL ENTRENADO',
+        'A', 'V', currentY,
+        { 
+          fontSize: 10, 
+          bold: true, 
+          fillColor: '#CCCCCC', 
+          height: rowHeights.section,
+          align: 'center'
+        }
+      );
+      
+      currentY += rowHeights.section;
+      
+      // Headers de tabla de personal
+      drawCell('NOMBRE COMPLETO', 'A', 'J', currentY, { 
+        fontSize: 9, 
+        bold: true, 
+        fillColor: '#F0F0F0',
+        height: rowHeights.normal,
+        align: 'center'
+      });
+      
+      drawCell('RUT', 'K', 'O', currentY, { 
+        fontSize: 9, 
+        bold: true, 
+        fillColor: '#F0F0F0',
+        height: rowHeights.normal,
+        align: 'center'
+      });
+      
+      drawCell('FIRMA', 'P', 'V', currentY, { 
+        fontSize: 9, 
+        bold: true, 
+        fillColor: '#F0F0F0',
+        height: rowHeights.normal,
+        align: 'center'
+      });
+      
+      currentY += rowHeights.normal;
+      
+      // Personal participante - CORREGIDO: Usar firmas del formulario web
+      if (astData.personal && astData.personal.length > 0) {
+        astData.personal.forEach(persona => {
+          const personalHeight = 25;
+          
+          drawCell(persona.nombre || '', 'A', 'J', currentY, { 
+            fontSize: 8, 
+            height: personalHeight 
+          });
+          
+          drawCell(persona.rut || '', 'K', 'O', currentY, { 
+            fontSize: 8, 
+            height: personalHeight 
+          });
+          
+          // Área para firma - CORREGIDO: Usar firmaImg en lugar de firma
+          if (persona.firmaImg && persona.firmaImg.trim() !== '') {
+            try {
+              // Eliminar el prefijo data:image si existe
+              const firmaData = persona.firmaImg.replace(/^data:image\/[^;]+;base64,/, '');
+              const firmaBuffer = Buffer.from(firmaData, 'base64');
+              
+              // Dibujar celda de fondo primero
+              drawCell('', 'P', 'V', currentY, { 
+                fontSize: 8, 
+                height: personalHeight 
+              });
+              
+              // Luego insertar la imagen sobre la celda
+              doc.image(firmaBuffer, getColX('P') + 2, currentY + 2, {
+                fit: [getCombinedWidth('P', 'V') - 4, personalHeight - 4],
+                align: 'center'
+              });
+            } catch (error) {
+              console.log('Error cargando firma personal:', error);
+              drawCell('', 'P', 'V', currentY, { 
+                fontSize: 8, 
+                height: personalHeight 
+              });
+            }
+          } else {
+            drawCell('', 'P', 'V', currentY, { 
+              fontSize: 8, 
+              height: personalHeight 
+            });
+          }
+          
+          currentY += personalHeight;
+        });
+      }
+      
+      currentY += 20;
+      
+      // ========== FIRMAS DE AUTORIZACIÓN ==========
+      
+      drawCell(
+        'FIRMAS DE AUTORIZACIÓN',
+        'A', 'V', currentY,
+        { 
+          fontSize: 10, 
+          bold: true, 
+          fillColor: '#CCCCCC', 
+          height: rowHeights.section,
+          align: 'center'
+        }
+      );
+      
+      currentY += rowHeights.section + 15;
+      
+      // Títulos de cargos - BALANCEADOS 50/50
+      drawCell('SUPERVISOR', 'A', 'L', currentY, { 
+        fontSize: 9, 
+        bold: true, 
+        fillColor: '#F0F0F0',
+        height: rowHeights.normal,
+        align: 'center'
+      });
+      
+      drawCell('PREVENCIONISTA DE RIESGOS (APR)', 'M', 'V', currentY, { 
+        fontSize: 9, 
+        bold: true, 
+        fillColor: '#F0F0F0',
+        height: rowHeights.normal,
+        align: 'center'
+      });
+      
+      currentY += rowHeights.normal;
+      
+      // Nombres - BALANCEADOS 50/50
+      drawCell('Guillermo Osorio', 'A', 'L', currentY, { 
+        fontSize: 8,
+        height: rowHeights.normal
+      });
+      
+      drawCell(astData.prevencionista || '', 'M', 'V', currentY, { 
+        fontSize: 8,
+        height: rowHeights.normal
+      });
+      
+      currentY += rowHeights.normal;
+      
+      // Cargos - BALANCEADOS 50/50
+      drawCell('Supervisor', 'A', 'L', currentY, { 
+        fontSize: 7,
+        height: rowHeights.data
+      });
+      
+      drawCell('Prevención de Riesgos', 'M', 'V', currentY, { 
+        fontSize: 7,
+        height: rowHeights.data
+      });
+      
+      currentY += rowHeights.data + 10;
+      
+      // Áreas de firma - MEJORADAS CON MÁS TAMAÑO Y FECHA CORREGIDA
+      const firmaHeight = 60; // Aumentar significativamente el tamaño
+      const fechaActualFirma = new Date().toLocaleDateString('es-CL');
+      
+      // Insertar firmas si existen - SUPERVISOR
+      if (astData.firmaSupervisorImg && astData.firmaSupervisorImg.trim() !== '') {
+        try {
+          const firmaData = astData.firmaSupervisorImg.replace(/^data:image\/[^;]+;base64,/, '');
+          const firmaBuffer = Buffer.from(firmaData, 'base64');
+          
+          // Dibujar celda de fondo primero
+          drawCell('', 'A', 'L', currentY, { 
+            fontSize: 8, 
+            height: firmaHeight 
+          });
+          
+          // Etiqueta "Firma:" en la esquina superior izquierda
+          doc.fontSize(8).font('Helvetica');
+          doc.fillColor('black');
+          doc.text('Firma:', getColX('A') + 4, currentY + 4);
+          
+          // Insertar imagen más grande y centrada
+          const firmaX = getColX('A') + 8;
+          const firmaY = currentY + 18;
+          const firmaWidth = getCombinedWidth('A', 'L') - 80; // Más espacio para fecha
+          const firmaImgHeight = firmaHeight - 30;
+          
+          doc.image(firmaBuffer, firmaX, firmaY, {
+            fit: [firmaWidth, firmaImgHeight],
+            align: 'center'
+          });
+          
+          // Agregar fecha en esquina inferior derecha - POSICIÓN CORREGIDA
+          doc.fontSize(7).font('Helvetica');
+          doc.fillColor('black');
+          const supervisorEndX = getColX('A') + getCombinedWidth('A', 'L');
+          const fechaX = supervisorEndX - 60; // 60px desde el borde derecho
+          const fechaY = currentY + firmaHeight - 8;
+          doc.text(fechaActualFirma, fechaX, fechaY);
+          
+        } catch (error) {
+          console.log('Error cargando firma supervisor:', error);
+          drawCell('', 'A', 'L', currentY, { 
+            fontSize: 8, 
+            height: firmaHeight 
+          });
+          
+          // Texto alternativo con fecha
+          doc.fontSize(8).font('Helvetica');
+          doc.fillColor('black');
+          doc.text('Firma:', getColX('A') + 4, currentY + 4);
+          doc.fontSize(7);
+          const supervisorEndX = getColX('A') + getCombinedWidth('A', 'L');
+          doc.text(fechaActualFirma, supervisorEndX - 60, currentY + firmaHeight - 8);
+        }
+      } else {
+        drawCell('', 'A', 'L', currentY, { 
+          fontSize: 8, 
+          height: firmaHeight 
+        });
+        
+        // Texto sin firma
+        doc.fontSize(8).font('Helvetica');
+        doc.fillColor('black');
+        doc.text('Firma:', getColX('A') + 4, currentY + 4);
+        doc.fontSize(7);
+        const supervisorEndX = getColX('A') + getCombinedWidth('A', 'L');
+        doc.text(fechaActualFirma, supervisorEndX - 60, currentY + firmaHeight - 8);
+      }
+      
+      // PREVENCIONISTA
+      if (astData.firmaAprImg && astData.firmaAprImg.trim() !== '') {
+        try {
+          const firmaData = astData.firmaAprImg.replace(/^data:image\/[^;]+;base64,/, '');
+          const firmaBuffer = Buffer.from(firmaData, 'base64');
+          
+          // Dibujar celda de fondo primero
+          drawCell('', 'M', 'V', currentY, { 
+            fontSize: 8, 
+            height: firmaHeight 
+          });
+          
+          // Etiqueta "Firma:" en la esquina superior izquierda
+          doc.fontSize(8).font('Helvetica');
+          doc.fillColor('black');
+          doc.text('Firma:', getColX('M') + 4, currentY + 4);
+          
+          // Insertar imagen más grande y centrada
+          const firmaX = getColX('M') + 8;
+          const firmaY = currentY + 18;
+          const firmaWidth = getCombinedWidth('M', 'V') - 80; // Más espacio para fecha
+          const firmaImgHeight = firmaHeight - 30;
+          
+          doc.image(firmaBuffer, firmaX, firmaY, {
+            fit: [firmaWidth, firmaImgHeight],
+            align: 'center'
+          });
+          
+          // Agregar fecha en esquina inferior derecha - POSICIÓN CORREGIDA
+          doc.fontSize(7).font('Helvetica');
+          doc.fillColor('black');
+          const prevencionistaEndX = getColX('M') + getCombinedWidth('M', 'V');
+          const fechaX = prevencionistaEndX - 60; // 60px desde el borde derecho
+          const fechaY = currentY + firmaHeight - 8;
+          doc.text(fechaActualFirma, fechaX, fechaY);
+          
+        } catch (error) {
+          console.log('Error cargando firma prevencionista:', error);
+          drawCell('', 'M', 'V', currentY, { 
+            fontSize: 8, 
+            height: firmaHeight 
+          });
+          
+          // Texto alternativo con fecha
+          doc.fontSize(8).font('Helvetica');
+          doc.fillColor('black');
+          doc.text('Firma:', getColX('M') + 4, currentY + 4);
+          doc.fontSize(7);
+          const prevencionistaEndX = getColX('M') + getCombinedWidth('M', 'V');
+          doc.text(fechaActualFirma, prevencionistaEndX - 60, currentY + firmaHeight - 8);
+        }
+      } else {
+        drawCell('', 'M', 'V', currentY, { 
+          fontSize: 8, 
+          height: firmaHeight 
+        });
+        
+        // Texto sin firma
+        doc.fontSize(8).font('Helvetica');
+        doc.fillColor('black');
+        doc.text('Firma:', getColX('M') + 4, currentY + 4);
+        doc.fontSize(7);
+        const prevencionistaEndX = getColX('M') + getCombinedWidth('M', 'V');
+        doc.text(fechaActualFirma, prevencionistaEndX - 60, currentY + firmaHeight - 8);
+      }
+      
+      // ========== FOOTER ==========
+      doc.fontSize(7);
+      doc.text('Documento generado automáticamente el ' + new Date().toLocaleString('es-CL'), 
+               margins.left, pageHeight - 25);
+      
+      // ========== FINALIZAR PDF ==========
+      doc.end();
+      
+      // Esperar a que termine la escritura del archivo
+      await streamPromise;
+      
+      // Verificar que el archivo se creó correctamente
+      const fileExists = await fs.promises.access(filePath).then(() => true).catch(() => false);
+      if (!fileExists) {
+        throw new Error('El archivo PDF no se generó correctamente');
+      }
+      
+      console.log('PDF del AST generado correctamente en:', filePath);
+      
+      // Retornar la misma estructura que tu código que funciona
+      return { filePath };
+      
+    } catch (error) {
+      console.error('Error generando PDF del AST:', error);
+      throw new Error(`Error generando PDF: ${error.message}`);
+    }
+  }
+});
