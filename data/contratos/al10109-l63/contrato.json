@@ -1,0 +1,38 @@
+{
+  "id": "al10109-l63",
+  "nombre": "Mantenimiento del Sistema de Peajes y Máquinas de Autoservicio L63",
+  "codigo_interno": "AL10109",
+  "codigo_mandante": "MN-179-2015-G",
+  "empresa": "SICE AGENCIA CHILE S.A",
+  "obra_area": "Mantenimiento del Sistema de Peajes y Máquinas de Autoservicio L63",
+  "lugares": [
+    "Por definir - Agregar estaciones del contrato L63"
+  ],
+  "supervisores": [
+    "Por asignar"
+  ],
+  "prevencionistas": [
+    "Luis Sepúlveda",
+    "Valeria Huichipan"
+  ],
+  "trabajadores": [
+    "Nestor Flores",
+    "Ronald Cancino",
+    "Nicolas Jara",
+    "Juan Carlos Valenzuela",
+    "Avelino Troncoso",
+    "Ronald Rodriguez"
+  ],
+  "formularios": {
+    "ast": {
+      "codigo": "FTO-AL10109-01",
+      "version": "01",
+      "nombre": "Análisis de Seguridad en el Trabajo"
+    },
+    "checklist": {
+      "codigo": "FTO-AL10109-24",
+      "version": "03",
+      "nombre": "Inspección de Herramientas Manuales"
+    }
+  }
+}

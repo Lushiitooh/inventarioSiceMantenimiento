@@ -4,21 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Formulario AST - Documentación Digital SICE</title>
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="../assets/js/theme.js"></script>
-    
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Estilos personalizados -->
     <link rel="stylesheet" href="./shared/styles/main.css">
-    
+
     <!-- SignaturePad Library -->
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+
+    <style>
+        /* Textarea que se expande automáticamente */
+        .auto-resize {
+            overflow: hidden;
+            resize: none;
+            min-height: 80px;
+            transition: height 0.1s ease;
+        }
+        /* Sección deshabilitada visualmente */
+        .section-disabled {
+            opacity: 0.45;
+            pointer-events: none;
+        }
+    </style>
 </head>
 <body class="bg-gray-50">
 
@@ -29,8 +44,30 @@
     <main class="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 min-h-screen">
         <form id="astForm" class="form-container fade-in">
 
+            <!-- PASO 0: SELECTOR DE CONTRATO -->
+            <section class="form-section" id="contrato-section" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 2px solid #16a34a; border-radius: 12px;">
+                <div class="section-header" style="border-bottom-color: #bbf7d0;">
+                    <h3 class="section-title" style="color: #15803d;">
+                        <span class="section-icon" style="background: #15803d;">📋</span>
+                        Seleccionar Contrato
+                    </h3>
+                </div>
+                <p style="font-size: 0.875rem; color: #15803d; margin-bottom: 1.25rem;">
+                    Selecciona el contrato para cargar: estaciones, personal, código de formulario y catálogo de actividades.
+                </p>
+                <div>
+                    <label for="contrato_select" class="form-label required-field">Contrato</label>
+                    <select id="contrato_select" class="form-select" required>
+                        <option value="">Cargando contratos...</option>
+                    </select>
+                </div>
+                <div style="margin-top: 0.75rem;">
+                    <span id="contrato-status" style="font-size: 0.875rem; color: #6b7280;"></span>
+                </div>
+            </section>
+
             <!-- AUTOCOMPLETAR desde actividades.json -->
-            <section class="form-section" style="background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%); border: 2px solid #3b82f6; border-radius: 12px;">
+            <section class="form-section section-disabled" id="autofill-section" style="background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%); border: 2px solid #3b82f6; border-radius: 12px;">
                 <div class="section-header" style="border-bottom-color: #bfdbfe;">
                     <h3 class="section-title" style="color: #1d4ed8;">
                         <span class="section-icon" style="background: #1d4ed8;">⚡</span>
@@ -45,7 +82,7 @@
                     <div>
                         <label for="grupo_actividad" class="form-label">Tipo de Intervención</label>
                         <select id="grupo_actividad" class="form-select">
-                            <option value="">Cargando catálogo...</option>
+                            <option value="">Primero seleccione contrato...</option>
                         </select>
                     </div>
                     <div>
@@ -71,7 +108,7 @@
             <!-- Cabecera -->
             <div class="form-header">
                 <h2>ANÁLISIS DE SEGURIDAD EN EL TRABAJO (AST)</h2>
-                <p>FTO-AL10195-01</p>
+                <p id="codigo-formulario">—</p>
                 <div class="mt-4">
                     <div class="timestamp-badge">
                         Fecha y hora de creación: <span id="fechaHoraActual" class="font-bold"></span>
@@ -87,7 +124,7 @@
                         Información General del Trabajo
                     </h3>
                 </div>
-                
+
                 <div class="form-grid form-grid-3">
                     <div>
                         <label for="empresa" class="form-label required-field">Empresa</label>
@@ -95,7 +132,8 @@
                     </div>
                     <div class="md:col-span-2">
                         <label for="obra_area" class="form-label required-field">OBRA/Área</label>
-                        <input type="text" id="obra_area" name="obra_area" class="form-input" value="Suministro de Puertas Bidireccionales de Control en 7 Estaciones de la Red de Metro." readonly>
+                        <input type="text" id="obra_area" name="obra_area" class="form-input"
+                               placeholder="Se cargará al seleccionar el contrato..." readonly>
                     </div>
                 </div>
 
@@ -103,21 +141,15 @@
                     <div class="md:col-span-2">
                         <label for="lugar" class="form-label required-field">Lugar Específico</label>
                         <select id="lugar" name="lugar" class="form-select" required>
-                            <option value="">Seleccione una estación...</option>
-                            <option value="Estacion Universidad de Chile">Estación Universidad de Chile</option>
-                            <option value="Estacion San Pablo">Estación San Pablo</option>
-                            <option value="Estacion Departamental">Estación Departamental</option>
-                            <option value="Estacion Santa Julia">Estación Santa Julia</option>
-                            <option value="Estacion San Ramon">Estación San Ramón</option>
-                            <option value="Estacion San Joaquin">Estación San Joaquín</option>
-                            <option value="Estacion La Granja">Estación La Granja</option>
+                            <option value="">Seleccione contrato primero...</option>
                         </select>
                     </div>
                 </div>
 
                 <div style="margin-top: 1.5rem;">
                     <label for="trabajo" class="form-label required-field">Trabajo a Realizar</label>
-                    <textarea id="trabajo" name="trabajo" class="form-textarea" placeholder="Describa detalladamente el trabajo que se va a realizar..." required></textarea>
+                    <textarea id="trabajo" name="trabajo" class="form-textarea auto-resize"
+                              placeholder="Describa detalladamente el trabajo que se va a realizar..." required></textarea>
                 </div>
             </section>
 
@@ -129,7 +161,7 @@
                         Documento de Respaldo
                     </h3>
                 </div>
-                
+
                 <div id="documentos-container">
                     <div class="form-grid form-grid-2" id="documento-inicial">
                         <div>
@@ -162,7 +194,7 @@
                         Elementos de Apoyo para Control de Riesgos
                     </h3>
                 </div>
-                
+
                 <div id="epp-container">
                     <div class="checkbox-group">
                         <div class="checkbox-item">
@@ -214,7 +246,7 @@
                             <label for="taladro_inalambrico">Taladro Inalámbrico</label>
                         </div>
                     </div>
-                    
+
                     <div id="epp-adicionales" style="margin-top: 1.5rem;">
                         <h4 style="font-weight: 600; margin-bottom: 1rem; color: var(--neutral-700);">Elementos Adicionales</h4>
                     </div>
@@ -260,7 +292,7 @@
                         Firmas
                     </h3>
                 </div>
-                
+
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
                     <!-- Firma Supervisor -->
                     <div style="text-align: center;">
@@ -271,7 +303,7 @@
                         </div>
                         <p style="margin-top: 1rem; font-size: 0.875rem; color: var(--neutral-600);">Supervisor de Obra</p>
                     </div>
-                    
+
                     <!-- Firma APR -->
                     <div style="text-align: center;">
                         <h4 style="font-weight: 600; margin-bottom: 1rem;">APR</h4>
@@ -281,14 +313,13 @@
                         </div>
                         <p style="margin-top: 1rem; font-size: 0.875rem; color: var(--neutral-600);">Análisis Preliminar de Riesgos</p>
                     </div>
-                    
+
                     <!-- Prevencionista -->
                     <div style="text-align: center;">
                         <h4 style="font-weight: 600; margin-bottom: 1rem;">Asesor en Prevención de Riesgos</h4>
-                        <select name="prevencionista" class="form-select" style="max-width: 300px; margin: 1rem auto;" required>
-                            <option value="">Seleccione...</option>
-                            <option value="Luis Sepúlveda">Luis Sepúlveda</option>
-                            <option value="Valeria Huichipan">Valeria Huichipan</option>
+                        <select id="prevencionista_select" name="prevencionista" class="form-select"
+                                style="max-width: 300px; margin: 1rem auto;" required>
+                            <option value="">Seleccione contrato primero...</option>
                         </select>
                         <p style="font-size: 0.875rem; color: var(--neutral-600);">Prevención de Riesgos</p>
                     </div>
@@ -309,7 +340,7 @@
         </form>
     </main>
 
-    <!-- Navbar loader (carga ../components/navbar.html con rutas ajustadas) -->
+    <!-- Navbar loader -->
     <script src="../assets/js/navbar.js"></script>
 
     <!-- Módulo AST -->

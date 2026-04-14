@@ -1,0 +1,18 @@
+{
+  "version": "1.0.0",
+  "descripcion": "Lista maestra de contratos SICE. Para agregar un nuevo contrato: crear carpeta en data/contratos/{id}/, agregar contrato.json y actividades.json, luego agregar entrada aqui.",
+  "contratos": [
+    {
+      "id": "al10109-l63",
+      "nombre": "Mantenimiento del Sistema de Peajes y Máquinas de Autoservicio L63",
+      "codigo_interno": "AL10109",
+      "codigo_mandante": "MN-179-2015-G"
+    },
+    {
+      "id": "al10195-metro-puertas",
+      "nombre": "Suministro de Puertas Bidireccionales de Control en 7 Estaciones de la Red de Metro",
+      "codigo_interno": "AL10195",
+      "codigo_mandante": "Por definir"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 // assets/manifest/sw.js - Service Worker Corregido para PWA
 
-const CACHE_NAME = 'inventario-epp-cache-v6';
+const CACHE_NAME = 'inventario-epp-cache-v7';
 
 // Lista de archivos críticos a cachear
 const urlsToCache = [
@@ -23,7 +23,13 @@ const urlsToCache = [
   '/inventarioSiceMantenimiento/assets/js/navbar.js',
   '/inventarioSiceMantenimiento/assets/js/router.js',
   '/inventarioSiceMantenimiento/assets/js/pwa-install.js',
-  '/inventarioSiceMantenimiento/assets/manifest/manifest.json'
+  '/inventarioSiceMantenimiento/assets/manifest/manifest.json',
+  // Catálogo de contratos (multi-contrato)
+  '/inventarioSiceMantenimiento/data/contratos/index.json',
+  '/inventarioSiceMantenimiento/data/contratos/al10109-l63/contrato.json',
+  '/inventarioSiceMantenimiento/data/contratos/al10109-l63/actividades.json',
+  '/inventarioSiceMantenimiento/data/contratos/al10195-metro-puertas/contrato.json',
+  '/inventarioSiceMantenimiento/data/contratos/al10195-metro-puertas/actividades.json'
 ];
 
 // URLs externas importantes

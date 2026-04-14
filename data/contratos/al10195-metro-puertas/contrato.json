@@ -1,0 +1,44 @@
+{
+  "id": "al10195-metro-puertas",
+  "nombre": "Suministro de Puertas Bidireccionales de Control en 7 Estaciones de la Red de Metro",
+  "codigo_interno": "AL10195",
+  "codigo_mandante": "Por definir",
+  "empresa": "SICE AGENCIA CHILE S.A",
+  "obra_area": "Suministro de Puertas Bidireccionales de Control en 7 Estaciones de la Red de Metro.",
+  "lugares": [
+    "Estación Universidad de Chile",
+    "Estación San Pablo",
+    "Estación Departamental",
+    "Estación Santa Julia",
+    "Estación San Ramón",
+    "Estación San Joaquín",
+    "Estación La Granja"
+  ],
+  "supervisores": [
+    "Por asignar"
+  ],
+  "prevencionistas": [
+    "Luis Sepúlveda",
+    "Valeria Huichipan"
+  ],
+  "trabajadores": [
+    "Nestor Flores",
+    "Ronald Cancino",
+    "Nicolas Jara",
+    "Juan Carlos Valenzuela",
+    "Avelino Troncoso",
+    "Ronald Rodriguez"
+  ],
+  "formularios": {
+    "ast": {
+      "codigo": "FTO-AL10195-01",
+      "version": "01",
+      "nombre": "Análisis de Seguridad en el Trabajo"
+    },
+    "checklist": {
+      "codigo": "FTO-AL10195-24",
+      "version": "03",
+      "nombre": "Inspección de Herramientas Manuales"
+    }
+  }
+}

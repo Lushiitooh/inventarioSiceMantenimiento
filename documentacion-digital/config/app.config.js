@@ -1,84 +1,51 @@
 // config/app.config.js
 /**
- * CONFIGURACIÓN CENTRALIZADA - Documentación Digital SICE
- * Migrado desde el proyecto original
- * Todas las constantes en un solo lugar para fácil mantenimiento
+ * CONFIGURACIÓN GLOBAL - Documentación Digital SICE
+ *
+ * Este archivo contiene SOLO datos que son comunes a TODOS los contratos:
+ * EPP predeterminados, riesgos potenciales, herramientas, webhooks, etc.
+ *
+ * Los datos específicos por contrato (estaciones, supervisores, trabajadores,
+ * prevencionistas, procedimientos) viven en:
+ *   data/contratos/{id}/contrato.json       ← metadata y personal
+ *   data/contratos/{id}/actividades.json    ← procedimientos y actividades
+ *
+ * Para agregar un nuevo contrato ver: data/contratos/index.json
  */
 
 export const APP_CONFIG = {
-  // Información de la empresa (extraído de tu código actual)
+
+  // ── Empresa ───────────────────────────────────────────────────────────────
   empresa: {
-    nombre: 'SICE AGENCIA CHILE S.A',
-    proyecto: 'Suministro de Puertas Bidireccionales de Control en 7 Estaciones de la Red de Metro',
-    estaciones: [
-      'Estacion Universidad de Chile',
-      'Estacion San Pablo',
-      'Estacion Departamental',
-      'Estacion Santa Julia',
-      'Estacion San Ramon',
-      'Estacion San Joaquin',
-      'Estacion La Granja'
-    ]
+    nombre: 'SICE AGENCIA CHILE S.A'
   },
 
-  // Trabajadores registrados (extraído de checklist)
-  trabajadores: [
-    'Nestor Flores',
-    'Ronald Cancino',
-    'Nicolas Jara',
-    'Juan Carlos Valenzuela',
-    'Avelino Troncoso',
-    'Ronald Rodriguez'
-  ],
-
-  // Prevencionistas (extraído de formulario AST)
-  prevencionistas: [
-    'Luis Sepúlveda',
-    'Valeria Huichipan'
-  ],
-
-  // Códigos de formularios
-  formularios: {
-    ast: {
-      codigo: 'FTO-AL10195-01',
-      version: '01',
-      nombre: 'Análisis de Seguridad en el Trabajo'
-    },
-    checklist: {
-      codigo: 'FTO-AL10195-24',
-      version: '03',
-      nombre: 'Inspección de Herramientas Manuales'
-    }
-  },
-
-  // ⚠️ IMPORTANTE: Actualizar estas URLs con tus webhooks reales
+  // ── Webhooks Pipedream ────────────────────────────────────────────────────
+  // Actualizar con las URLs reales de cada webhook
   webhooks: {
-    // Reemplazar con tu webhook de AST de Pipedream
-    ast: 'https://eo55cuzv9unsqdf.m.pipedream.net',
-    
-    // Reemplazar con tu webhook de Checklist de Pipedream
-    checklist: 'https://eo4hxb3eilspbb0.m.pipedream.net'  // Este ya lo tenías
+    ast:      'https://eo55cuzv9unsqdf.m.pipedream.net',
+    checklist: 'https://eo4hxb3eilspbb0.m.pipedream.net'
   },
 
-  // EPP predeterminados para AST (extraído de tu formulario actual)
+  // ── EPP predeterminados (comunes a todos los contratos) ───────────────────
   epp: {
     predeterminados: [
-      { id: 'casco', label: 'Casco' },
-      { id: 'linterna_casco', label: 'Linterna Adosable al Casco' },
-      { id: 'lentes', label: 'Lentes de seguridad' },
-      { id: 'zapatos', label: 'Zapatos de seguridad' },
-      { id: 'guantes', label: 'Guantes' },
-      { id: 'guantes_hyflex', label: 'Guantes Hyflex' },
-      { id: 'guantes_cabritilla', label: 'Guantes Cabritilla' },
-      { id: 'protector_auditivo', label: 'Protector auditivo' },
+      { id: 'casco',                  label: 'Casco' },
+      { id: 'linterna_casco',         label: 'Linterna Adosable al Casco' },
+      { id: 'lentes',                 label: 'Lentes de seguridad' },
+      { id: 'zapatos',                label: 'Zapatos de seguridad' },
+      { id: 'guantes',                label: 'Guantes' },
+      { id: 'guantes_hyflex',         label: 'Guantes Hyflex' },
+      { id: 'guantes_cabritilla',     label: 'Guantes Cabritilla' },
+      { id: 'protector_auditivo',     label: 'Protector auditivo' },
       { id: 'protector_respiratorio', label: 'Protector respiratorio' },
-      { id: 'arnes', label: 'Arnés de seguridad' },
-      { id: 'cono', label: 'Cono' },
-      { id: 'taladro_inalambrico', label: 'Taladro Inalámbrico' }
+      { id: 'arnes',                  label: 'Arnés de seguridad' },
+      { id: 'cono',                   label: 'Cono' },
+      { id: 'taladro_inalambrico',    label: 'Taladro Inalámbrico' }
     ]
   },
 
-  // Herramientas predeterminadas para Checklist (extraído de tu código)
+  // ── Herramientas predeterminadas para Checklist ───────────────────────────
   herramientas: {
     predeterminadas: [
       'Caja Herramientas negra',
@@ -102,7 +69,7 @@ export const APP_CONFIG = {
     ]
   },
 
-  // Riesgos potenciales para AST (extraído de tu código)
+  // ── Riesgos potenciales AST (comunes a todos los contratos) ───────────────
   riesgos: {
     potenciales: [
       'Atrapamiento',
@@ -125,31 +92,23 @@ export const APP_CONFIG = {
     ]
   },
 
-  // Tipos de documentos de respaldo (extraído de tu código)
+  // ── Tipos de documentos de respaldo ──────────────────────────────────────
   documentos: {
-    tipos: [
-      'procedimiento',
-      'instructivo',
-      'otro',
-      'no_requiere'
-    ],
+    tipos: ['procedimiento', 'instructivo', 'otro', 'no_requiere'],
     labels: {
-      'procedimiento': 'Procedimiento',
-      'instructivo': 'Instructivo',
-      'otro': 'Otro',
-      'no_requiere': 'No requiere'
+      procedimiento: 'Procedimiento',
+      instructivo:   'Instructivo',
+      otro:          'Otro',
+      no_requiere:   'No requiere'
     }
   }
 };
 
-// Exportar para fácil acceso
-export const EMPRESA = APP_CONFIG.empresa;
-export const TRABAJADORES = APP_CONFIG.trabajadores;
-export const PREVENCIONISTAS = APP_CONFIG.prevencionistas;
-export const FORMULARIOS = APP_CONFIG.formularios;
-export const WEBHOOKS = APP_CONFIG.webhooks;
-export const EPP_PREDETERMINADOS = APP_CONFIG.epp.predeterminados;
+// ── Exports nombrados para uso directo ────────────────────────────────────
+export const EMPRESA                  = APP_CONFIG.empresa;
+export const WEBHOOKS                 = APP_CONFIG.webhooks;
+export const EPP_PREDETERMINADOS      = APP_CONFIG.epp.predeterminados;
 export const HERRAMIENTAS_PREDETERMINADAS = APP_CONFIG.herramientas.predeterminadas;
-export const RIESGOS_POTENCIALES = APP_CONFIG.riesgos.potenciales;
-export const TIPOS_DOCUMENTOS = APP_CONFIG.documentos.tipos;
-export const LABELS_DOCUMENTOS = APP_CONFIG.documentos.labels;
+export const RIESGOS_POTENCIALES      = APP_CONFIG.riesgos.potenciales;
+export const TIPOS_DOCUMENTOS         = APP_CONFIG.documentos.tipos;
+export const LABELS_DOCUMENTOS        = APP_CONFIG.documentos.labels;
