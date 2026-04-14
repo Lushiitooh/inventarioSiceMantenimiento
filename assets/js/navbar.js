@@ -66,6 +66,7 @@ document.addEventListener('DOMContentLoaded', function () {
             initializeMobileMenu();
             adjustNavLinks();
             setActiveNavLink();
+            initializeThemeToggle();
 
         } catch (error) {
             console.error('Error al cargar la navbar:', error);
@@ -75,6 +76,36 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             `;
         }
+    }
+
+    function initializeThemeToggle() {
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const darkIcon = document.getElementById('theme-toggle-dark-icon');
+        const lightIcon = document.getElementById('theme-toggle-light-icon');
+
+        if (!themeToggleBtn) return;
+
+        // Mostrar el icono correcto según el estado inicial
+        if (document.documentElement.classList.contains('dark')) {
+            lightIcon.classList.remove('hidden');
+        } else {
+            darkIcon.classList.remove('hidden');
+        }
+
+        themeToggleBtn.addEventListener('click', function() {
+            // Alternar los iconos
+            darkIcon.classList.toggle('hidden');
+            lightIcon.classList.toggle('hidden');
+
+            // Alternar el tema
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
     }
 
     function adjustNavLinks() {
