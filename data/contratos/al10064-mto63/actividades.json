@@ -1,0 +1,796 @@
+{
+  "version": "1.0.0",
+  "fecha_actualizacion": "2026-04-13",
+  "contrato": "MN-179-2015-G",
+  "codigo_procedimiento_base": "P63-ID-0806-PRO-000-GR-00004",
+  "grupos": [
+    {
+      "id": "basica_pbc_pmr",
+      "label": "Intervenciones Básicas PBC-PMR",
+      "descripcion": "Inspecciones periódicas de limpieza y ajustes de Puertas Barrera Control (PBC/PBC-PMR) en estaciones de Metro. Frecuencia recomendada: 3 a 4 veces al año.",
+      "actividades": [
+        {
+          "id": "b01_limpieza_carroceria",
+          "titulo": "Limpieza de la carrocería exterior PBC-PMR",
+          "trabajo_descripcion": "Limpieza de las partes externas de la PBC-PMR con producto especializado para acero inoxidable, verificando que las ranuras de paso estén despejadas.",
+          "documentos": [
+            {
+              "tipo": "procedimiento",
+              "nombre": "P63-ID-0806-PRO-000-GR-00004",
+              "descripcion": "Procedimiento de Intervenciones Básicas PBC-PMR"
+            }
+          ],
+          "epp": [
+            "casco",
+            "lentes",
+            "zapatos",
+            "guantes",
+            "chaleco",
+            "manga_larga"
+          ],
+          "epp_condicional": [
+            "linterna_casco"
+          ],
+          "secuencia": [
+            {
+              "etapa": "Delimitación y señalización del área de trabajo",
+              "descripcion": "Colocar conos y señalización alrededor del equipo. Informar al jefe de estación que el equipo estará fuera de servicio durante la intervención.",
+              "riesgos": [
+                "Tránsito de pasajeros",
+                "Caída al mismo nivel"
+              ],
+              "controles": [
+                "Delimitar área con conos y cinta",
+                "Usar chaleco reflectante",
+                "Coordinar con jefe de estación"
+              ]
+            },
+            {
+              "etapa": "Aplicación de producto limpiador en carrocería",
+              "descripcion": "Aplicar producto recomendado para acero inoxidable sobre la superficie externa siguiendo instrucciones del fabricante.",
+              "riesgos": [
+                "Contacto con productos químicos",
+                "Golpes con estructura metálica"
+              ],
+              "controles": [
+                "Usar guantes de trabajo fino",
+                "Leer ficha de seguridad del producto",
+                "No aplicar en exceso para evitar derrames"
+              ]
+            },
+            {
+              "etapa": "Limpieza y pulido de la carrocería",
+              "descripcion": "Limpiar con paño en el sentido del grano del acero inoxidable, prestando atención a bordes y esquinas.",
+              "riesgos": [
+                "Cortes por bordes metálicos",
+                "Sobreesfuerzo"
+              ],
+              "controles": [
+                "Usar guantes de trabajo fino",
+                "Movimientos controlados",
+                "Mantener postura ergonómica"
+              ]
+            },
+            {
+              "etapa": "Verificación de ranuras y desobstrucción",
+              "descripcion": "Inspeccionar que las ranuras para monedas, billetes y tarjetas BIP estén despejadas y sin acumulación de suciedad.",
+              "riesgos": [
+                "Atrapamiento de dedos en ranuras",
+                "Golpes"
+              ],
+              "controles": [
+                "No introducir dedos en ranuras",
+                "Verificar visualmente con linterna",
+                "Usar herramienta si se debe retirar objeto"
+              ]
+            },
+            {
+              "etapa": "Inspección final y habilitación del equipo",
+              "descripcion": "Verificar que la carrocería quede limpia y sin daños. Retirar señalización y habilitar el equipo al servicio.",
+              "riesgos": [
+                "Caída al mismo nivel"
+              ],
+              "controles": [
+                "Recoger todos los materiales de limpieza",
+                "Retirar conos y señalización",
+                "Reportar anomalías al supervisor"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "b02_limpieza_interna",
+          "titulo": "Limpieza interna del equipo PBC-PMR",
+          "trabajo_descripcion": "Apertura de paneles de acceso y limpieza interna del mueble PBC-PMR con desengrasante y paños de microfibra con compuesto pulidor, con desconexión eléctrica previa.",
+          "documentos": [
+            {
+              "tipo": "procedimiento",
+              "nombre": "P63-ID-0806-PRO-000-GR-00004",
+              "descripcion": "Procedimiento de Intervenciones Básicas PBC-PMR"
+            }
+          ],
+          "epp": [
+            "casco",
+            "lentes",
+            "zapatos",
+            "guantes",
+            "chaleco",
+            "manga_larga"
+          ],
+          "epp_condicional": [
+            "linterna_casco",
+            "protector_auditivo"
+          ],
+          "secuencia": [
+            {
+              "etapa": "Delimitación y señalización del área de trabajo",
+              "descripcion": "Colocar conos y señalización alrededor del equipo. Informar al jefe de estación que el equipo estará fuera de servicio durante la intervención.",
+              "riesgos": [
+                "Tránsito de pasajeros",
+                "Caída al mismo nivel"
+              ],
+              "controles": [
+                "Delimitar área con conos y cinta",
+                "Usar chaleco reflectante",
+                "Coordinar con jefe de estación"
+              ]
+            },
+            {
+              "etapa": "Corte de alimentación eléctrica (disyuntor principal)",
+              "descripcion": "Retirar el panel de acceso del lado salida. Apagar el disyuntor principal del circuito. Para puertas intermedias, desconectar también el disyuntor de la puerta adyacente a la derecha.",
+              "riesgos": [
+                "Contacto eléctrico",
+                "Golpes al retirar el panel"
+              ],
+              "controles": [
+                "Verificar posición 0 del disyuntor antes de iniciar",
+                "Usar guantes de trabajo",
+                "Puertas intermedias: DOBLE desconexión obligatoria"
+              ]
+            },
+            {
+              "etapa": "Limpieza interior con desengrasante y microfibra",
+              "descripcion": "Limpiar el interior del equipo con desengrasante y paños de microfibra con compuesto pulidor. Limpiar pantallas de ocultación de células con producto antiestático.",
+              "riesgos": [
+                "Contacto con productos químicos",
+                "Golpes con componentes internos",
+                "Contacto eléctrico residual"
+              ],
+              "controles": [
+                "NO humectar células de detección ni elementos eléctricos",
+                "Usar guantes de trabajo",
+                "Usar paño levemente humedecido, nunca mojado"
+              ]
+            },
+            {
+              "etapa": "Comprobación de cerraduras, tornillos y elementos móviles",
+              "descripcion": "Verificar el estado y funcionamiento de cerraduras, tornillos, tuercas y elementos móviles internos. Comprobar ajuste y fijación de células verticales.",
+              "riesgos": [
+                "Atrapamiento en partes móviles",
+                "Cortes por bordes",
+                "Sobreesfuerzo"
+              ],
+              "controles": [
+                "Nunca accionar mecanismos con la mano dentro del equipo",
+                "Usar herramienta adecuada para cada tornillo",
+                "No forzar elementos que ofrezcan resistencia"
+              ]
+            },
+            {
+              "etapa": "Inspección de conexiones eléctricas internas",
+              "descripcion": "Inspeccionar cables y conectores internos verificando que no haya cables sueltos o con aislación dañada. No desconectar un cable sin marcar primero el borne.",
+              "riesgos": [
+                "Contacto eléctrico",
+                "Cortes"
+              ],
+              "controles": [
+                "No tocar terminales con manos desnudas",
+                "Marcar el borne antes de desconectar cualquier cable",
+                "Reportar cable dañado sin manipularlo"
+              ]
+            },
+            {
+              "etapa": "Recolocación de paneles, reconexión eléctrica y retiro de señalización",
+              "descripcion": "Reconectar el cable de tierra al panel. Recolocar y bloquear el panel con las dos llaves. Reconectar el disyuntor. Retirar señalización y habilitar el equipo.",
+              "riesgos": [
+                "Contacto eléctrico al reconectar",
+                "Atrapamiento de obstáculos al reactivar"
+              ],
+              "controles": [
+                "Reconectar cable de tierra antes de fijar el panel",
+                "Alejarse de obstáculos antes de reconectar",
+                "Verificar que no haya personas en la zona de movimiento de obstáculos"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "b03_limpieza_pantallas",
+          "titulo": "Limpieza de pantallas PBC-PMR",
+          "trabajo_descripcion": "Limpieza de todas las pantallas del equipo PBC-PMR con limpia vidrios, sin desmontaje eléctrico.",
+          "documentos": [
+            {
+              "tipo": "procedimiento",
+              "nombre": "P63-ID-0806-PRO-000-GR-00004",
+              "descripcion": "Procedimiento de Intervenciones Básicas PBC-PMR"
+            }
+          ],
+          "epp": [
+            "casco",
+            "lentes",
+            "zapatos",
+            "guantes",
+            "chaleco",
+            "manga_larga"
+          ],
+          "epp_condicional": [
+            "linterna_casco"
+          ],
+          "secuencia": [
+            {
+              "etapa": "Delimitación y señalización del área de trabajo",
+              "descripcion": "Colocar conos y señalización alrededor del equipo. Informar al jefe de estación que el equipo estará fuera de servicio durante la intervención.",
+              "riesgos": [
+                "Tránsito de pasajeros",
+                "Caída al mismo nivel"
+              ],
+              "controles": [
+                "Delimitar área con conos y cinta",
+                "Usar chaleco reflectante",
+                "Coordinar con jefe de estación"
+              ]
+            },
+            {
+              "etapa": "Limpieza de pantallas con limpia vidrios y paño de microfibra",
+              "descripcion": "Aplicar limpia vidrios en el paño de microfibra (no directamente en la pantalla). Limpiar con movimientos suaves sin presión excesiva.",
+              "riesgos": [
+                "Golpes contra las pantallas",
+                "Contacto con producto químico",
+                "Daño a pantalla táctil"
+              ],
+              "controles": [
+                "Aplicar el producto en el paño, nunca directamente en la pantalla",
+                "No presionar excesivamente",
+                "Usar paño de microfibra limpio"
+              ]
+            },
+            {
+              "etapa": "Secado y verificación de pantallas",
+              "descripcion": "Secar las pantallas con paño seco y verificar que no queden residuos ni rayaduras. Reportar cualquier daño visible.",
+              "riesgos": [
+                "Cortes por vidrio dañado"
+              ],
+              "controles": [
+                "Usar paño suave no abrasivo",
+                "Reportar pantalla rayada al supervisor",
+                "Retirar señalización y habilitar el equipo"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "b04_limpieza_perifericos",
+          "titulo": "Limpieza de elementos periféricos PBC-PMR",
+          "trabajo_descripcion": "Limpieza del validador y demás elementos periféricos del equipo PBC-PMR siguiendo instrucciones del fabricante para cada componente.",
+          "documentos": [
+            {
+              "tipo": "procedimiento",
+              "nombre": "P63-ID-0806-PRO-000-GR-00004",
+              "descripcion": "Procedimiento de Intervenciones Básicas PBC-PMR"
+            }
+          ],
+          "epp": [
+            "casco",
+            "lentes",
+            "zapatos",
+            "guantes",
+            "chaleco",
+            "manga_larga"
+          ],
+          "epp_condicional": [
+            "linterna_casco"
+          ],
+          "secuencia": [
+            {
+              "etapa": "Delimitación y señalización del área de trabajo",
+              "descripcion": "Colocar conos y señalización alrededor del equipo. Informar al jefe de estación que el equipo estará fuera de servicio durante la intervención.",
+              "riesgos": [
+                "Tránsito de pasajeros",
+                "Caída al mismo nivel"
+              ],
+              "controles": [
+                "Delimitar área con conos y cinta",
+                "Usar chaleco reflectante",
+                "Coordinar con jefe de estación"
+              ]
+            },
+            {
+              "etapa": "Identificación de periféricos y consulta de instrucciones del fabricante",
+              "descripcion": "Identificar todos los elementos periféricos (validador BIP, lector de tarjetas, etc.) y consultar las instrucciones de limpieza específicas para cada uno.",
+              "riesgos": [
+                "Daño al equipamiento por uso de producto incorrecto"
+              ],
+              "controles": [
+                "Consultar el manual del fabricante antes de limpiar cada periférico",
+                "No intervenir sin conocer el procedimiento específico del componente"
+              ]
+            },
+            {
+              "etapa": "Limpieza externa de cada periférico",
+              "descripcion": "Limpiar la superficie externa de cada periférico con paño húmedo o producto indicado. NO usar solventes ni acetona.",
+              "riesgos": [
+                "Contacto con productos químicos",
+                "Daño al equipo"
+              ],
+              "controles": [
+                "Usar solo productos autorizados por el fabricante",
+                "No sumergir ni exponer el equipo al agua",
+                "Usar paño levemente humedecido"
+              ]
+            },
+            {
+              "etapa": "Prueba de funcionamiento de periféricos",
+              "descripcion": "Verificar que cada periférico responda correctamente realizando prueba de lectura.",
+              "riesgos": [
+                "Atrapamiento al probar mecanismos"
+              ],
+              "controles": [
+                "Mantener manos alejadas de ranuras durante la prueba",
+                "Reportar anomalías de funcionamiento al supervisor"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "b05_inspeccion_danos_externos",
+          "titulo": "Inspección de daños externos PBC-PMR",
+          "trabajo_descripcion": "Inspección visual de componentes externos del equipo PBC-PMR para detectar daños por vandalismo, desgaste o impactos, y retiro de obstrucciones que impidan el cierre de obstáculos.",
+          "documentos": [
+            {
+              "tipo": "procedimiento",
+              "nombre": "P63-ID-0806-PRO-000-GR-00004",
+              "descripcion": "Procedimiento de Intervenciones Básicas PBC-PMR"
+            }
+          ],
+          "epp": [
+            "casco",
+            "lentes",
+            "zapatos",
+            "guantes",
+            "chaleco",
+            "manga_larga"
+          ],
+          "epp_condicional": [
+            "linterna_casco"
+          ],
+          "secuencia": [
+            {
+              "etapa": "Delimitación y señalización del área de trabajo",
+              "descripcion": "Colocar conos y señalización alrededor del equipo. Informar al jefe de estación que el equipo estará fuera de servicio durante la intervención.",
+              "riesgos": [
+                "Tránsito de pasajeros",
+                "Caída al mismo nivel"
+              ],
+              "controles": [
+                "Delimitar área con conos y cinta",
+                "Usar chaleco reflectante",
+                "Coordinar con jefe de estación"
+              ]
+            },
+            {
+              "etapa": "Inspección visual completa del exterior del equipo",
+              "descripcion": "Realizar inspección visual de todos los componentes externos del equipo buscando daños, deformaciones, objetos extraños o componentes faltantes.",
+              "riesgos": [
+                "Cortes por metal deformado",
+                "Golpes"
+              ],
+              "controles": [
+                "Usar guantes de trabajo",
+                "No tocar bordes metálicos deformados sin guantes",
+                "Reportar daños estructurales al supervisor"
+              ]
+            },
+            {
+              "etapa": "Retiro de objetos que obstruyan el paso o el cierre de obstáculos",
+              "descripcion": "Retirar manualmente cualquier objeto extraño que impida el cierre correcto de los obstáculos móviles o tape las células de detección.",
+              "riesgos": [
+                "Atrapamiento de dedos en mecanismo de obstáculos",
+                "Cortes"
+              ],
+              "controles": [
+                "NUNCA introducir la mano con el equipo energizado",
+                "Desconectar disyuntor si debe retirar objeto entre mecanismos",
+                "Usar herramienta para retirar objetos pequeños"
+              ]
+            },
+            {
+              "etapa": "Verificación de alineación estructural e informe",
+              "descripcion": "Verificar que las partes de la estructura estén bien alineadas. Informar cualquier defecto que impida la apertura normal de las puertas.",
+              "riesgos": [
+                "Golpes con estructura",
+                "Sobreesfuerzo"
+              ],
+              "controles": [
+                "Solo inspección visual, no forzar estructura",
+                "Reportar desalineación al supervisor para intervención correctiva",
+                "No operar el equipo si tiene daño estructural grave"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "b06_inspeccion_celulas",
+          "titulo": "Inspección de células de detección PBC-PMR",
+          "trabajo_descripcion": "Inspección y limpieza de las células de detección del sistema DIRAS de la puerta PBC-PMR, verificando ausencia de obstrucciones y estado de las tiras de ocultación.",
+          "documentos": [
+            {
+              "tipo": "procedimiento",
+              "nombre": "P63-ID-0806-PRO-000-GR-00004",
+              "descripcion": "Procedimiento de Intervenciones Básicas PBC-PMR"
+            }
+          ],
+          "epp": [
+            "casco",
+            "lentes",
+            "zapatos",
+            "guantes",
+            "chaleco",
+            "manga_larga"
+          ],
+          "epp_condicional": [
+            "linterna_casco"
+          ],
+          "secuencia": [
+            {
+              "etapa": "Delimitación y señalización del área de trabajo",
+              "descripcion": "Colocar conos y señalización alrededor del equipo. Informar al jefe de estación que el equipo estará fuera de servicio durante la intervención.",
+              "riesgos": [
+                "Tránsito de pasajeros",
+                "Caída al mismo nivel"
+              ],
+              "controles": [
+                "Delimitar área con conos y cinta",
+                "Usar chaleco reflectante",
+                "Coordinar con jefe de estación"
+              ]
+            },
+            {
+              "etapa": "Corte de alimentación eléctrica (disyuntor principal)",
+              "descripcion": "Retirar el panel de acceso del lado salida. Apagar el disyuntor principal del circuito. Para puertas intermedias, desconectar también el disyuntor de la puerta adyacente a la derecha.",
+              "riesgos": [
+                "Contacto eléctrico",
+                "Golpes al retirar el panel"
+              ],
+              "controles": [
+                "Verificar posición 0 del disyuntor antes de iniciar",
+                "Usar guantes de trabajo",
+                "Puertas intermedias: DOBLE desconexión obligatoria"
+              ]
+            },
+            {
+              "etapa": "Desobstrucción y limpieza de células",
+              "descripcion": "Retirar objetos o suciedad que tapen las células de detección. Limpiar las pantallas de ocultación con producto antiestático.",
+              "riesgos": [
+                "Daño al sensor",
+                "Contacto eléctrico residual"
+              ],
+              "controles": [
+                "Usar producto antiestático no abrasivo",
+                "No aplicar líquidos directamente sobre el sensor",
+                "Usar paño seco para las pantallas de ocultación"
+              ]
+            },
+            {
+              "etapa": "Inspección del estado de tiras de ocultación",
+              "descripcion": "Inspeccionar el estado físico de las tiras de ocultación de las células y reportar cualquier deterioro.",
+              "riesgos": [
+                "Cortes por tiras metálicas",
+                "Golpes"
+              ],
+              "controles": [
+                "Usar guantes",
+                "Inspección visual sin manipulación forzada",
+                "Reportar tira deteriorada para sustitución"
+              ]
+            },
+            {
+              "etapa": "Verificación de funcionamiento de células",
+              "descripcion": "Reconectar la alimentación y verificar que las células detecten correctamente el haz (indicador naranja activo al paso). Recolocar paneles.",
+              "riesgos": [
+                "Contacto eléctrico al reconectar",
+                "Atrapamiento"
+              ],
+              "controles": [
+                "Alejarse de la zona de obstáculos al reactivar",
+                "Verificar indicadores luminosos de cada célula",
+                "Reconectar cable de tierra antes de fijar el panel"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "b07_apertura_paneles_mantenimiento",
+          "titulo": "Apertura de paneles y mantenimiento interno PBC-PMR",
+          "trabajo_descripcion": "Apertura de paneles laterales de acceso (2 llaves, girar 90° antihorario, inclinar 30°, elevar y retirar), desconexión eléctrica, limpieza interna completa y comprobación de ajustes mecánicos del equipo PBC-PMR.",
+          "documentos": [
+            {
+              "tipo": "procedimiento",
+              "nombre": "P63-ID-0806-PRO-000-GR-00004",
+              "descripcion": "Procedimiento de Intervenciones Básicas PBC-PMR"
+            }
+          ],
+          "epp": [
+            "casco",
+            "lentes",
+            "zapatos",
+            "guantes",
+            "chaleco",
+            "manga_larga"
+          ],
+          "epp_condicional": [
+            "linterna_casco",
+            "protector_auditivo"
+          ],
+          "secuencia": [
+            {
+              "etapa": "Delimitación y señalización del área de trabajo",
+              "descripcion": "Colocar conos y señalización alrededor del equipo. Informar al jefe de estación que el equipo estará fuera de servicio durante la intervención.",
+              "riesgos": [
+                "Tránsito de pasajeros",
+                "Caída al mismo nivel"
+              ],
+              "controles": [
+                "Delimitar área con conos y cinta",
+                "Usar chaleco reflectante",
+                "Coordinar con jefe de estación"
+              ]
+            },
+            {
+              "etapa": "Corte de alimentación eléctrica (disyuntor principal)",
+              "descripcion": "Retirar el panel de acceso del lado salida. Apagar el disyuntor principal del circuito. Para puertas intermedias, desconectar también el disyuntor de la puerta adyacente a la derecha.",
+              "riesgos": [
+                "Contacto eléctrico",
+                "Golpes al retirar el panel"
+              ],
+              "controles": [
+                "Verificar posición 0 del disyuntor antes de iniciar",
+                "Usar guantes de trabajo",
+                "Puertas intermedias: DOBLE desconexión obligatoria"
+              ]
+            },
+            {
+              "etapa": "Apertura del panel de acceso con las dos llaves de servicio",
+              "descripcion": "Introducir ambas llaves en las cerraduras del panel, girar 90° antihorario. Inclinar el panel ±30° hacia sí mismo, elevarlo ligeramente y retirarlo. Desconectar el cable de tierra con cuidado. Situar el panel fuera del área de trabajo.",
+              "riesgos": [
+                "Caída del panel sobre el técnico",
+                "Golpes",
+                "Cortes",
+                "Daño al cable de tierra"
+              ],
+              "controles": [
+                "Sostener el panel con AMBAS manos en todo momento",
+                "Desconectar cable de tierra con suavidad",
+                "Apoyar el panel en superficie plana fuera del área"
+              ]
+            },
+            {
+              "etapa": "Limpieza interna sin humectar elementos eléctricos",
+              "descripcion": "Limpiar el interior con paños de microfibra y producto antiestático. Limpiar pantallas de ocultación. NO humectar células ni cables eléctricos.",
+              "riesgos": [
+                "Daño a componentes eléctricos por humedad",
+                "Golpes con componentes internos"
+              ],
+              "controles": [
+                "Usar paño levemente humedecido, nunca mojado",
+                "No aplicar producto directamente sobre componentes eléctricos",
+                "Usar linterna para visualizar correctamente el interior"
+              ]
+            },
+            {
+              "etapa": "Comprobación de ajustes mecánicos internos",
+              "descripcion": "Verificar estado y funcionamiento de cerraduras, tornillos, tuercas y elementos móviles. Comprobar fijación de células verticales de detección.",
+              "riesgos": [
+                "Atrapamiento en partes móviles",
+                "Cortes por bordes",
+                "Sobreesfuerzo"
+              ],
+              "controles": [
+                "No accionar mecanismos con la mano interpuesta",
+                "Usar herramienta adecuada por tipo de tornillo",
+                "Respetar torques de apriete recomendados"
+              ]
+            },
+            {
+              "etapa": "Recolocación de paneles, reconexión eléctrica y retiro de señalización",
+              "descripcion": "Reconectar el cable de tierra al panel. Recolocar y bloquear el panel con las dos llaves. Reconectar el disyuntor. Retirar señalización y habilitar el equipo.",
+              "riesgos": [
+                "Contacto eléctrico al reconectar",
+                "Atrapamiento de obstáculos al reactivar"
+              ],
+              "controles": [
+                "Reconectar cable de tierra antes de fijar el panel",
+                "Alejarse de obstáculos antes de reconectar",
+                "Verificar que no haya personas en la zona de movimiento de obstáculos"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "b08_inspeccion_conexiones_electricas",
+          "titulo": "Inspección de conexiones eléctricas PBC-PMR",
+          "trabajo_descripcion": "Inspección de todas las conexiones eléctricas y cables internos del equipo PBC-PMR con el equipo desenergizado, verificando integridad del aislamiento y estado de los conectores.",
+          "documentos": [
+            {
+              "tipo": "procedimiento",
+              "nombre": "P63-ID-0806-PRO-000-GR-00004",
+              "descripcion": "Procedimiento de Intervenciones Básicas PBC-PMR"
+            }
+          ],
+          "epp": [
+            "casco",
+            "lentes",
+            "zapatos",
+            "guantes",
+            "chaleco",
+            "manga_larga"
+          ],
+          "epp_condicional": [
+            "linterna_casco"
+          ],
+          "secuencia": [
+            {
+              "etapa": "Delimitación y señalización del área de trabajo",
+              "descripcion": "Colocar conos y señalización alrededor del equipo. Informar al jefe de estación que el equipo estará fuera de servicio durante la intervención.",
+              "riesgos": [
+                "Tránsito de pasajeros",
+                "Caída al mismo nivel"
+              ],
+              "controles": [
+                "Delimitar área con conos y cinta",
+                "Usar chaleco reflectante",
+                "Coordinar con jefe de estación"
+              ]
+            },
+            {
+              "etapa": "Corte de alimentación eléctrica (disyuntor principal)",
+              "descripcion": "Retirar el panel de acceso del lado salida. Apagar el disyuntor principal del circuito. Para puertas intermedias, desconectar también el disyuntor de la puerta adyacente a la derecha.",
+              "riesgos": [
+                "Contacto eléctrico",
+                "Golpes al retirar el panel"
+              ],
+              "controles": [
+                "Verificar posición 0 del disyuntor antes de iniciar",
+                "Usar guantes de trabajo",
+                "Puertas intermedias: DOBLE desconexión obligatoria"
+              ]
+            },
+            {
+              "etapa": "Inspección visual de cables y conectores",
+              "descripcion": "Revisar todos los cables y conectores internos. Verificar que no haya cables sueltos, aislación dañada o conectores en mala posición. No desconectar sin marcar primero el borne.",
+              "riesgos": [
+                "Contacto eléctrico residual",
+                "Cortocircuito por reconexión errónea"
+              ],
+              "controles": [
+                "Marcar cada borne con cinta o etiqueta antes de desconectar",
+                "No tocar terminales con manos desnudas",
+                "Usar linterna para mejor visibilidad"
+              ]
+            },
+            {
+              "etapa": "Documentación de anomalías y cierre del equipo",
+              "descripcion": "Registrar en el formulario cualquier cable dañado o conexión deficiente encontrada. Recolocar los paneles y reconectar la alimentación.",
+              "riesgos": [
+                "Contacto eléctrico al reconectar"
+              ],
+              "controles": [
+                "Reportar cables dañados al supervisor antes de reconectar",
+                "Reconectar cable de tierra antes de fijar el panel",
+                "Alejarse de obstáculos antes de reconectar el disyuntor"
+              ]
+            },
+            {
+              "etapa": "Recolocación de paneles, reconexión eléctrica y retiro de señalización",
+              "descripcion": "Reconectar el cable de tierra al panel. Recolocar y bloquear el panel con las dos llaves. Reconectar el disyuntor. Retirar señalización y habilitar el equipo.",
+              "riesgos": [
+                "Contacto eléctrico al reconectar",
+                "Atrapamiento de obstáculos al reactivar"
+              ],
+              "controles": [
+                "Reconectar cable de tierra antes de fijar el panel",
+                "Alejarse de obstáculos antes de reconectar",
+                "Verificar que no haya personas en la zona de movimiento de obstáculos"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "b09_ajuste_fuente_alimentacion",
+          "titulo": "Ajuste de fuente de alimentación 24V CC PBC-PMR",
+          "trabajo_descripcion": "Verificación y ajuste de la tensión de la fuente de alimentación de 24 V CC del equipo PBC-PMR con multímetro, seguido de comprobación de ciclos de apertura/cierre y funcionamiento completo.",
+          "documentos": [
+            {
+              "tipo": "procedimiento",
+              "nombre": "P63-ID-0806-PRO-000-GR-00004",
+              "descripcion": "Procedimiento de Intervenciones Básicas PBC-PMR"
+            }
+          ],
+          "epp": [
+            "casco",
+            "lentes",
+            "zapatos",
+            "guantes",
+            "chaleco",
+            "manga_larga"
+          ],
+          "epp_condicional": [
+            "linterna_casco"
+          ],
+          "secuencia": [
+            {
+              "etapa": "Delimitación y señalización del área de trabajo",
+              "descripcion": "Colocar conos y señalización alrededor del equipo. Informar al jefe de estación que el equipo estará fuera de servicio durante la intervención.",
+              "riesgos": [
+                "Tránsito de pasajeros",
+                "Caída al mismo nivel"
+              ],
+              "controles": [
+                "Delimitar área con conos y cinta",
+                "Usar chaleco reflectante",
+                "Coordinar con jefe de estación"
+              ]
+            },
+            {
+              "etapa": "Preparación de herramientas de medición",
+              "descripcion": "Preparar multímetro o polímetro para medición de tensión CC. Verificar calibración del instrumento.",
+              "riesgos": [
+                "Contacto eléctrico durante medición bajo tensión"
+              ],
+              "controles": [
+                "Usar guantes aislantes durante mediciones",
+                "Verificar calibración del instrumento"
+              ]
+            },
+            {
+              "etapa": "Medición y ajuste de la tensión de salida (24 V CC)",
+              "descripcion": "Con el equipo energizado, medir la tensión de salida de la fuente de 24 V CC. Si está fuera del rango esperado, ajustar el potenciómetro de la fuente.",
+              "riesgos": [
+                "Contacto eléctrico",
+                "Cortocircuito por contacto de puntas de medición"
+              ],
+              "controles": [
+                "Usar protección aislante al manejar partes bajo tensión",
+                "Mantener una sola mano dentro del equipo durante la medición",
+                "No apoyar herramientas metálicas sobre componentes energizados"
+              ]
+            },
+            {
+              "etapa": "Prueba de ciclos de apertura y cierre de obstáculos",
+              "descripcion": "Realizar ciclos de apertura/cierre de los obstáculos verificando suavidad de movimiento y apertura completa en modo normal y durante simulación de corte eléctrico.",
+              "riesgos": [
+                "Atrapamiento en obstáculos móviles durante la prueba"
+              ],
+              "controles": [
+                "Alejarse de la zona de movimiento de obstáculos",
+                "No interponer extremidades en la trayectoria",
+                "Reportar movimiento irregular al supervisor"
+              ]
+            },
+            {
+              "etapa": "Limpieza final y cierre del equipo",
+              "descripcion": "Limpiar pantallas con producto para vidrios. Verificar que los paneles estén correctamente fijados y retirar señalización.",
+              "riesgos": [
+                "Caída al mismo nivel"
+              ],
+              "controles": [
+                "Verificar que no queden herramientas al interior antes de cerrar",
+                "Retirar señalización",
+                "Registrar la actividad en el formulario"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

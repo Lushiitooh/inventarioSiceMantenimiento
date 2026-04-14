@@ -1,0 +1,32 @@
+{
+  "id": "al10064-mto63",
+  "nombre": "Mantenimiento de Comunicaciones Línea 3 y Línea 6",
+  "codigo_interno": "AL10064",
+  "codigo_mandante": "MN-MTO-PRUEBA",
+  "empresa": "SICE AGENCIA CHILE S.A",
+  "obra_area": "Mantenimiento de Comunicaciones Línea 3 y Línea 6.",
+  "lugares": [
+    "Estación Universidad de Chile"
+  ],
+  "supervisores": [
+    "Felipe Galvez"
+  ],
+  "prevencionistas": [
+    "Javier Erazo Godoy"
+  ],
+  "trabajadores": [
+    "Antonio Narvaez"
+  ],
+  "formularios": {
+    "ast": {
+      "codigo": "FTO-AL10064-01",
+      "version": "01",
+      "nombre": "Análisis de Seguridad en el Trabajo"
+    },
+    "checklist": {
+      "codigo": "FTO-AL10064-24",
+      "version": "03",
+      "nombre": "Inspección de Herramientas Manuales"
+    }
+  }
+}

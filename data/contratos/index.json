@@ -13,6 +13,12 @@
       "nombre": "Suministro de Puertas Bidireccionales de Control en 7 Estaciones de la Red de Metro",
       "codigo_interno": "AL10195",
       "codigo_mandante": "Por definir"
+    },
+    {
+      "id": "al10064-mto63",
+      "nombre": "Mantenimiento de Comunicaciones Línea 3 y Línea 6",
+      "codigo_interno": "AL10064",
+      "codigo_mandante": "MN-MTO-PRUEBA"
     }
   ]
 }
