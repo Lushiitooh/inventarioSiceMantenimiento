@@ -18,7 +18,8 @@ export default defineComponent({
       // Generar nombre único para el archivo
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const lugar = astData.lugar ? astData.lugar.replace(/[^a-zA-Z0-9]/g, '_') : 'documento';
-      const filename = `AST_${lugar}_${timestamp}.pdf`;
+      const contratoCode = astData.codigo_interno ? astData.codigo_interno.replace(/[^a-zA-Z0-9]/g, '_') : 'SICE';
+      const filename = `AST_${contratoCode}_${lugar}_${timestamp}.pdf`;
       
       // IMPORTANTE: Usar /tmp como en tu código que funciona
       const filePath = `/tmp/${filename}`;
@@ -397,7 +398,7 @@ export default defineComponent({
       // Fila 1: Código
       doc.text('Código:', infoBlockX + 2, headerY + 2);
       doc.fontSize(8).font('Helvetica');
-      doc.text('FTO-AL10195-01', separatorX + 2, headerY + 2, { 
+      doc.text(astData.codigo_formulario || 'FTO-AL10195-01', separatorX + 2, headerY + 2, {
         width: getCombinedWidth('T', 'V') - 4, 
         align: 'center' 
       });
@@ -483,7 +484,7 @@ export default defineComponent({
       });
       
       // Valor obra (F6:V6)
-      const obraTexto = astData.obra_area || 'Suministro de Puertas Bidireccionales de Control en 7 Estaciones de la Red de Metro';
+      const obraTexto = astData.obra_area || astData.contrato_nombre || '';
       drawCell(obraTexto, 'F', 'V', currentY, { 
         height: rowHeights.normal, 
         fontSize: 7 
