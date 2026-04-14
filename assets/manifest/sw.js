@@ -1,6 +1,6 @@
 // assets/manifest/sw.js - Service Worker Corregido para PWA
 
-const CACHE_NAME = 'inventario-epp-cache-v5-fixed';
+const CACHE_NAME = 'inventario-epp-cache-v6';
 
 // Lista de archivos críticos a cachear
 const urlsToCache = [
@@ -8,8 +8,8 @@ const urlsToCache = [
   '/inventarioSiceMantenimiento/index.html',
   '/inventarioSiceMantenimiento/pages/inventario.html',
   '/inventarioSiceMantenimiento/pages/certificados.html',
-  '/inventarioSiceMantenimiento/pages/checklist.html',
-  '/inventarioSiceMantenimiento/pages/formulario-ast.html',
+  '/inventarioSiceMantenimiento/documentacion-digital/checklist.html',
+  '/inventarioSiceMantenimiento/documentacion-digital/ast.html',
   '/inventarioSiceMantenimiento/pages/personal.html',
   '/inventarioSiceMantenimiento/components/navbar.html',
   '/inventarioSiceMantenimiento/assets/css/styles.css',

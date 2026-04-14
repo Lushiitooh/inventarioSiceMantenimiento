@@ -1,35 +1,51 @@
 // assets/js/navbar.js (Versión actualizada para template unificado)
 
 document.addEventListener('DOMContentLoaded', function () {
-    console.log("🧭 Inicializando navbar v2.0 - Template Unificado");
+    console.log("🧭 Inicializando navbar v2.1 - Soporte multi-carpeta");
 
-    // CONFIGURACIÓN ACTUALIZADA: Removemos páginas de inventario separadas
+    // CONFIGURACIÓN: Mapa de páginas para resaltar enlace activo en navbar
     const pageConfig = {
         'index.html': 'home',
         'personal.html': 'personal',
         'certificados.html': 'certificados',
         'checklist.html': 'checklist',
-        'formulario-ast.html': 'formulario-ast'
+        'ast.html': 'ast'
         // inventario.html se maneja por separado con parámetros
     };
 
-    // Función para obtener la ruta correcta a la navbar
-    function getNavbarUrl() {
+    // Detectar en qué subcarpeta estamos
+    function getSubfolder() {
         const path = window.location.pathname;
-        // Si la ruta incluye '/pages/', estamos en una subcarpeta
-        return path.includes('/pages/') ? '../components/navbar.html' : './components/navbar.html';
+        if (path.includes('/pages/')) return 'pages';
+        if (path.includes('/documentacion-digital/')) return 'documentacion-digital';
+        return 'root';
     }
-    
-    // Función para obtener la ruta correcta para los enlaces de navegación
+
+    // Función para obtener la ruta correcta a la navbar según subcarpeta
+    function getNavbarUrl() {
+        const subfolder = getSubfolder();
+        return (subfolder === 'root') ? './components/navbar.html' : '../components/navbar.html';
+    }
+
+    // Función para ajustar los hrefs del navbar según subcarpeta actual
     function getLinkPath(href) {
-        const isInSubfolder = window.location.pathname.includes('/pages/');
-        if (href.startsWith('./pages')) {
-            return isInSubfolder ? href.replace('./pages/', './') : href;
+        const subfolder = getSubfolder();
+
+        if (subfolder === 'pages') {
+            // Desde /pages/: subir un nivel para acceder a root y documentacion-digital
+            if (href.startsWith('./pages/'))               return href.replace('./pages/', './');
+            if (href.startsWith('./documentacion-digital/')) return href.replace('./', '../');
+            if (href === './index.html')                   return '../index.html';
         }
-        if (href === './index.html') {
-            return isInSubfolder ? '../index.html' : './index.html';
+
+        if (subfolder === 'documentacion-digital') {
+            // Desde /documentacion-digital/: subir un nivel para acceder a root y pages
+            if (href.startsWith('./pages/'))               return href.replace('./', '../');
+            if (href.startsWith('./documentacion-digital/')) return href.replace('./documentacion-digital/', './');
+            if (href === './index.html')                   return '../index.html';
         }
-        return href;
+
+        return href; // Desde root: los hrefs del navbar ya son correctos
     }
 
     async function initializeNavbar() {

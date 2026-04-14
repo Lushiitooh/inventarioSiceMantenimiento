@@ -21,6 +21,9 @@
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen">
 
+    <!-- Navbar compartido -->
+    <div id="navbar-placeholder"></div>
+
     <!-- Contenido Principal -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6 lg:p-8">
@@ -157,7 +160,7 @@
 
                 <!-- BOTONES -->
                 <div class="flex gap-4 justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
-                    <button type="button" onclick="window.location.href='index.html'"
+                    <button type="button" onclick="window.location.href='../index.html'"
                             class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
                         Cancelar
                     </button>
@@ -170,7 +173,10 @@
         </div>
     </div>
 
-    <!-- Scripts -->
+    <!-- Navbar loader (carga ../components/navbar.html con rutas ajustadas) -->
+    <script src="../assets/js/navbar.js"></script>
+
+    <!-- Módulo Checklist -->
     <script type="module" src="./modules/checklist/checklist.js"></script>
 </body>
 </html>

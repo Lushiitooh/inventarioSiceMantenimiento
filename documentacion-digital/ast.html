@@ -20,11 +20,53 @@
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
 </head>
 <body class="bg-gray-50">
-    
+
+    <!-- Navbar compartido -->
+    <div id="navbar-placeholder"></div>
+
     <!-- Contenido Principal -->
     <main class="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 min-h-screen">
         <form id="astForm" class="form-container fade-in">
-            
+
+            <!-- AUTOCOMPLETAR desde actividades.json -->
+            <section class="form-section" style="background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%); border: 2px solid #3b82f6; border-radius: 12px;">
+                <div class="section-header" style="border-bottom-color: #bfdbfe;">
+                    <h3 class="section-title" style="color: #1d4ed8;">
+                        <span class="section-icon" style="background: #1d4ed8;">⚡</span>
+                        Autocompletar desde Catálogo de Actividades
+                    </h3>
+                </div>
+                <p style="font-size: 0.875rem; color: #3b82f6; margin-bottom: 1.25rem;">
+                    Selecciona el tipo de intervención y la actividad para precargar automáticamente: trabajo, EPP, documentos de respaldo y etapas de seguridad.
+                </p>
+
+                <div class="form-grid form-grid-2">
+                    <div>
+                        <label for="grupo_actividad" class="form-label">Tipo de Intervención</label>
+                        <select id="grupo_actividad" class="form-select">
+                            <option value="">Cargando catálogo...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="actividad_select" class="form-label">Actividad</label>
+                        <select id="actividad_select" class="form-select" disabled>
+                            <option value="">Primero seleccione tipo...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1.25rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                    <button type="button" id="btn-autorellenar" class="btn btn-primary" disabled
+                            style="background: #1d4ed8; display: flex; align-items: center; gap: 0.5rem;">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                        Autocompletar Formulario
+                    </button>
+                    <span id="autofill-status" style="font-size: 0.875rem; color: #6b7280;"></span>
+                </div>
+            </section>
+
             <!-- Cabecera -->
             <div class="form-header">
                 <h2>ANÁLISIS DE SEGURIDAD EN EL TRABAJO (AST)</h2>
@@ -255,7 +297,7 @@
             <!-- Botones -->
             <div class="form-section">
                 <div style="display: flex; gap: 1rem; justify-content: flex-end; padding-top: 2rem; border-top: 1px solid var(--neutral-200);">
-                    <button type="button" class="btn btn-secondary" onclick="window.location.href='index.html'">
+                    <button type="button" class="btn btn-secondary" onclick="window.location.href='../index.html'">
                         Cancelar
                     </button>
                     <button type="submit" class="btn btn-primary">
@@ -266,7 +308,10 @@
         </form>
     </main>
 
-    <!-- Scripts -->
+    <!-- Navbar loader (carga ../components/navbar.html con rutas ajustadas) -->
+    <script src="../assets/js/navbar.js"></script>
+
+    <!-- Módulo AST -->
     <script type="module" src="./modules/ast/ast.js"></script>
 </body>
 </html>
